@@ -1,0 +1,5 @@
+Todo:
+- optimise: asm.js for AI
+- graphics: webgl
+- tools: bitviewer
+- multiplayer: websockets?
