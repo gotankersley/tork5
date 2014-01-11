@@ -1,0 +1,64 @@
+<!DOCYTYPE html>
+<html>
+<head>
+<title>Bit viewer</title>
+<link rel="stylesheet" href="bitviewer.css" />
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="bitviewer.js"></script>
+
+</head>
+<body>
+
+<!-- Board -->
+<table id="board" border="1">
+<tr>
+    <!-- Quad 0 --> 
+    <td>
+    <table id="quad0" class="quad" border="1">
+    <tr><td>0</td><td>1</td><td>2</td></tr>
+    <tr><td>7</td><td>8</td><td>3</td></tr>
+    <tr><td>6</td><td>5</td><td>4</td></tr>
+    </table>
+    </td>
+    
+    <!-- Quad 1 --> 
+    <td>
+    <table id="quad1" class="quad" border="1">
+    <tr><td>9</td><td>10</td><td>11</td></tr>
+    <tr><td>16</td><td>17</td><td>12</td></tr>
+    <tr><td>15</td><td>14</td><td>13</td></tr>
+    </table>
+    </td>
+</tr>
+<tr>    
+    <!-- Quad 2 --> 
+    <td>
+    <table id="quad2" class="quad" border="1">
+    <tr><td>18</td><td>19</td><td>20</td></tr>
+    <tr><td>25</td><td>26</td><td>21</td></tr>
+    <tr><td>24</td><td>23</td><td>22</td></tr>
+    </table>
+    </td>
+    
+    <!-- Quad 3 --> 
+    <td>
+    <table id="quad3" class="quad" border="1">
+    <tr><td>27</td><td>28</td><td>29</td></tr>
+    <tr><td>34</td><td>35</td><td>30</td></tr>
+    <tr><td>33</td><td>32</td><td>31</td></tr>
+    </table>
+    </td>
+</tr>
+</table>
+
+<!-- Conversion tools -->
+<div id="tools">
+<input type="text" id="inputBoard" size="60"/>
+<button onclick="setBoard();">Set</button>
+<button onclick="resetBoard();">Reset</button><br/>
+Binary: <span id="outBin"></span><br/>
+Hex: <span id="outHex"></span><br/>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+#board {
+    border: 2px solid #000;
+    border-collapse: collapse;
+} 
+
+
+.quad { 
+    border: 1px solid gray;
+    border-collapse: collapse;
+    cursor: pointer;
+    height: 300px;
+    text-align: center;
+    width: 300px;   
+}
+
+.quad td:hover {
+    background-color: #9cf;
+}
+
+.active {
+    background-color: #f00;
+}
