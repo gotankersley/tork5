@@ -1,4 +1,4 @@
-var SPOTS = 36;
+var SPACES = 36;
 var BITS_PER_BYTE = 4;
 var ROW = [0,0,0,1,2,2,2,1,1,0,0,0,1,2,2,2,1,1,3,3,3,4,5,5,5,4,4,3,3,3,4,5,5,5,4,4];
 var COL = [0,1,2,2,2,1,0,0,1,3,4,5,5,5,4,3,3,4,0,1,2,2,2,1,0,0,1,3,4,5,5,5,4,3,3,4];
@@ -38,21 +38,22 @@ function setBoard() {
     var bitStr;
     
     //Don't need to convert if already binary
-    if (input.length == SPOTS) bitStr = input;
+    if (input.length == SPACES) bitStr = input;
     else //Either decimal or hex
     {
         bitStr = parseInt(input).toString(2);
-        bitStr = padStr(bitStr, SPOTS);    
+        bitStr = padStr(bitStr, SPACES);    
     }
     
     $('.quad td').each(function(){ 
         var ind = $(this).html();
-        if (bitStr.charAt(SPOTS - ind - 1) == '1') $(this).addClass('active');
+        if (bitStr.charAt(SPACES - ind - 1) == '1') $(this).addClass('active');
     });
     calculate();  
 }
 function resetBoard() {
     $('.active').removeClass('active');
+    $('#inputBoard').html();
     calculate();
 }
 
@@ -66,13 +67,13 @@ function onToggleSpot(e) {
 
 //Conversion functions
 function calculate() {    
-    var bitStr = padStr('', SPOTS);
+    var bitStr = padStr('', SPACES);
     $('.quad .active').each(function(){    
         var ind = $(this).html();
-        bitStr = setChar(bitStr, (SPOTS - ind - 1), 1);
+        bitStr = setChar(bitStr, (SPACES - ind - 1), 1);
     });
     $('#outBin').html(bitStr);
-    $('#outHex').html(toHex(bitStr, SPOTS));
+    $('#outHex').html(toHex(bitStr, SPACES));
 }
 
 function toHex(bitStr, length) {
