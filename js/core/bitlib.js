@@ -13,7 +13,7 @@ function or(n1, n2) {
 }
 
 function not(n) {
-    return (((~(n/0xffffffff)) >>> 0) * 0x100000000) + (~n >>> 0);
+    return ((((~(n/0xffffffff)) >>> 0) ^ 0xfffffff0) * 0x100000000) + (~n >>> 0);
 }
 
 function shiftL(n, x) {
