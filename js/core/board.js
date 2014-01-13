@@ -27,15 +27,16 @@ Space: One of 36 spaces a player can place a pin
 //Constants
 var PLAYER_1 = 0;
 var PLAYER_2 = 1;
+var EMPTY = -1;
 
 var ROT_LEFT = 0;
 var ROT_RIGHT = 1;
 
 var SPACES = 36;
 var NUM_TO_WIN = 5;
-var ROW_SIZE = 6;
-var COL_SIZE = 6;
-var QUAD_SIZE = 9;
+var ROW_COUNT = 6;
+var COL_COUNT = 6;
+var QUAD_COUNT = 9;
 
 //Index maps
 var ROW = [0,0,0,1,2,2,2,1,1,0,0,0,1,2,2,2,1,1,3,3,3,4,5,5,5,4,4,3,3,3,4,5,5,5,4,4];
@@ -56,7 +57,7 @@ var QUADS = [0xff,0x1fe00,0x3fc0000,0x7f8000000]; //Doesn't include centers
 
 var WINS = [
     0x30400c1,0x4880122,0x70001c,0x608018200,0x910024400,0xe0003800, //Vertical
-    0e07x,0x31188,0xe070,0x381c0000,0xc46200000,0x381c00000, //Horizontal
+    0xe07,0x31188,0xe070,0x381c0000,0xc46200000,0x381c00000, //Horizontal
     0x5000800a,0x888000111,0x5001000a0, //Diagonal top-left to bottom-right
     0x2090410,0x5128800,0x8a05000 //Diagonal top-right to bottom-left
 ];
@@ -96,23 +97,24 @@ Board.prototype.move = function(ind, quadId, dir) {
     this.turn != this.turn;    
 }
     
-Board.prototype.addPin = function(ind) {        
+Board.prototype.addPin = function(row,col) {        
+	var ind = IND[row][col];
     if (this.isOpen(ind)) {                
-        if (this.turn == PLAYER_1) this.p1 ^= mpos(ind);        
-        else this.p2 ^= mpos(ind); //Player 2
+        if (this.turn == PLAYER_1) this.p1 = xor(this.p1,mpos(ind));        
+        else this.p2 = xor(this.p2, mpos(ind)); //Player 2
     }    
 }
 
 Board.prototype.rotateBoard = function(board, quadId,dir) {      
 	//Extract quad from board  
-	var quadUnshifted = (and(board, QUADS[quadId]);
-    var quad = shiftR(quadUnshifted, quadId * QUAD_SIZE); 
+	var quadUnshifted = (and(board, QUADS[quadId]));
+    var quad = shiftR(quadUnshifted, quadId * QUAD_COUNT); 
     
     //Bitwise rotate, 3 places will rotate 90 degrees
     var rotQuad = (dir == ROT_RIGHT)? rotR(quad,3) : rotL(quad,3);    
 	
     //Add the rotated quad back to the board
-	var quadShifted = shiftL(rotQuad, quadId * QUAD_SIZE);
+	var quadShifted = shiftL(rotQuad, quadId * QUAD_COUNT);
     var rotBoard = xor(board, QUADS[quadId]);
 	rotBoard = xor(rotBoard, quadShifted);
     if (this.turn == PLAYER_1) this.p1 = rotBoard;
@@ -123,7 +125,7 @@ Board.prototype.rotateBoard = function(board, quadId,dir) {
 Board.prototype.isWin = function(board) {    
     if (this.moveCount >= SPACES) return true;
     else if (bitCount(board) <= NUM_TO_WIN) return false;
-    for(int w = 0; w < WINS.length; w++) {
+    for(var w = 0; w < WINS.length; w++) {
         if (and(board, WINS[w])) {
             if (and(board, WIN_MIDS[w]) == WIN_MIDS[w]) return true;
         }
@@ -131,10 +133,17 @@ Board.prototype.isWin = function(board) {
     return false;
 }
 
+Board.prototype.get = function(row, col) {
+	var ind = IND[row][col];
+	if (and(this.p1,ind)) return PLAYER_1;
+	else if (and(this.p2,ind)) return PLAYER_2;
+	else return EMPTY;
+}
+
 Board.prototype.show = function() {    
-    for (var r = 0; r < ROW_SIZE; r++) {
-        for (var c = 0; c < COL_SIZE; c++) {            
-            var ind = IND[r,c];            
+    for (var r = 0; r < ROW_COUNT; r++) {
+        for (var c = 0; c < COL_COUNT; c++) {            
+            var ind = IND[r][c];            
             var space = ' ';
             if (and(this.p1, mpos(ind))) space = 'X';
             else if (and(this.p2, mpos(ind))) space = 'O';
@@ -144,7 +153,4 @@ Board.prototype.show = function() {
     }
 }
 
-Board.prototype.toString = function() {    
-    return '[object Board]';
-}
 //End class Board
