@@ -17,7 +17,7 @@ Board: The entire 6x6 playing board with 36 spaces
 Quad: One of the 3x3 sub-boards
 Units: [start range - end range]
 - x,y: screen coordinates measured in pixels.  [0 ~ 1024px]
-- row,col: used with 2D board array  [0 - 6]
+- row,col: used with 2D board array, useful for display  [0 - 6]
 - ind: index of bitboard array [0 - 36]
 - mpos: a bitboard mask position. i.e mpos = (1 << ind). [0 - 2^36]
 Pin: The player's piece
@@ -33,6 +33,11 @@ var ROT_RIGHT = 1;
 
 var SPACES = 36;
 var NUM_TO_WIN = 5;
+var ROW_SIZE = 6;
+var COL_SIZE = 6;
+var QUAD_SIZE = 9;
+
+//Index maps
 var ROW = [0,0,0,1,2,2,2,1,1,0,0,0,1,2,2,2,1,1,3,3,3,4,5,5,5,4,4,3,3,3,4,5,5,5,4,4];
 var COL = [0,1,2,2,2,1,0,0,1,3,4,5,5,5,4,3,3,4,0,1,2,2,2,1,0,0,1,3,4,5,5,5,4,3,3,4];
 var IND = [
@@ -72,8 +77,8 @@ function Board() {
 }
 
 Board.prototype.isOpen = function(ind) {    
-    var avail = ~(this.p1 | this.p2); //Double check this   
-    return (avail & (1 << ind));
+    var avail = not(or(this.p1,this.p2)); 
+    return and(avail, set(ind));
 }
 
 Board.prototype.move = function(ind, quadId, dir) {    
@@ -100,16 +105,15 @@ Board.prototype.addPin = function(ind) {
 }
 
 Board.prototype.rotateBoard = function(board, quadId,dir) {        
-    var quad = (board & QUADS[quadId]); //Extract quad from board
+    var quad = (board & QUADS[quadId]) >>> (quadId * QUAD_SIZE); //Extract quad from board
     
     //Shift 3 places to rotate 90.  Since bitwise rotate, bring other side around 5 shifted places
     var rotQuad;
     if (dir == ROT_RIGHT) rotQuad = (quad << 3) | (quad >>> 5); 
     else rotQuad = (quad >>> 3) | (quad << 5); //rot left
 	
-    //Add the rot
-    ated quad back to the board
-    var rotBoard = (board ^ quad) ^ rotQuad;    
+    //Add the rotated quad back to the board
+    var rotBoard = (board ^ QUADS[quadId]) ^ (rotQuad << (quadId * QUAD_SIZE));
     if (this.turn == PLAYER_1) this.p1 = rotBoard;
     else this.p2 = rotBoard;
     return rotBoard;
@@ -125,8 +129,22 @@ Board.prototype.isWin = function(board) {
     }
     return false;
 }
-//End class Board
 
-function bitCount(num) {
-    return 0;
+Board.prototype.show = function() {    
+    for (var r = 0; r < ROW_SIZE; r++) {
+        for (var c = 0; c < COL_SIZE; c++) {            
+            var ind = IND[r,c];
+            var mpos = 1 << ind;
+            var space = ' ';
+            if (this.p1 & mpos) space = 'X';
+            else if (this.p2 & mpos) space = 'O';
+            console.log(space);
+        }
+        console.log('\n');
+    }
 }
+
+Board.prototype.toString = function() {    
+    
+}
+//End class Board
