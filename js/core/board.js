@@ -81,7 +81,7 @@ Board.prototype.isOpen = function(ind) {
     var avail = not(or(this.p1,this.p2)); 
     return and(avail, mpos(ind));
 }
-
+/*
 Board.prototype.move = function(ind, quadId, dir) {    
     this.addPin(ind);    
     
@@ -96,14 +96,25 @@ Board.prototype.move = function(ind, quadId, dir) {
     this.moveCount++;
     this.turn != this.turn;    
 }
+*/
     
-Board.prototype.addPin = function(row,col) {        
+Board.prototype.set = function(row,col) {        
 	var ind = IND[row][col];
-    if (this.isOpen(ind)) {                
-        if (this.turn == PLAYER_1) this.p1 = xor(this.p1,mpos(ind));        
-        else this.p2 = xor(this.p2, mpos(ind)); //Player 2
-    }    
+	this.p1 = xor(this.p1,mpos(ind)); 	
+    //if (this.isOpen(ind)) {                
+        //if (this.turn == PLAYER_1) this.p1 = xor(this.p1,mpos(ind));        
+        //else this.p2 = xor(this.p2, mpos(ind)); //Player 2
+    //}    
 }
+
+Board.prototype.get = function(row, col) {
+	var ind = IND[row][col];
+	var mp = mpos(ind);
+	if (and(this.p1,mp)) return PLAYER_1;	
+	else if (and(this.p2,mp)) return PLAYER_2;
+	else return EMPTY;
+}
+
 
 Board.prototype.rotateBoard = function(board, quadId,dir) {      
 	//Extract quad from board  
@@ -131,13 +142,6 @@ Board.prototype.isWin = function(board) {
         }
     }
     return false;
-}
-
-Board.prototype.get = function(row, col) {
-	var ind = IND[row][col];
-	if (and(this.p1,ind)) return PLAYER_1;
-	else if (and(this.p2,ind)) return PLAYER_2;
-	else return EMPTY;
 }
 
 Board.prototype.show = function() {    

@@ -16,7 +16,7 @@ function Game() {
 Game.prototype.onClick = function(e) {
 	var r = Math.floor(e.offsetY / UNIT_SIZE);
 	var c = Math.floor(e.offsetX / UNIT_SIZE);	
-	game.board.addPin(r,c);
+	game.board.set(r,c);
 	game.drawBoard();	
 }
 
@@ -47,9 +47,9 @@ Game.prototype.drawBoard = function() {
 		
 		for (var c = 0; c < COL_COUNT; c++) {
 			var x = c * UNIT_SIZE;
-			var p = this.board.get(r,c);
-			if (p == PLAYER_1) this.drawCircle(x - HALF_UNIT,y +HALF_UNIT, HALF_UNIT);			
-		}
+			var p = this.board.get(r,c);			
+			if (p == PLAYER_1) this.drawCircle(x + HALF_UNIT,y+ HALF_UNIT, HALF_UNIT);						
+		}		
 	}
 	
 	//Quad grid lines
