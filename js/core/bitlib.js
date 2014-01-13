@@ -13,15 +13,27 @@ function or(n1, n2) {
 }
 
 function not(n) {
-    return (~(n/0xffffffff)) + (~n);
+    return (((~(n/0xffffffff)) >>> 0) * 0x100000000) + (~n >>> 0);
 }
 
-function rotL(n,x) {
-
+function shiftL(n, x) {
+	return Math.floor(n*Math.pow(2,x));
 }
 
-function rotR(n,x) {
+function shiftR(n,x) {
+	return Math.floor(n/Math.pow(2,x));
+}
 
+function rotL(n,x) { //int32 only
+	return (n >>> 3)|(n << (32-x));
+}
+
+function rotR(n,x) { //int32 only
+	return (n << x)|(n >>> (32-x));
+}
+
+function mpos(ind) {
+	return Math.pow(2,ind);
 }
 
 function bitCount(x) {

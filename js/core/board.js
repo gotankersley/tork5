@@ -78,7 +78,7 @@ function Board() {
 
 Board.prototype.isOpen = function(ind) {    
     var avail = not(or(this.p1,this.p2)); 
-    return and(avail, set(ind));
+    return and(avail, mpos(ind));
 }
 
 Board.prototype.move = function(ind, quadId, dir) {    
@@ -97,34 +97,35 @@ Board.prototype.move = function(ind, quadId, dir) {
 }
     
 Board.prototype.addPin = function(ind) {        
-    if (this.isOpen(ind)) {        
-        mpos = (1 << ind);
-        if (this.turn == PLAYER_1) this.p1 ^= mpos;        
-        else this.p2 ^= mpos; //Player 2
+    if (this.isOpen(ind)) {                
+        if (this.turn == PLAYER_1) this.p1 ^= mpos(ind);        
+        else this.p2 ^= mpos(ind); //Player 2
     }    
 }
 
-Board.prototype.rotateBoard = function(board, quadId,dir) {        
-    var quad = (board & QUADS[quadId]) >>> (quadId * QUAD_SIZE); //Extract quad from board
+Board.prototype.rotateBoard = function(board, quadId,dir) {      
+	//Extract quad from board  
+	var quadUnshifted = (and(board, QUADS[quadId]);
+    var quad = shiftR(quadUnshifted, quadId * QUAD_SIZE); 
     
-    //Shift 3 places to rotate 90.  Since bitwise rotate, bring other side around 5 shifted places
-    var rotQuad;
-    if (dir == ROT_RIGHT) rotQuad = (quad << 3) | (quad >>> 5); 
-    else rotQuad = (quad >>> 3) | (quad << 5); //rot left
+    //Bitwise rotate, 3 places will rotate 90 degrees
+    var rotQuad = (dir == ROT_RIGHT)? rotR(quad,3) : rotL(quad,3);    
 	
     //Add the rotated quad back to the board
-    var rotBoard = (board ^ QUADS[quadId]) ^ (rotQuad << (quadId * QUAD_SIZE));
+	var quadShifted = shiftL(rotQuad, quadId * QUAD_SIZE);
+    var rotBoard = xor(board, QUADS[quadId]);
+	rotBoard = xor(rotBoard, quadShifted);
     if (this.turn == PLAYER_1) this.p1 = rotBoard;
     else this.p2 = rotBoard;
     return rotBoard;
 }
 
 Board.prototype.isWin = function(board) {    
-    if (this.moveCount == SPACES) return true;
+    if (this.moveCount >= SPACES) return true;
     else if (bitCount(board) <= NUM_TO_WIN) return false;
     for(int w = 0; w < WINS.length; w++) {
-        if (board & WINS[w]) {
-            if (board & WIN_MIDS[w] == WIN_MIDS[w]) return true;
+        if (and(board, WINS[w])) {
+            if (and(board, WIN_MIDS[w]) == WIN_MIDS[w]) return true;
         }
     }
     return false;
@@ -133,11 +134,10 @@ Board.prototype.isWin = function(board) {
 Board.prototype.show = function() {    
     for (var r = 0; r < ROW_SIZE; r++) {
         for (var c = 0; c < COL_SIZE; c++) {            
-            var ind = IND[r,c];
-            var mpos = 1 << ind;
+            var ind = IND[r,c];            
             var space = ' ';
-            if (this.p1 & mpos) space = 'X';
-            else if (this.p2 & mpos) space = 'O';
+            if (and(this.p1, mpos(ind))) space = 'X';
+            else if (and(this.p2, mpos(ind))) space = 'O';
             console.log(space);
         }
         console.log('\n');
@@ -145,6 +145,6 @@ Board.prototype.show = function() {
 }
 
 Board.prototype.toString = function() {    
-    
+    return '[object Board]';
 }
 //End class Board
