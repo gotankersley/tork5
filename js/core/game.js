@@ -9,6 +9,9 @@ var CANVAS_OFFSET = (CANVAS_SIZE - BOARD_SIZE) / 2;
 var COLOR_P1 = '#C00';
 var COLOR_P2 = '#06c';
 var COLOR_CURSOR = '#cfc';
+var COLOR_QUAD = '#000';
+var COLOR_GRID = '#c0c0c0';
+var COLOR_ARROW = '#e0e0e0';
 
 //Class Game
 function Game() {
@@ -50,20 +53,41 @@ Game.prototype.drawCircle = function(x, y, r, color) {
 	this.ctx.fill();		
 }
 
+Game.prototype.drawArrow = function(x, y, w, h) {	
+	this.ctx.fillRect(x + h, y, w, h); 
+	this.ctx.beginPath();
+	this.ctx.moveTo(x + h, y - h);
+	this.ctx.lineTo(x + h, y + (2*h));
+	this.ctx.lineTo(x, y +(h/2));	
+	this.ctx.closePath();
+	this.ctx.fill();
+}
+
 Game.prototype.drawBoard = function() {
-	this.ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);
-	this.ctx.strokeStyle = '#c0c0c0';	
-	this.ctx.setTransform(1, 0, 0, 1, 100, 100);
+	this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+	this.ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
 	
+	//Draw turn			
+	this.ctx.fillStyle = (this.board.turn == PLAYER_1)? COLOR_P1 : COLOR_P2;
+	this.ctx.font = '14pt sans-serif';	
+	this.ctx.fillText('Player' + (this.board.turn + 1) + '\'s turn', 10, 20);	
+		
+	this.ctx.setTransform(1, 0, 0, 1, CANVAS_OFFSET, CANVAS_OFFSET);
+		
     //Draw cursor
-    var cursorX = this.cursorC * UNIT_SIZE;
-    var cursorY = this.cursorR * UNIT_SIZE;
+    var cursorX = toXY(this.cursorC);
+    var cursorY = toXY(this.cursorR);
     this.ctx.fillStyle = COLOR_CURSOR;
     this.ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);
-            
+    
+	//Draw arrows	
+	this.ctx.fillStyle = COLOR_ARROW;
+	this.drawArrow(0, -30, 150, 10);
+		
 	var y;
+	this.ctx.strokeStyle = COLOR_GRID;
 	for (var r = 0; r < ROW_COUNT; r++) {
-		//Grid lines
+		//Draw grid lines
 		y = toXY(r);
 		this.drawLine(0, y, BOARD_SIZE, y); //Horizontal
 		this.drawLine(y, 0, y, BOARD_SIZE); //Vertical
@@ -72,20 +96,23 @@ Game.prototype.drawBoard = function() {
             //Draw pins
 			var x = toXY(c);
 			var p = this.board.get(r,c);			
-			if (p == PLAYER_1) this.drawCircle(x - HALF_UNIT,y - HALF_UNIT, HALF_UNIT - 5, COLOR_P1);						
-			else if (p == PLAYER_2) this.drawCircle(x - HALF_UNIT,y - HALF_UNIT, HALF_UNIT - 5, COLOR_P2);						
+			if (p == PLAYER_1) this.drawCircle(x + HALF_UNIT,y + HALF_UNIT, HALF_UNIT - 5, COLOR_P1);						
+			else if (p == PLAYER_2) this.drawCircle(x + HALF_UNIT,y + HALF_UNIT, HALF_UNIT - 5, COLOR_P2);						
 		}		
 	}
+	y = toXY(ROW_COUNT);
+	this.drawLine(0, y, BOARD_SIZE, y); //Horizontal
+	this.drawLine(y, 0, y, BOARD_SIZE); //Vertical
 	
 	//Quad grid lines
-	this.ctx.strokeStyle = '#000';
+	this.ctx.strokeStyle = COLOR_QUAD;
 	this.drawLine(QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
 	this.drawLine(0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal
 }
 
 
 function toXY(rc) {
-	return (rc * UNIT_SIZE) + CANVAS_OFFSET;
+	return rc * UNIT_SIZE;
 }
 
 function toRC(xy) {
