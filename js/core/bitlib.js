@@ -1,15 +1,15 @@
 /* Javascript provides 53 bits of precision, however, only 32 bits can used for bitwise operations.
 Therefore, this library provides functions to emulate bitwise operations on ints larger than 32 bits */
 function xor(n1, n2) {
-    return ((n1/0xffffffff) ^ (n2/0xffffffff)) * 0x100000000 + (n1^n2);    
+    return ((n1/0xffffffff) ^ (n2/0xffffffff)) * 0x100000000 + ((n1^n2)>>>0);    
 }
 
 function and(n1, n2) {
-    return ((n1/0xffffffff) & (n2/0xffffffff)) * 0x100000000 + (n1&n2);
+    return ((n1/0xffffffff) & (n2/0xffffffff)) * 0x100000000 + ((n1&n2)>>>0);
 }
 
 function or(n1, n2) {
-    return ((n1/0xffffffff) | (n2/0xffffffff)) * 0x100000000 + (n1|n2);
+    return ((n1/0xffffffff) | (n2/0xffffffff)) * 0x100000000 + ((n1|n2)>>>0);
 }
 
 function not(n) {

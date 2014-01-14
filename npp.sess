@@ -1,9 +1,10 @@
 <NotepadPlus>
     <Session activeView="0">
-        <mainView activeIndex="0">
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="747" startPos="347" endPos="347" selMode="0" lang="HTML" encoding="-1" filename="C:\www\tork5\index.html" />
+        <mainView activeIndex="3">
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="747" startPos="147" endPos="147" selMode="0" lang="HTML" encoding="-1" filename="C:\www\tork5\index.html" />
             <File firstVisibleLine="0" xOffset="0" scrollWidth="1" startPos="0" endPos="0" selMode="0" lang="Javascript" encoding="-1" filename="C:\www\tork5\js\core\bitlib.js" />
-            <File firstVisibleLine="0" xOffset="0" scrollWidth="756" startPos="0" endPos="0" selMode="0" lang="Javascript" encoding="-1" filename="C:\www\tork5\js\core\board.js" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="756" startPos="718" endPos="718" selMode="0" lang="Javascript" encoding="-1" filename="C:\www\tork5\js\core\board.js" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="630" startPos="0" endPos="0" selMode="0" lang="Javascript" encoding="-1" filename="C:\www\tork5\js\core\game.js" />
         </mainView>
         <subView activeIndex="0" />
     </Session>

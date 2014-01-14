@@ -103,8 +103,9 @@ Board.prototype.set = function(row,col) {
     if (this.isOpen(ind)) {                
         if (this.turn == PLAYER_1) this.p1 = xor(this.p1,mpos(ind));        
         else this.p2 = xor(this.p2, mpos(ind)); //Player 2
+		this.turn = !this.turn;
     }    
-    this.turn = !this.turn;
+console.log(this.p1);   
 }
 
 Board.prototype.get = function(row, col) {
