@@ -1,1 +1,13 @@
-div, canvas {border: 1px solid black;}
+canvas {
+    border: 1px solid black;
+}
+
+#bit-tool {    
+    border: 1px solid black;
+    
+    position: fixed;
+    right: 0px;
+    text-align: center;
+    top: 0px;      
+    width: 100px;
+}

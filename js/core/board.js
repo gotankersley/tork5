@@ -99,12 +99,12 @@ Board.prototype.move = function(ind, quadId, dir) {
 */
     
 Board.prototype.set = function(row,col) {        
-	var ind = IND[row][col];
-	this.p1 = xor(this.p1,mpos(ind)); 	
-    //if (this.isOpen(ind)) {                
-        //if (this.turn == PLAYER_1) this.p1 = xor(this.p1,mpos(ind));        
-        //else this.p2 = xor(this.p2, mpos(ind)); //Player 2
-    //}    
+	var ind = IND[row][col];	
+    if (this.isOpen(ind)) {                
+        if (this.turn == PLAYER_1) this.p1 = xor(this.p1,mpos(ind));        
+        else this.p2 = xor(this.p2, mpos(ind)); //Player 2
+    }    
+    this.turn = !this.turn;
 }
 
 Board.prototype.get = function(row, col) {
