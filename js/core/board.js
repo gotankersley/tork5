@@ -37,6 +37,8 @@ var NUM_TO_WIN = 5;
 var ROW_COUNT = 6;
 var COL_COUNT = 6;
 var QUAD_COUNT = 9;
+var QUAD_ROW_COUNT = 3;
+var QUAD_COL_COUNT = 3;
 
 //Index maps
 var ROW = [0,0,0,1,2,2,2,1,1,0,0,0,1,2,2,2,1,1,3,3,3,4,5,5,5,4,4,3,3,3,4,5,5,5,4,4];
@@ -105,7 +107,6 @@ Board.prototype.set = function(row,col) {
         else this.p2 = xor(this.p2, mpos(ind)); //Player 2
 		this.turn = !this.turn;
     }    
-console.log(this.p1);   
 }
 
 Board.prototype.get = function(row, col) {

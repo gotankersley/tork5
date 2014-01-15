@@ -2,10 +2,12 @@
 var UNIT_SIZE = 100;
 var QUAD_SIZE = UNIT_SIZE * 3;
 var BOARD_SIZE = UNIT_SIZE * 6;
-var HALF_UNIT = UNIT_SIZE/2;
 var CANVAS_SIZE = 800;
 var CANVAS_OFFSET = (CANVAS_SIZE - BOARD_SIZE) / 2;
+var HALF_UNIT = UNIT_SIZE/2;
+var HALF_QUAD = QUAD_SIZE/2;
 
+//Colors
 var COLOR_P1 = '#C00';
 var COLOR_P2 = '#06c';
 var COLOR_CURSOR = '#cfc';
@@ -18,97 +20,125 @@ function Game() {
 	this.canvas = document.getElementById('mainCanvas');
 	this.ctx = this.canvas.getContext('2d');
 	this.board = new Board();
-	$(this.canvas).click(this.onClick);
-	$(this.canvas).mousemove(this.onMouse);
-	this.drawBoard();
     this.cursorR = 0;
     this.cursorC = 0;
+    
+    //Event callbacks
+	$(this.canvas).click(this.onClick);
+	$(this.canvas).mousemove(this.onMouse);	    
+    
+    this.draw();
 }
 
+//Mouse events
 Game.prototype.onClick = function(e) {
 	var r = toRC(e.offsetY);
 	var c = toRC(e.offsetX);
 	game.board.set(r,c);    
-	game.drawBoard();	
+	game.draw();	
 }
 
 Game.prototype.onMouse = function(e) {
     game.cursorR = toRC(e.offsetY);
 	game.cursorC = toRC(e.offsetX);
-	game.drawBoard();	
+	game.draw();	
 }
 
-Game.prototype.drawLine = function(x1, y1, x2, y2) {
-	this.ctx.beginPath();
-	this.ctx.moveTo(x1,y1);
-	this.ctx.lineTo(x2,y2);
-	this.ctx.stroke();
-}
 
-Game.prototype.drawCircle = function(x, y, r, color) {
-	this.ctx.beginPath();
-	this.ctx.arc(x,y, r, 0, 2 * Math.PI, true);
-	this.ctx.closePath();
-    this.ctx.fillStyle = color;
-	this.ctx.fill();		
-}
-
-Game.prototype.drawArrow = function(x, y, w, h) {	
-	this.ctx.fillRect(x + h, y, w, h); 
-	this.ctx.beginPath();
-	this.ctx.moveTo(x + h, y - h);
-	this.ctx.lineTo(x + h, y + (2*h));
-	this.ctx.lineTo(x, y +(h/2));	
-	this.ctx.closePath();
-	this.ctx.fill();
-}
-
-Game.prototype.drawBoard = function() {
-	this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-	this.ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
+//Draw functions
+Game.prototype.draw = function() {
+    var ctx = this.ctx;
+	ctx.setTransform(1, 0, 0, 1, 0, 0);
+	ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
 	
-	//Draw turn			
-	this.ctx.fillStyle = (this.board.turn == PLAYER_1)? COLOR_P1 : COLOR_P2;
-	this.ctx.font = '14pt sans-serif';	
-	this.ctx.fillText('Player' + (this.board.turn + 1) + '\'s turn', 10, 20);	
+	//Player Turn			
+	ctx.fillStyle = (this.board.turn == PLAYER_1)? COLOR_P1 : COLOR_P2;
+	ctx.font = '14pt sans-serif';	
+	ctx.fillText('Player' + (this.board.turn + 1) + '\'s turn', 10, 20);	
 		
-	this.ctx.setTransform(1, 0, 0, 1, CANVAS_OFFSET, CANVAS_OFFSET);
+	ctx.setTransform(1, 0, 0, 1, CANVAS_OFFSET, CANVAS_OFFSET);
 		
-    //Draw cursor
+    //Quad division lines
+	ctx.strokeStyle = COLOR_QUAD;
+    ctx.fillStyle = COLOR_QUAD;
+	this.drawLine(ctx, QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
+	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal
+    return;
+    //Cursor
     var cursorX = toXY(this.cursorC);
     var cursorY = toXY(this.cursorR);
-    this.ctx.fillStyle = COLOR_CURSOR;
-    this.ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);
+    ctx.fillStyle = COLOR_CURSOR;
+    ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);
     
-	//Draw arrows	
-	this.ctx.fillStyle = COLOR_ARROW;
-	this.drawArrow(0, -30, 150, 10);
-		
-	var y;
-	this.ctx.strokeStyle = COLOR_GRID;
-	for (var r = 0; r < ROW_COUNT; r++) {
-		//Draw grid lines
-		y = toXY(r);
-		this.drawLine(0, y, BOARD_SIZE, y); //Horizontal
-		this.drawLine(y, 0, y, BOARD_SIZE); //Vertical
-		
-		for (var c = 0; c < COL_COUNT; c++) {                        
-            //Draw pins
-			var x = toXY(c);
-			var p = this.board.get(r,c);			
-			if (p == PLAYER_1) this.drawCircle(x + HALF_UNIT,y + HALF_UNIT, HALF_UNIT - 5, COLOR_P1);						
-			else if (p == PLAYER_2) this.drawCircle(x + HALF_UNIT,y + HALF_UNIT, HALF_UNIT - 5, COLOR_P2);						
-		}		
-	}
-	y = toXY(ROW_COUNT);
-	this.drawLine(0, y, BOARD_SIZE, y); //Horizontal
-	this.drawLine(y, 0, y, BOARD_SIZE); //Vertical
+	//Rotation arrows	
+	ctx.fillStyle = COLOR_ARROW;
+	this.drawArrow(ctx, 0, -30, 150, 10);
+		   
+    //Quads
+    this.drawQuad(ctx, this.board, 0, 0, 0);
+    this.drawQuad(ctx, this.board, 0, 1, 5);
+    this.drawQuad(ctx, this.board, 1, 0, 0);
+    this.drawQuad(ctx, this.board, 1, 1, 0);
+    
 	
-	//Quad grid lines
-	this.ctx.strokeStyle = COLOR_QUAD;
-	this.drawLine(QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
-	this.drawLine(0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal
 }
+
+Game.prototype.drawLine = function(ctx, x1, y1, x2, y2) {
+	ctx.beginPath();
+	ctx.moveTo(x1,y1);
+	ctx.lineTo(x2,y2);
+    ctx.stroke();   
+    ctx.closePath();	
+}
+
+Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
+	ctx.beginPath();    
+	ctx.arc(x + r,y + r, r - margin, 0, 2 * Math.PI, true);
+	ctx.closePath();
+    ctx.fillStyle = color;
+	ctx.fill();		
+}
+
+Game.prototype.drawArrow = function(ctx, x, y, w, h) {	
+	ctx.fillRect(x + h, y, w, h); 
+	ctx.beginPath();
+	ctx.moveTo(x + h, y - h);
+	ctx.lineTo(x + h, y + (2*h));
+	ctx.lineTo(x, y +(h/2));	
+	ctx.closePath();
+	ctx.fill();
+}
+
+Game.prototype.drawQuad = function(ctx, board, quadR, quadC, degrees) {        
+    ctx.save();       
+    ctx.translate((quadC * QUAD_SIZE) + HALF_QUAD, (quadR * QUAD_SIZE) + HALF_QUAD);
+    ctx.rotate(degrees*Math.PI/180);    
+    ctx.translate(-HALF_QUAD, -HALF_QUAD);        
+        
+    var x,y;
+    var qR = quadR * QUAD_ROW_COUNT;
+    var qC = quadC * QUAD_COL_COUNT;
+    for (var r = 0; r < QUAD_ROW_COUNT; r++) {
+        y = toXY(r);
+        ctx.strokeStyle = COLOR_GRID;
+		this.drawLine(ctx, 0, y, QUAD_SIZE, y); //Horizontal
+		this.drawLine(ctx, y, 0, y, QUAD_SIZE); //Vertical
+        
+        for (var c = 0; c < QUAD_COL_COUNT; c++) {
+            //Draw pins
+			x = toXY(c);
+			var p = board.get(qR + r,qC + c);			
+			if (p == PLAYER_1) this.drawCircle(ctx, x, y, HALF_UNIT, 5, COLOR_P1);						
+			else if (p == PLAYER_2) this.drawCircle(ctx, x,y, HALF_UNIT, 5, COLOR_P2);		        
+        }
+    }
+    y = toXY(QUAD_ROW_COUNT);
+	this.drawLine(ctx, 0, y, QUAD_SIZE, y); //Horizontal
+	this.drawLine(ctx, y, 0, y, QUAD_SIZE); //Vertical
+    
+    ctx.restore();
+}
+//End class Game
 
 
 function toXY(rc) {
@@ -122,7 +152,6 @@ function toRC(xy) {
 	else return rc;
 }
 
-//End class Game
 var game;
 $(function() {
 	game = new Game();	
