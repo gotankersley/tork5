@@ -6,6 +6,8 @@ var CANVAS_SIZE = 800;
 var CANVAS_OFFSET = (CANVAS_SIZE - BOARD_SIZE) / 2;
 var HALF_UNIT = UNIT_SIZE/2;
 var HALF_QUAD = QUAD_SIZE/2;
+var ARROW_WIDTH = 150;
+var ARROW_HEIGHT = 10;
 
 //Colors
 var COLOR_P1 = '#C00';
@@ -15,6 +17,16 @@ var COLOR_QUAD = '#000';
 var COLOR_GRID = '#c0c0c0';
 var COLOR_ARROW = '#e0e0e0';
 
+//var requestAnimationFrame =  
+//	window.requestAnimationFrame ||
+//	window.webkitRequestAnimationFrame ||
+//	window.mozRequestAnimationFrame ||
+//	window.msRequestAnimationFrame ||
+//	window.oRequestAnimationFrame ||
+//	function(callback) {
+//		return setTimeout(callback, 1);
+//	};
+		
 //Class Game
 function Game() {
 	this.canvas = document.getElementById('mainCanvas');
@@ -35,16 +47,16 @@ Game.prototype.onClick = function(e) {
 	var r = toRC(e.offsetY);
 	var c = toRC(e.offsetX);
 	game.board.set(r,c);    
-	game.draw();	
+	//game.draw();	
 }
 
 Game.prototype.onMouse = function(e) {
     game.cursorR = toRC(e.offsetY);
 	game.cursorC = toRC(e.offsetX);
-	game.draw();	
+	//game.draw();	
 }
 
-
+var rot = 0;
 //Draw functions
 Game.prototype.draw = function() {
     var ctx = this.ctx;
@@ -57,38 +69,50 @@ Game.prototype.draw = function() {
 	ctx.fillText('Player' + (this.board.turn + 1) + '\'s turn', 10, 20);	
 		
 	ctx.setTransform(1, 0, 0, 1, CANVAS_OFFSET, CANVAS_OFFSET);
-		
-    //Quad division lines
-	ctx.strokeStyle = COLOR_QUAD;
-    ctx.fillStyle = COLOR_QUAD;
-	this.drawLine(ctx, QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
-	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal
-    return;
-    //Cursor
+		    		   
+    	
+		   
+    //Quads
+    this.drawQuad(ctx, 0, 0, rot, true);
+    this.drawQuad(ctx, 0, 1, 0, false);
+    this.drawQuad(ctx, 1, 0, 0, false);
+    this.drawQuad(ctx, 1, 1, 0, false);
+	rot++;
+	if (rot >= 360) rot = 0;
+	
+	//Cursor
     var cursorX = toXY(this.cursorC);
     var cursorY = toXY(this.cursorR);
     ctx.fillStyle = COLOR_CURSOR;
     ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);
-    
-	//Rotation arrows	
-	ctx.fillStyle = COLOR_ARROW;
-	this.drawArrow(ctx, 0, -30, 150, 10);
-		   
-    //Quads
-    this.drawQuad(ctx, this.board, 0, 0, 0);
-    this.drawQuad(ctx, this.board, 0, 1, 5);
-    this.drawQuad(ctx, this.board, 1, 0, 0);
-    this.drawQuad(ctx, this.board, 1, 1, 0);
+	
+	//Quad division lines
+	ctx.strokeStyle = COLOR_QUAD;
+    ctx.fillStyle = COLOR_QUAD;
+	this.drawLine(ctx, QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
+	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
     
 	
+	//Rotation arrows - drawn clockwise
+	ctx.fillStyle = COLOR_ARROW;
+	this.drawArrow(ctx, 0, -(ARROW_HEIGHT+10), ARROW_WIDTH, ARROW_HEIGHT, 0); //Q0 -> L
+	this.drawArrow(ctx, BOARD_SIZE - ARROW_WIDTH, -(ARROW_HEIGHT+10), ARROW_WIDTH, ARROW_HEIGHT, 180); //Q1 -> R
+	//this.drawArrow(ctx, BOARD_SIZE - ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L
+	this.drawArrow(ctx, 0, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L
+	
+	//requestAnimationFrame(d1)
+}
+
+function d1() {
+	game.draw();
 }
 
 Game.prototype.drawLine = function(ctx, x1, y1, x2, y2) {
 	ctx.beginPath();
 	ctx.moveTo(x1,y1);
-	ctx.lineTo(x2,y2);
-    ctx.stroke();   
+	ctx.lineTo(x2,y2);    
     ctx.closePath();	
+	ctx.stroke();   
 }
 
 Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
@@ -99,25 +123,32 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 	ctx.fill();		
 }
 
-Game.prototype.drawArrow = function(ctx, x, y, w, h) {	
-	ctx.fillRect(x + h, y, w, h); 
+Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees) {		
+	ctx.save();	
+	ctx.translate(x, y + (h/2));
+	ctx.rotate(degrees*Math.PI/180);	
+	ctx.fillRect(h, 0, w, h); 
 	ctx.beginPath();
-	ctx.moveTo(x + h, y - h);
-	ctx.lineTo(x + h, y + (2*h));
-	ctx.lineTo(x, y +(h/2));	
+	ctx.moveTo(h, -h);
+	ctx.lineTo(h, 2*h);
+	ctx.lineTo(0, h/2);	
 	ctx.closePath();
 	ctx.fill();
+	ctx.restore();
 }
 
-Game.prototype.drawQuad = function(ctx, board, quadR, quadC, degrees) {        
+Game.prototype.drawQuad = function(ctx, quadR, quadC, degrees, clear) {        
     ctx.save();       
     ctx.translate((quadC * QUAD_SIZE) + HALF_QUAD, (quadR * QUAD_SIZE) + HALF_QUAD);
     ctx.rotate(degrees*Math.PI/180);    
     ctx.translate(-HALF_QUAD, -HALF_QUAD);        
-        
-    var x,y;
-    var qR = quadR * QUAD_ROW_COUNT;
-    var qC = quadC * QUAD_COL_COUNT;
+    
+	if (clear) ctx.clearRect(0,0, QUAD_SIZE, QUAD_SIZE);	    
+	
+	var board = this.board;
+	var qR = quadR * QUAD_ROW_COUNT;
+    var qC = quadC * QUAD_COL_COUNT;		   
+	var x,y;
     for (var r = 0; r < QUAD_ROW_COUNT; r++) {
         y = toXY(r);
         ctx.strokeStyle = COLOR_GRID;
