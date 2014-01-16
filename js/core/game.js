@@ -9,6 +9,10 @@ var HALF_QUAD = QUAD_SIZE/2;
 var ARROW_WIDTH = 150;
 var ARROW_HEIGHT = 10;
 
+var MODE_DROP = 0;
+var MODE_TURN = 1;
+var MODE_ANIM = 2;
+
 //Colors
 var COLOR_P1 = '#C00';
 var COLOR_P2 = '#06c';
@@ -34,6 +38,9 @@ function Game() {
 	this.board = new Board();
     this.cursorR = 0;
     this.cursorC = 0;
+    this.arrow = -1;
+    //this.mode = MODE_DROP;
+    this.mode = MODE_TURN;
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);
@@ -44,48 +51,76 @@ function Game() {
 
 //Mouse events
 Game.prototype.onClick = function(e) {
-	var r = toRC(e.offsetY);
-	var c = toRC(e.offsetX);
-	game.board.set(r,c);    
-	//game.draw();	
+    if (this.mode == MODE_DROP) {
+        var r = toRC(e.offsetY);
+        var c = toRC(e.offsetX);
+        game.board.set(r,c);    
+        game.draw();	
+    }
 }
 
 Game.prototype.onMouse = function(e) {
-    game.cursorR = toRC(e.offsetY);
-	game.cursorC = toRC(e.offsetX);
-	//game.draw();	
+    if (game.mode == MODE_DROP) {
+        game.cursorR = toRC(e.offsetY);x
+        game.cursorC = toRC(e.offsetX);
+    }
+    else if (game.mode == MODE_TURN) {
+        //Barycentric coordinates to test if point is inside triangle
+        //http://stackoverflow.com/questions/2049582/how-to-determine-a-point-in-a-triangle
+        //http://stackoverflow.com/questions/13300904/determine-whether-point-lies-inside-triangle
+        var px = e.offsetX;
+        var py = e.offsetY;
+        
+        var p0x = 0;
+        var p0y = 0;
+        
+        var p1x = 0;
+        var p1y = CANVAS_SIZE/2;
+        
+        var p2x = CANVAS_SIZE/2;
+        var p2y = CANVAS_SIZE/2;
+        var area = 1/2*(-p1y*p2x + p0y*(-p1x + p2x) + p0x*(p1y - p2y) + p1x*p2y);
+        var s = 1/(2*area)*(p0y*p2x - p0x*p2y + (p2y - p0y)*px + (p0x - p2x)*py);
+        var t = 1/(2*area)*(p0x*p1y - p0y*p1x + (p0y - p1y)*px + (p1x - p0x)*py);
+        if (s > 0 && t > 0 && (1 - s - t) > 0) game.arrow = 0;
+        else game.arrow = -1;
+    }
+    game.draw();		
 }
 
-var rot = 0;
 //Draw functions
 Game.prototype.draw = function() {
     var ctx = this.ctx;
-	ctx.setTransform(1, 0, 0, 1, 0, 0);
-	ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
+    ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
+ctx.strokeStyle = '#f00';
+var HALF_CANVAS = CANVAS_SIZE/2;
+this.drawLine(ctx, 0, 0, HALF_CANVAS, HALF_CANVAS);
+this.drawLine(ctx, HALF_CANVAS, HALF_CANVAS, 0, HALF_CANVAS);
+if (this.arrow == 0) this.drawCircle(ctx, 20, 20, 100, 5, COLOR_P1);		
 	
 	//Player Turn			
 	ctx.fillStyle = (this.board.turn == PLAYER_1)? COLOR_P1 : COLOR_P2;
 	ctx.font = '14pt sans-serif';	
 	ctx.fillText('Player' + (this.board.turn + 1) + '\'s turn', 10, 20);	
-		
-	ctx.setTransform(1, 0, 0, 1, CANVAS_OFFSET, CANVAS_OFFSET);
-		    		   
-    	
+			
+    ctx.save();
+    ctx.translate(CANVAS_OFFSET, CANVAS_OFFSET);
+		    		      
 		   
     //Quads
-    this.drawQuad(ctx, 0, 0, rot, true);
+    this.drawQuad(ctx, 0, 0, 0, false);
     this.drawQuad(ctx, 0, 1, 0, false);
     this.drawQuad(ctx, 1, 0, 0, false);
-    this.drawQuad(ctx, 1, 1, 0, false);
-	rot++;
-	if (rot >= 360) rot = 0;
+    this.drawQuad(ctx, 1, 1, 0, false);	
 	
 	//Cursor
-    var cursorX = toXY(this.cursorC);
-    var cursorY = toXY(this.cursorR);
-    ctx.fillStyle = COLOR_CURSOR;
-    ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);
-	
+    if (this.mode == MODE_DROP) {
+        var cursorX = toXY(this.cursorC);
+        var cursorY = toXY(this.cursorR);
+        ctx.fillStyle = COLOR_CURSOR;
+        ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);
+	}
+    
 	//Quad division lines
 	ctx.strokeStyle = COLOR_QUAD;
     ctx.fillStyle = COLOR_QUAD;
@@ -93,8 +128,7 @@ Game.prototype.draw = function() {
 	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
     
 	
-	//Rotation arrows - drawn clockwise
-	ctx.fillStyle = COLOR_ARROW;
+	//Rotation arrows - drawn clockwise	
 	this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0); //Q0 -> L
 	this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180); //Q1 -> R	
 	this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L	
@@ -104,6 +138,7 @@ Game.prototype.draw = function() {
     this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270); //Q2 -> L
     this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L	
 	//requestAnimationFrame(d1)
+    ctx.restore();
 }
 
 function d1() {
@@ -126,7 +161,8 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 	ctx.fill();		
 }
 
-Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees) {		
+Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees) {	
+    ctx.fillStyle = COLOR_ARROW;	
 	ctx.save();		
     ctx.translate(x, y);
 	ctx.rotate(degrees*Math.PI/180);	    
