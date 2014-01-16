@@ -1,15 +1,21 @@
 //Constants
+var INVALID = -1;
 var UNIT_SIZE = 100;
 var QUAD_SIZE = UNIT_SIZE * 3;
 var BOARD_SIZE = UNIT_SIZE * 6;
 var CANVAS_SIZE = 800;
 var CANVAS_OFFSET = (CANVAS_SIZE - BOARD_SIZE) / 2;
+
 var HALF_UNIT = UNIT_SIZE/2;
 var HALF_QUAD = QUAD_SIZE/2;
 var HALF_CANVAS = CANVAS_SIZE/2;
+
 var ARROW_WIDTH = 150;
 var ARROW_HEIGHT = 10;
 
+var TURN_SPEED = 2;
+
+//Modes
 var MODE_DROP = 0;
 var MODE_TURN = 1;
 var MODE_ANIM = 2;
@@ -22,15 +28,15 @@ var COLOR_QUAD = '#000';
 var COLOR_GRID = '#c0c0c0';
 var COLOR_ARROW = '#e0e0e0';
 
-//var requestAnimationFrame =  
-//	window.requestAnimationFrame ||
-//	window.webkitRequestAnimationFrame ||
-//	window.mozRequestAnimationFrame ||
-//	window.msRequestAnimationFrame ||
-//	window.oRequestAnimationFrame ||
-//	function(callback) {
-//		return setTimeout(callback, 1);
-//	};
+var requestAnimationFrame =  
+	window.requestAnimationFrame ||
+	window.webkitRequestAnimationFrame ||
+	window.mozRequestAnimationFrame ||
+	window.msRequestAnimationFrame ||
+	window.oRequestAnimationFrame ||
+	function(callback) {
+		return setTimeout(callback, 1);
+	};
 		
 //Class Game
 function Game() {
@@ -39,9 +45,11 @@ function Game() {
 	this.board = new Board();
     this.cursorR = 0;
     this.cursorC = 0;
-    this.arrow = -1;
-    //this.mode = MODE_DROP;
-    this.mode = MODE_TURN;
+    this.arrowInd = INVALID;
+	this.quadInd = INVALID;
+	this.quadRot = 0;
+	this.quadRotDir = 1;
+    this.mode = MODE_DROP;    
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);
@@ -50,14 +58,29 @@ function Game() {
     this.draw();
 }
 
+
 //Mouse events
 Game.prototype.onClick = function(e) {
-    if (this.mode == MODE_DROP) {
+    if (game.mode == MODE_DROP) {
         var r = toRC(e.offsetY);
         var c = toRC(e.offsetX);
-        game.board.set(r,c);    
-        game.draw();	
+        game.board.set(r,c);  		
+		game.mode = MODE_TURN;       
     }
+	else if (game.mode == MODE_TURN) {
+		game.arrowInd = toOctant(e.offsetX, e.offsetY);
+		game.quadInd = toQuad(e.offsetX, e.offsetY);
+		//Get rot dir
+		if (game.quadInd % 3 == 0) { //Quads 0, and 3
+			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = 1;
+			else game.quadRotDir = -1;
+		}
+		else { //Quads 1, and 2
+			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = -1;
+			else game.quadRotDir = 1;
+		}
+		game.mode = MODE_ANIM;
+	}
 }
 
 Game.prototype.onMouse = function(e) {
@@ -66,42 +89,14 @@ Game.prototype.onMouse = function(e) {
         game.cursorC = toRC(e.offsetX);
     }
     else if (game.mode == MODE_TURN) {        
-        game.arrow = game.getOctant(e.offsetX, e.offsetY);         
-    }
-    game.draw();		
-}
-
-Game.prototype.getOctant = function(x, y) {
-    //Divide quadrant into triangles - think Union Jack flag
-    //Start by getting quadrant
-    var quadR = toQuadRC(y);
-    var quadC = toQuadRC(x);
-    var quadInd = (quadR * QUAD_COUNT) + quadC;
-    
-    var ax = (quadC == 0)? 0 : CANVAS_SIZE;
-    var ay = (quadR == 0)? 0 : CANVAS_SIZE;
-    
-    var bx = HALF_CANVAS;
-    var by = HALF_CANVAS;    
-    
-    //Calculate if mouse point is above octant line
-    var crossProd = ((bx - ax)*(y - ay)) - ((by - ay)*(x - ax));
-    if (quadInd % 3 == 0) { //Slopes down in quads 0, and 3
-        if (crossProd > 0) return quadInd + BOARD_QUADS;
-        else return quadInd;
-    }
-    else { //Slopes up in quads 1, and 2
-        if (crossProd < 0) return quadInd + BOARD_QUADS;
-        else return quadInd;
-    } 
+        game.arrowInd = toOctant(e.offsetX, e.offsetY);         
+    }    
 }
 
 //Draw functions
 Game.prototype.draw = function() {
     var ctx = this.ctx;
     ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
-//ctx.strokeStyle = '#f00';
-//this.drawLine(ctx, this.ax, this.ay, this.bx, this.by);	
 	
 	//Player Turn			
 	ctx.fillStyle = (this.board.turn == PLAYER_1)? COLOR_P1 : COLOR_P2;
@@ -111,13 +106,6 @@ Game.prototype.draw = function() {
     ctx.save();
     ctx.translate(CANVAS_OFFSET, CANVAS_OFFSET);
 		    		      
-		   
-    //Quads
-    this.drawQuad(ctx, 0, 0, 0, false);
-    this.drawQuad(ctx, 0, 1, 0, false);
-    this.drawQuad(ctx, 1, 0, 0, false);
-    this.drawQuad(ctx, 1, 1, 0, false);	
-	
 	//Cursor
     if (this.mode == MODE_DROP) {
         var cursorX = toXY(this.cursorC);
@@ -125,26 +113,49 @@ Game.prototype.draw = function() {
         ctx.fillStyle = COLOR_CURSOR;
         ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);
 	}
+	
+    //Quads
+    this.drawQuad(ctx, 0, 0, false);
+    this.drawQuad(ctx, 1, 0, false);
+    this.drawQuad(ctx, 2, 0, false);
+    this.drawQuad(ctx, 3, 0, false);			
     
 	//Quad division lines
 	ctx.strokeStyle = COLOR_QUAD;
     ctx.fillStyle = COLOR_QUAD;
 	this.drawLine(ctx, QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
 	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
-    
-	
+    	
 	//Rotation arrows - (horizontal have octant of < 4, and vertical > 4)
 	this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0, 0); //Q0 -> L
-    this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90, 4); //Q0 -> R	    
+    this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90, 4); //Q0 -> R	
+    
     this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90, 5); //Q1 -> L	
-	this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180, 1); //Q1 -> R		
+	this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180, 1); //Q1 -> R
+	
     this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270, 6); //Q2 -> L   
     this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0, 2); //Q2 -> R
+	
     this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180, 3); //Q3 -> L    
 	this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270, 7); //Q3 -> R    
     
-	//requestAnimationFrame(this.draw.bind(this));
+	//Quad rotation animation
+	if (this.mode == MODE_ANIM) {
+		this.drawQuad(ctx, this.quadInd, this.quadRot, true);
+		if (Math.abs(this.quadRot) >= 90) {
+			//this.board.rotate(this.quadInd);
+			this.quadRot = 0;
+			this.quadInd = INVALID;
+			this.arrowInd = INVALID;	
+			this.cursorR = 0;
+			this.cursorC = 0;			
+			this.mode = MODE_DROP;			
+		}
+		else this.quadRot += (this.quadRotDir * TURN_SPEED);
+	}
     ctx.restore();
+	
+	requestAnimationFrame(this.draw.bind(this));
 }
 
 
@@ -164,8 +175,8 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 	ctx.fill();		
 }
 
-Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, curArrow) {	    
-    ctx.fillStyle = (this.arrow == curArrow)? COLOR_CURSOR : COLOR_ARROW;	
+Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrowInd) {	    
+    ctx.fillStyle = (this.mode == MODE_TURN && this.arrowInd == arrowInd)? COLOR_CURSOR : COLOR_ARROW;	
 	ctx.save();		
     ctx.translate(x, y);
 	ctx.rotate(degrees*Math.PI/180);	    
@@ -179,17 +190,21 @@ Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, curArrow) {
 	ctx.restore();
 }
 
-Game.prototype.drawQuad = function(ctx, quadR, quadC, degrees, clear) {        
+Game.prototype.drawQuad = function(ctx, quadInd, degrees, anim) { 
+	if (this.mode == MODE_ANIM && quadInd == this.quadInd && !anim) return;
+	var board = this.board;
+	var quadR = Math.floor(quadInd / QUAD_COUNT);
+	var quadC = quadInd % QUAD_COUNT;
+	var qR = quadR * QUAD_ROW_SPACES;
+    var qC = quadC * QUAD_COL_SPACES;		
+	
     ctx.save();       
     ctx.translate((quadC * QUAD_SIZE) + HALF_QUAD, (quadR * QUAD_SIZE) + HALF_QUAD);
     ctx.rotate(degrees*Math.PI/180);    
     ctx.translate(-HALF_QUAD, -HALF_QUAD);        
     
-	if (clear) ctx.clearRect(0,0, QUAD_SIZE, QUAD_SIZE);	    
-	
-	var board = this.board;
-	var qR = quadR * QUAD_ROW_SPACES;
-    var qC = quadC * QUAD_COL_SPACES;		   
+	if (anim) ctx.clearRect(0,0, QUAD_SIZE, QUAD_SIZE);	    	
+		   
 	var x,y;
     for (var r = 0; r < QUAD_ROW_SPACES; r++) {
         y = toXY(r);
@@ -218,15 +233,42 @@ function toXY(rc) {
 	return rc * UNIT_SIZE;
 }
 
-function toQuadRC(xy) {
-	return Math.floor(xy / HALF_CANVAS);	
-}
-
 function toRC(xy) {
 	var rc = Math.floor((xy - CANVAS_OFFSET) / UNIT_SIZE);
 	if (rc >= ROW_SPACES) return ROW_SPACES - 1;
 	else if (rc < 0) return 0;
 	else return rc;
+}
+
+function toQuad(x, y) {
+	var quadR = Math.floor(y / HALF_CANVAS);
+    var quadC = Math.floor(x / HALF_CANVAS);
+    return (quadR * QUAD_COUNT) + quadC;
+}
+
+function toOctant(x, y) {
+    //Divide quadrant into triangles - think Union Jack flag
+    //Start by getting quadrant
+    var quadR = Math.floor(y / HALF_CANVAS);
+    var quadC = Math.floor(x / HALF_CANVAS);
+    var quadInd = (quadR * QUAD_COUNT) + quadC;
+    
+    var ax = (quadC == 0)? 0 : CANVAS_SIZE;
+    var ay = (quadR == 0)? 0 : CANVAS_SIZE;
+    
+    var bx = HALF_CANVAS;
+    var by = HALF_CANVAS;    
+    
+    //Calculate if mouse point is above octant line
+    var crossProd = ((bx - ax)*(y - ay)) - ((by - ay)*(x - ax));
+    if (quadInd % 3 == 0) { //Slopes down in quads 0, and 3
+        if (crossProd > 0) return quadInd + BOARD_QUADS;
+        else return quadInd;
+    }
+    else { //Slopes up in quads 1, and 2
+        if (crossProd < 0) return quadInd + BOARD_QUADS;
+        else return quadInd;
+    } 
 }
 
 var game;
