@@ -62,46 +62,46 @@ Game.prototype.onClick = function(e) {
 
 Game.prototype.onMouse = function(e) {
     if (game.mode == MODE_DROP) {
-        game.cursorR = toRC(e.offsetY);x
+        game.cursorR = toRC(e.offsetY);
         game.cursorC = toRC(e.offsetX);
     }
     else if (game.mode == MODE_TURN) {        
-        game.arrow = game.getArrow(e.offsetX, e.offsetY); 
-        console.log(game.arrow);
+        game.arrow = game.getOctant(e.offsetX, e.offsetY);         
     }
     game.draw();		
 }
 
-Game.prototype.getArrow = function(x, y) {
-    //Calculate quadrant
-    var quadR = toQuadRC(x);
-    var quadC = toQuadRC(y);
+Game.prototype.getOctant = function(x, y) {
+    //Divide quadrant into triangles - think Union Jack flag
+    //Start by getting quadrant
+    var quadR = toQuadRC(y);
+    var quadC = toQuadRC(x);
     var quadInd = (quadR * QUAD_COUNT) + quadC;
     
-    var ax = quadC * HALF_CANVAS;
-    var ay = quadR * HALF_CANVAS;
+    var ax = (quadC == 0)? 0 : CANVAS_SIZE;
+    var ay = (quadR == 0)? 0 : CANVAS_SIZE;
     
-    var bx = ax + HALF_CANVAS;
-    var by = ay + HALF_CANVAS;
+    var bx = HALF_CANVAS;
+    var by = HALF_CANVAS;    
     
-    game.ax = ax;
-    game.ay = ay;
-    game.bx = bx;
-    game.by = by;
-    
-    //Calculate if mouse point is above quad diagonal line (i.e. if greater than 0)
-    if (((bx - ax)*(y - ay)) - ((by - ay)*(x - ax)) > 0) return quadInd + BOARD_QUADS;
-    else return quadInd;
+    //Calculate if mouse point is above octant line
+    var crossProd = ((bx - ax)*(y - ay)) - ((by - ay)*(x - ax));
+    if (quadInd % 3 == 0) { //Slopes down in quads 0, and 3
+        if (crossProd > 0) return quadInd + BOARD_QUADS;
+        else return quadInd;
+    }
+    else { //Slopes up in quads 1, and 2
+        if (crossProd < 0) return quadInd + BOARD_QUADS;
+        else return quadInd;
+    } 
 }
 
 //Draw functions
 Game.prototype.draw = function() {
     var ctx = this.ctx;
     ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
-ctx.strokeStyle = '#f00';
-this.drawLine(ctx, this.ax, this.ay, this.bx, this.by);
-//this.drawLine(ctx, HALF_CANVAS, HALF_CANVAS, 0, HALF_CANVAS);
-//if (this.arrow == 0) this.drawCircle(ctx, 20, 20, 100, 5, COLOR_P1);		
+//ctx.strokeStyle = '#f00';
+//this.drawLine(ctx, this.ax, this.ay, this.bx, this.by);	
 	
 	//Player Turn			
 	ctx.fillStyle = (this.board.turn == PLAYER_1)? COLOR_P1 : COLOR_P2;
@@ -133,22 +133,20 @@ this.drawLine(ctx, this.ax, this.ay, this.bx, this.by);
 	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
     
 	
-	//Rotation arrows - drawn clockwise	
-	this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0); //Q0 -> L
-	this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180); //Q1 -> R	
-	this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L	
-	this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270); //Q3 -> R
-    this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180); //Q3 -> L
-    this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0); //Q2 -> R
-    this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270); //Q2 -> L
-    this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L	
-	//requestAnimationFrame(d1)
+	//Rotation arrows - (horizontal have octant of < 4, and vertical > 4)
+	this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0, 0); //Q0 -> L
+    this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90, 4); //Q0 -> R	    
+    this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90, 5); //Q1 -> L	
+	this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180, 1); //Q1 -> R		
+    this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270, 6); //Q2 -> L   
+    this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0, 2); //Q2 -> R
+    this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180, 3); //Q3 -> L    
+	this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270, 7); //Q3 -> R    
+    
+	//requestAnimationFrame(this.draw.bind(this));
     ctx.restore();
 }
 
-function d1() {
-	game.draw();
-}
 
 Game.prototype.drawLine = function(ctx, x1, y1, x2, y2) {
 	ctx.beginPath();
@@ -166,8 +164,8 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 	ctx.fill();		
 }
 
-Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees) {	
-    ctx.fillStyle = COLOR_ARROW;	
+Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, curArrow) {	    
+    ctx.fillStyle = (this.arrow == curArrow)? COLOR_CURSOR : COLOR_ARROW;	
 	ctx.save();		
     ctx.translate(x, y);
 	ctx.rotate(degrees*Math.PI/180);	    
