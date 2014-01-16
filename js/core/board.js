@@ -29,7 +29,7 @@ var PLAYER_1 = 0;
 var PLAYER_2 = 1;
 var EMPTY = -1;
 
-var ROT_LEFT = 0;
+var ROT_LEFT = -1;
 var ROT_RIGHT = 1;
 
 var BOARD_SPACES = 36;
@@ -107,7 +107,7 @@ Board.prototype.set = function(row,col) {
     if (this.isOpen(ind)) {                
         if (this.turn == PLAYER_1) this.p1 = xor(this.p1,mpos(ind));        
         else this.p2 = xor(this.p2, mpos(ind)); //Player 2
-		this.turn = !this.turn;
+		//this.turn = !this.turn;
     }    
 }
 
@@ -120,20 +120,23 @@ Board.prototype.get = function(row, col) {
 }
 
 
-Board.prototype.rotateBoard = function(board, quadId,dir) {      
+Board.prototype.rotate = function(quadId, dir) {      
+	var board = (this.turn == PLAYER_1)? this.p1 : this.p2;
 	//Extract quad from board  
 	var quadUnshifted = (and(board, QUADS[quadId]));
     var quad = shiftR(quadUnshifted, quadId * QUAD_SPACES); 
     
     //Bitwise rotate, 3 places will rotate 90 degrees
-    var rotQuad = (dir == ROT_RIGHT)? rotR(quad,3) : rotL(quad,3);    
+    var rotQuad = (dir == ROT_RIGHT)? rotR(quad,QUAD_ROW_SPACES) : rotL(quad,QUAD_ROW_SPACES);    
 	
     //Add the rotated quad back to the board
 	var quadShifted = shiftL(rotQuad, quadId * QUAD_SPACES);
+	board = and(board, not(QUADS[quadId])); //Empty quad
     var rotBoard = xor(board, QUADS[quadId]);
 	rotBoard = xor(rotBoard, quadShifted);
     if (this.turn == PLAYER_1) this.p1 = rotBoard;
     else this.p2 = rotBoard;
+	this.turn = !this.turn;
     return rotBoard;
 }
 

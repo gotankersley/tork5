@@ -72,12 +72,12 @@ Game.prototype.onClick = function(e) {
 		game.quadInd = toQuad(e.offsetX, e.offsetY);
 		//Get rot dir
 		if (game.quadInd % 3 == 0) { //Quads 0, and 3
-			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = -1;
-			else game.quadRotDir = 1;
+			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = ROT_LEFT;
+			else game.quadRotDir = ROT_RIGHT;
 		}
 		else { //Quads 1, and 2
-			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = 1;
-			else game.quadRotDir = -1;
+			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = ROT_RIGHT;
+			else game.quadRotDir = ROT_LEFT;
 		}
 		game.mode = MODE_ANIM;
 	}
@@ -145,7 +145,7 @@ Game.prototype.draw = function() {
 	if (this.mode == MODE_ANIM) {
 		this.drawQuad(ctx, this.quadInd, this.quadRot, true);
 		if (Math.abs(this.quadRot) >= 90) {
-			//this.board.rotate(this.quadInd);
+			this.board.rotate(this.quadInd, this.quadRotDir);
 			this.quadRot = 0;
 			this.quadInd = INVALID;
 			this.arrowInd = INVALID;	
