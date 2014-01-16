@@ -95,11 +95,14 @@ Game.prototype.draw = function() {
 	
 	//Rotation arrows - drawn clockwise
 	ctx.fillStyle = COLOR_ARROW;
-	this.drawArrow(ctx, 0, -(ARROW_HEIGHT+10), ARROW_WIDTH, ARROW_HEIGHT, 0); //Q0 -> L
-	this.drawArrow(ctx, BOARD_SIZE - ARROW_WIDTH, -(ARROW_HEIGHT+10), ARROW_WIDTH, ARROW_HEIGHT, 180); //Q1 -> R
-	//this.drawArrow(ctx, BOARD_SIZE - ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L
-	this.drawArrow(ctx, 0, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L
-	
+	this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0); //Q0 -> L
+	this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180); //Q1 -> R	
+	this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L	
+	this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270); //Q3 -> R
+    this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180); //Q3 -> L
+    this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0); //Q2 -> R
+    this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270); //Q2 -> L
+    this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90); //Q1 -> L	
 	//requestAnimationFrame(d1)
 }
 
@@ -124,14 +127,14 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 }
 
 Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees) {		
-	ctx.save();	
-	ctx.translate(x, y + (h/2));
-	ctx.rotate(degrees*Math.PI/180);	
-	ctx.fillRect(h, 0, w, h); 
+	ctx.save();		
+    ctx.translate(x, y);
+	ctx.rotate(degrees*Math.PI/180);	    
+	ctx.fillRect(h, -h/2, w, h); 
 	ctx.beginPath();
-	ctx.moveTo(h, -h);
-	ctx.lineTo(h, 2*h);
-	ctx.lineTo(0, h/2);	
+	ctx.moveTo(0, 0);	
+	ctx.lineTo(h, h);
+	ctx.lineTo(h, -h);
 	ctx.closePath();
 	ctx.fill();
 	ctx.restore();
