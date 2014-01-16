@@ -10,8 +10,8 @@ var HALF_UNIT = UNIT_SIZE/2;
 var HALF_QUAD = QUAD_SIZE/2;
 var HALF_CANVAS = CANVAS_SIZE/2;
 
-var ARROW_WIDTH = 150;
-var ARROW_HEIGHT = 10;
+var ARROW_WIDTH = 50;
+var ARROW_HEIGHT = 20;
 
 var TURN_SPEED = 2;
 
@@ -72,12 +72,12 @@ Game.prototype.onClick = function(e) {
 		game.quadInd = toQuad(e.offsetX, e.offsetY);
 		//Get rot dir
 		if (game.quadInd % 3 == 0) { //Quads 0, and 3
-			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = 1;
-			else game.quadRotDir = -1;
-		}
-		else { //Quads 1, and 2
 			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = -1;
 			else game.quadRotDir = 1;
+		}
+		else { //Quads 1, and 2
+			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = 1;
+			else game.quadRotDir = -1;
 		}
 		game.mode = MODE_ANIM;
 	}
@@ -126,19 +126,21 @@ Game.prototype.draw = function() {
 	this.drawLine(ctx, QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
 	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
     	
-	//Rotation arrows - (horizontal have octant of < 4, and vertical > 4)
-	this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0, 0); //Q0 -> L
-    this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90, 4); //Q0 -> R	
-    
-    this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 90, 5); //Q1 -> L	
-	this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180, 1); //Q1 -> R
+	//Rotation arrows
+	if (this.mode == MODE_TURN || this.mode == MODE_ANIM) {
+		this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 292.5, 4); //Q0 - A
+		this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 157.5, 0); //Q0 - C
+				
+		this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 22.5, 1); //Q1 -> A	    
+		this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 247.5, 5); //Q1 -> C
+		
+		this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 202.5, 2); //Q2 -> A        
+		this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 67.5, 6); //Q2 -> C
+		
+		this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 112.5, 7); //Q3 -> A    
+		this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 337.5, 3); //Q3 -> C    	   
+    }
 	
-    this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270, 6); //Q2 -> L   
-    this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 0, 2); //Q2 -> R
-	
-    this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 180, 3); //Q3 -> L    
-	this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 270, 7); //Q3 -> R    
-    
 	//Quad rotation animation
 	if (this.mode == MODE_ANIM) {
 		this.drawQuad(ctx, this.quadInd, this.quadRot, true);
@@ -176,11 +178,16 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 }
 
 Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrowInd) {	    
-    ctx.fillStyle = (this.mode == MODE_TURN && this.arrowInd == arrowInd)? COLOR_CURSOR : COLOR_ARROW;	
+    ctx.fillStyle = (this.mode != MODE_DROP && this.arrowInd == arrowInd)? COLOR_CURSOR : COLOR_ARROW;	
 	ctx.save();		
-    ctx.translate(x, y);
+	var halfW = (w + h)/2;
+	var halfH = h/2;
+	
+	ctx.translate(x, y);
 	ctx.rotate(degrees*Math.PI/180);	    
-	ctx.fillRect(h, -h/2, w, h); 
+	ctx.translate(-(w + h), 0);	
+		   
+	ctx.fillRect(h, -halfH, w, h); 
 	ctx.beginPath();
 	ctx.moveTo(0, 0);	
 	ctx.lineTo(h, h);
