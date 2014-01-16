@@ -6,6 +6,7 @@ var CANVAS_SIZE = 800;
 var CANVAS_OFFSET = (CANVAS_SIZE - BOARD_SIZE) / 2;
 var HALF_UNIT = UNIT_SIZE/2;
 var HALF_QUAD = QUAD_SIZE/2;
+var HALF_CANVAS = CANVAS_SIZE/2;
 var ARROW_WIDTH = 150;
 var ARROW_HEIGHT = 10;
 
@@ -64,28 +65,33 @@ Game.prototype.onMouse = function(e) {
         game.cursorR = toRC(e.offsetY);x
         game.cursorC = toRC(e.offsetX);
     }
-    else if (game.mode == MODE_TURN) {
-        //Barycentric coordinates to test if point is inside triangle
-        //http://stackoverflow.com/questions/2049582/how-to-determine-a-point-in-a-triangle
-        //http://stackoverflow.com/questions/13300904/determine-whether-point-lies-inside-triangle
-        var px = e.offsetX;
-        var py = e.offsetY;
-        
-        var p0x = 0;
-        var p0y = 0;
-        
-        var p1x = 0;
-        var p1y = CANVAS_SIZE/2;
-        
-        var p2x = CANVAS_SIZE/2;
-        var p2y = CANVAS_SIZE/2;
-        var area = 1/2*(-p1y*p2x + p0y*(-p1x + p2x) + p0x*(p1y - p2y) + p1x*p2y);
-        var s = 1/(2*area)*(p0y*p2x - p0x*p2y + (p2y - p0y)*px + (p0x - p2x)*py);
-        var t = 1/(2*area)*(p0x*p1y - p0y*p1x + (p0y - p1y)*px + (p1x - p0x)*py);
-        if (s > 0 && t > 0 && (1 - s - t) > 0) game.arrow = 0;
-        else game.arrow = -1;
+    else if (game.mode == MODE_TURN) {        
+        game.arrow = game.getArrow(e.offsetX, e.offsetY); 
+        console.log(game.arrow);
     }
     game.draw();		
+}
+
+Game.prototype.getArrow = function(x, y) {
+    //Calculate quadrant
+    var quadR = toQuadRC(x);
+    var quadC = toQuadRC(y);
+    var quadInd = (quadR * QUAD_COUNT) + quadC;
+    
+    var ax = quadC * HALF_CANVAS;
+    var ay = quadR * HALF_CANVAS;
+    
+    var bx = ax + HALF_CANVAS;
+    var by = ay + HALF_CANVAS;
+    
+    game.ax = ax;
+    game.ay = ay;
+    game.bx = bx;
+    game.by = by;
+    
+    //Calculate if mouse point is above quad diagonal line (i.e. if greater than 0)
+    if (((bx - ax)*(y - ay)) - ((by - ay)*(x - ax)) > 0) return quadInd + BOARD_QUADS;
+    else return quadInd;
 }
 
 //Draw functions
@@ -93,10 +99,9 @@ Game.prototype.draw = function() {
     var ctx = this.ctx;
     ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
 ctx.strokeStyle = '#f00';
-var HALF_CANVAS = CANVAS_SIZE/2;
-this.drawLine(ctx, 0, 0, HALF_CANVAS, HALF_CANVAS);
-this.drawLine(ctx, HALF_CANVAS, HALF_CANVAS, 0, HALF_CANVAS);
-if (this.arrow == 0) this.drawCircle(ctx, 20, 20, 100, 5, COLOR_P1);		
+this.drawLine(ctx, this.ax, this.ay, this.bx, this.by);
+//this.drawLine(ctx, HALF_CANVAS, HALF_CANVAS, 0, HALF_CANVAS);
+//if (this.arrow == 0) this.drawCircle(ctx, 20, 20, 100, 5, COLOR_P1);		
 	
 	//Player Turn			
 	ctx.fillStyle = (this.board.turn == PLAYER_1)? COLOR_P1 : COLOR_P2;
@@ -185,16 +190,16 @@ Game.prototype.drawQuad = function(ctx, quadR, quadC, degrees, clear) {
 	if (clear) ctx.clearRect(0,0, QUAD_SIZE, QUAD_SIZE);	    
 	
 	var board = this.board;
-	var qR = quadR * QUAD_ROW_COUNT;
-    var qC = quadC * QUAD_COL_COUNT;		   
+	var qR = quadR * QUAD_ROW_SPACES;
+    var qC = quadC * QUAD_COL_SPACES;		   
 	var x,y;
-    for (var r = 0; r < QUAD_ROW_COUNT; r++) {
+    for (var r = 0; r < QUAD_ROW_SPACES; r++) {
         y = toXY(r);
         ctx.strokeStyle = COLOR_GRID;
 		this.drawLine(ctx, 0, y, QUAD_SIZE, y); //Horizontal
 		this.drawLine(ctx, y, 0, y, QUAD_SIZE); //Vertical
         
-        for (var c = 0; c < QUAD_COL_COUNT; c++) {
+        for (var c = 0; c < QUAD_COL_SPACES; c++) {
             //Draw pins
 			x = toXY(c);
 			var p = board.get(qR + r,qC + c);			
@@ -202,7 +207,7 @@ Game.prototype.drawQuad = function(ctx, quadR, quadC, degrees, clear) {
 			else if (p == PLAYER_2) this.drawCircle(ctx, x,y, HALF_UNIT, 5, COLOR_P2);		        
         }
     }
-    y = toXY(QUAD_ROW_COUNT);
+    y = toXY(QUAD_ROW_SPACES);
 	this.drawLine(ctx, 0, y, QUAD_SIZE, y); //Horizontal
 	this.drawLine(ctx, y, 0, y, QUAD_SIZE); //Vertical
     
@@ -215,9 +220,13 @@ function toXY(rc) {
 	return rc * UNIT_SIZE;
 }
 
+function toQuadRC(xy) {
+	return Math.floor(xy / HALF_CANVAS);	
+}
+
 function toRC(xy) {
 	var rc = Math.floor((xy - CANVAS_OFFSET) / UNIT_SIZE);
-	if (rc >= ROW_COUNT) return ROW_COUNT - 1;
+	if (rc >= ROW_SPACES) return ROW_SPACES - 1;
 	else if (rc < 0) return 0;
 	else return rc;
 }

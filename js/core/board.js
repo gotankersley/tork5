@@ -32,13 +32,15 @@ var EMPTY = -1;
 var ROT_LEFT = 0;
 var ROT_RIGHT = 1;
 
-var SPACES = 36;
+var BOARD_SPACES = 36;
+var BOARD_QUADS = 4;
 var NUM_TO_WIN = 5;
-var ROW_COUNT = 6;
-var COL_COUNT = 6;
-var QUAD_COUNT = 9;
-var QUAD_ROW_COUNT = 3;
-var QUAD_COL_COUNT = 3;
+var ROW_SPACES = 6;
+var COL_SPACES = 6;
+var QUAD_SPACES = 9;
+var QUAD_COUNT = 2;
+var QUAD_ROW_SPACES = 3;
+var QUAD_COL_SPACES = 3;
 
 //Index maps
 var ROW = [0,0,0,1,2,2,2,1,1,0,0,0,1,2,2,2,1,1,3,3,3,4,5,5,5,4,4,3,3,3,4,5,5,5,4,4];
@@ -121,13 +123,13 @@ Board.prototype.get = function(row, col) {
 Board.prototype.rotateBoard = function(board, quadId,dir) {      
 	//Extract quad from board  
 	var quadUnshifted = (and(board, QUADS[quadId]));
-    var quad = shiftR(quadUnshifted, quadId * QUAD_COUNT); 
+    var quad = shiftR(quadUnshifted, quadId * QUAD_SPACES); 
     
     //Bitwise rotate, 3 places will rotate 90 degrees
     var rotQuad = (dir == ROT_RIGHT)? rotR(quad,3) : rotL(quad,3);    
 	
     //Add the rotated quad back to the board
-	var quadShifted = shiftL(rotQuad, quadId * QUAD_COUNT);
+	var quadShifted = shiftL(rotQuad, quadId * QUAD_SPACES);
     var rotBoard = xor(board, QUADS[quadId]);
 	rotBoard = xor(rotBoard, quadShifted);
     if (this.turn == PLAYER_1) this.p1 = rotBoard;
@@ -136,7 +138,7 @@ Board.prototype.rotateBoard = function(board, quadId,dir) {
 }
 
 Board.prototype.isWin = function(board) {    
-    if (this.moveCount >= SPACES) return true;
+    if (this.moveCount >= BOARD_SPACES) return true;
     else if (bitCount(board) <= NUM_TO_WIN) return false;
     for(var w = 0; w < WINS.length; w++) {
         if (and(board, WINS[w])) {
@@ -147,8 +149,8 @@ Board.prototype.isWin = function(board) {
 }
 
 Board.prototype.show = function() {    
-    for (var r = 0; r < ROW_COUNT; r++) {
-        for (var c = 0; c < COL_COUNT; c++) {            
+    for (var r = 0; r < ROW_SPACES; r++) {
+        for (var c = 0; c < COL_SPACES; c++) {            
             var ind = IND[r][c];            
             var space = ' ';
             if (and(this.p1, mpos(ind))) space = 'X';
