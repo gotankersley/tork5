@@ -65,8 +65,15 @@ Game.prototype.onClick = function(e) {
     if (game.mode == MODE_DROP) {
         var r = toRC(e.offsetY);
         var c = toRC(e.offsetX);
-        game.board.set(r,c);  		
-		game.mode = MODE_TURN;       
+        if (game.board.set(r,c)) {
+			var gameState = game.board.isWin();
+			if (gameState == IN_PLAY) game.mode = MODE_TURN;       
+			else {
+				if (gameState == WIN_PLAYER1) alert('Player 1 wins!');
+				else if (gameState == WIN_PLAYER2) alert('Player 2 wins!');
+				else alert('Tie game!');
+			}
+		}
     }
 	else if (game.mode == MODE_TURN) {
 		game.arrowInd = toOctant(e.offsetX, e.offsetY);
@@ -100,7 +107,7 @@ Game.prototype.draw = function() {
     ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
 	
 	//Player Turn			
-	ctx.fillStyle = (this.board.turn == PLAYER_1)? COLOR_P1 : COLOR_P2;
+	ctx.fillStyle = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;
 	ctx.font = '14pt sans-serif';	
 	ctx.fillText('Player' + (this.board.turn + 1) + '\'s turn', 10, 20);	
 			
@@ -147,12 +154,20 @@ Game.prototype.draw = function() {
 		this.drawQuad(ctx, this.quadInd, this.quadRot, true);
 		if (Math.abs(this.quadRot) >= 90) {
 			this.board.rotate(this.quadInd, this.quadRotDir);
-			this.quadRot = 0;
-			this.quadInd = INVALID;
-			this.arrowInd = INVALID;	
-			this.cursorR = 0;
-			this.cursorC = 0;			
-			this.mode = MODE_DROP;			
+			var gameState = this.board.isWin();
+			if (gameState == IN_PLAY) {
+				this.quadRot = 0;
+				this.quadInd = INVALID;
+				this.arrowInd = INVALID;	
+				this.cursorR = 0;
+				this.cursorC = 0;			
+				this.mode = MODE_DROP;			
+			}
+			else {
+				if (gameState == WIN_PLAYER1) alert('Player 1 wins!');
+				else if (gameState == WIN_PLAYER2) alert('Player 2 wins!');
+				else alert('Tie game!');
+			}
 		}
 		else this.quadRot += (this.quadRotDir * TURN_SPEED);
 	}
@@ -223,8 +238,8 @@ Game.prototype.drawQuad = function(ctx, quadInd, degrees, anim) {
             //Draw pins
 			x = toXY(c);
 			var p = board.get(qR + r,qC + c);			
-			if (p == PLAYER_1) this.drawCircle(ctx, x, y, HALF_UNIT, 5, COLOR_P1);						
-			else if (p == PLAYER_2) this.drawCircle(ctx, x,y, HALF_UNIT, 5, COLOR_P2);		        
+			if (p == PLAYER1) this.drawCircle(ctx, x, y, HALF_UNIT, 5, COLOR_P1);						
+			else if (p == PLAYER2) this.drawCircle(ctx, x,y, HALF_UNIT, 5, COLOR_P2);		        
         }
     }
     y = toXY(QUAD_ROW_SPACES);

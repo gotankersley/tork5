@@ -24,8 +24,7 @@ function or(n1, n2) {
     return (Math.floor(n1/HI_MASK) | Math.floor(n2/HI_MASK)) * HI_MASK + ((n1|n2)>>>0);
 }
 
-function not(n) {
-    //return ((((~(n/HI_MASK)) >>> 0) ^ HI_MASK) * HI_MASK) + (~n >>> 0);
+function not(n) {    
     return ((((~Math.floor(n/HI_MASK)) >>> 0) ^ 0xfffffff0) * HI_MASK) + (~n >>> 0);
 }
 
@@ -37,14 +36,12 @@ function shiftR(n,x) {
 	return Math.floor(n/Math.pow(2,x));
 }
 
-function rotL(n,x) { //int32 only
-    //return ((n << x) % 0xff) | (n >>> (32 - x))    
-	return (n >>> (32 - x))|(n << x)%0xff;
+function rotL(n,x) { //int32 only    
+	return (n >>> (32 - x))|(n << x) % 0xff;	
 }
 
 function rotR(n,x) { //int32 only
-    return (n >> x) | ((n << (32 - x)) % 0xff)
-	//return (n >>> x)|((n << (32-x)) % 0xff);
+    return (n >>> x) | ((n << (32 - x) >>> 0) % 0xff);	
 }
 
 function mpos(ind) {
@@ -52,8 +49,8 @@ function mpos(ind) {
 }
 
 function bitCount(x) {
-	var hi = BIT_COUNTS[Math.floor(x/HI_MASK)];	
-	x = x - ((x >>> 1) & 0x55555555);
-	x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
-	return hi + ((((x + (x >>> 4)) & 0x0F0F0F0F) * 0x01010101) >>> 24);
+	//var hi = BIT_COUNTS[Math.floor(x/HI_MASK)];	
+	//x = x - ((x >>> 1) & 0x55555555);
+	//x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+	//return hi + ((((x + (x >>> 4)) & 0x0F0F0F0F) * 0x01010101) >>> 24);
 }

@@ -25,13 +25,6 @@ Space: One of 36 spaces a player can place a pin
 */
 
 //Constants
-var PLAYER_1 = 0;
-var PLAYER_2 = 1;
-var EMPTY = -1;
-
-var ROT_LEFT = -1;
-var ROT_RIGHT = 1;
-
 var BOARD_SPACES = 36;
 var BOARD_QUADS = 4;
 var NUM_TO_WIN = 5;
@@ -41,6 +34,20 @@ var QUAD_SPACES = 9;
 var QUAD_COUNT = 2;
 var QUAD_ROW_SPACES = 3;
 var QUAD_COL_SPACES = 3;
+
+//Enums
+var PLAYER1 = 0;
+var PLAYER2 = 1;
+var EMPTY = -1;
+
+var ROT_LEFT = -1;
+var ROT_RIGHT = 1;
+
+var IN_PLAY = 0;
+var WIN_PLAYER1 = 1;
+var WIN_PLAYER2 = 2;
+var WIN_TIE = 3;
+
 
 //Index maps
 var ROW = [0,0,0,1,2,2,2,1,1,0,0,0,1,2,2,2,1,1,3,3,3,4,5,5,5,4,4,3,3,3,4,5,5,5,4,4];
@@ -77,7 +84,7 @@ var WIN_MIDS = [ //Used to guarantee count win count is contiguous
 function Board() {
     this.p1 = INITIAL; //Player1 bitboard
     this.p2 = INITIAL; //Player2 bitboard
-    this.turn = PLAYER_1;
+    this.turn = PLAYER1;
     this.moveCount = 0;
 }
 
@@ -90,7 +97,7 @@ Board.prototype.move = function(ind, quadId, dir) {
     this.addPin(ind);    
     
     //Check for win    
-    var board = (this.turn == PLAYER_1)? this.p1 : this.p2;
+    var board = (this.turn == PLAYER1)? this.p1 : this.p2;
     if (!this.isWin(board)) {
         board = this.rotateBoard(board, quadId, dir);
         if (this.isWin(board)) return true;
@@ -105,23 +112,29 @@ Board.prototype.move = function(ind, quadId, dir) {
 Board.prototype.set = function(row,col) {        
 	var ind = IND[row][col];	
     if (this.isOpen(ind)) {                
-        if (this.turn == PLAYER_1) this.p1 = xor(this.p1,mpos(ind));        
-        else this.p2 = xor(this.p2, mpos(ind)); //Player 2
-		//this.turn = !this.turn;
-    }    
+        if (this.turn == PLAYER1) this.p1 = xor(this.p1,mpos(ind));        
+        else this.p2 = xor(this.p2, mpos(ind)); //Player 2		
+		return true;
+    }
+	else return false;
 }
 
 Board.prototype.get = function(row, col) {
 	var ind = IND[row][col];
 	var mp = mpos(ind);
-	if (and(this.p1,mp)) return PLAYER_1;	
-	else if (and(this.p2,mp)) return PLAYER_2;
+	if (and(this.p1,mp)) return PLAYER1;	
+	else if (and(this.p2,mp)) return PLAYER2;
 	else return EMPTY;
 }
 
-
-Board.prototype.rotate = function(quadId, dir) {      
-	var board = (this.turn == PLAYER_1)? this.p1 : this.p2;
+Board.prototype.rotate = function(quadInd, dir) {
+	this.p1 = this.rotateBoard(this.p1, quadInd, dir);
+	this.p2 = this.rotateBoard(this.p2, quadInd, dir);
+	this.moveCount++;
+	this.turn = !this.turn;    
+}
+Board.prototype.rotateBoard = function(board, quadId, dir) {      
+	
 	//Extract quad from board  
 	var quadUnshifted = (and(board, QUADS[quadId]));
     var quad = shiftR(quadUnshifted, quadId * QUAD_SPACES); 
@@ -133,21 +146,21 @@ Board.prototype.rotate = function(quadId, dir) {
 	var quadShifted = shiftL(rotQuad, quadId * QUAD_SPACES);
 	board = and(board, not(QUADS[quadId])); //Empty quad    
 	var rotBoard = xor(board, quadShifted);
-    if (this.turn == PLAYER_1) this.p1 = rotBoard;
-    else this.p2 = rotBoard;
-	this.turn = !this.turn;
-    return rotBoard;
+    return rotBoard;    
 }
 
-Board.prototype.isWin = function(board) {    
-    if (this.moveCount >= BOARD_SPACES) return true;
-    else if (bitCount(board) <= NUM_TO_WIN) return false;
+Board.prototype.isWin = function() {    
+    if (this.moveCount >= BOARD_SPACES) return WIN_TIE;
+    //else if (bitCount(board) <= NUM_TO_WIN) return IN_PLAY;
     for(var w = 0; w < WINS.length; w++) {
-        if (and(board, WINS[w])) {
-            if (and(board, WIN_MIDS[w]) == WIN_MIDS[w]) return true;
+        if (and(this.p1, WINS[w])) {
+            if (and(this.p1, WIN_MIDS[w]) == WIN_MIDS[w]) return WIN_PLAYER1;
+        }
+		else if (and(this.p2, WINS[w])) {
+            if (and(this.p2, WIN_MIDS[w]) == WIN_MIDS[w]) return WIN_PLAYER2;
         }
     }
-    return false;
+    return IN_PLAY;
 }
 
 Board.prototype.show = function() {    
