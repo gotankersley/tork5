@@ -126,14 +126,13 @@ Board.prototype.rotate = function(quadId, dir) {
 	var quadUnshifted = (and(board, QUADS[quadId]));
     var quad = shiftR(quadUnshifted, quadId * QUAD_SPACES); 
     
-    //Bitwise rotate, 3 places will rotate 90 degrees
-    var rotQuad = (dir == ROT_RIGHT)? rotR(quad,QUAD_ROW_SPACES) : rotL(quad,QUAD_ROW_SPACES);    
+    //Bitwise rotate, 3 places will rotate 90 degrees - note bitwise rot is opposite direction of visual
+    var rotQuad = (dir == ROT_RIGHT)? rotL(quad,QUAD_COUNT) : rotR(quad,QUAD_COUNT);    
 	
     //Add the rotated quad back to the board
 	var quadShifted = shiftL(rotQuad, quadId * QUAD_SPACES);
-	board = and(board, not(QUADS[quadId])); //Empty quad
-    var rotBoard = xor(board, QUADS[quadId]);
-	rotBoard = xor(rotBoard, quadShifted);
+	board = and(board, not(QUADS[quadId])); //Empty quad    
+	var rotBoard = xor(board, quadShifted);
     if (this.turn == PLAYER_1) this.p1 = rotBoard;
     else this.p2 = rotBoard;
 	this.turn = !this.turn;

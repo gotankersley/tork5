@@ -28,6 +28,7 @@ var COLOR_QUAD = '#000';
 var COLOR_GRID = '#c0c0c0';
 var COLOR_ARROW = '#e0e0e0';
 
+//Animation shim
 var requestAnimationFrame =  
 	window.requestAnimationFrame ||
 	window.webkitRequestAnimationFrame ||
@@ -159,7 +160,6 @@ Game.prototype.draw = function() {
 	
 	requestAnimationFrame(this.draw.bind(this));
 }
-
 
 Game.prototype.drawLine = function(ctx, x1, y1, x2, y2) {
 	ctx.beginPath();

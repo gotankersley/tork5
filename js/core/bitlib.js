@@ -25,7 +25,8 @@ function or(n1, n2) {
 }
 
 function not(n) {
-    return ((((~(n/HI_MASK)) >>> 0) ^ HI_MASK) * HI_MASK) + (~n >>> 0);
+    //return ((((~(n/HI_MASK)) >>> 0) ^ HI_MASK) * HI_MASK) + (~n >>> 0);
+    return ((((~Math.floor(n/HI_MASK)) >>> 0) ^ 0xfffffff0) * HI_MASK) + (~n >>> 0);
 }
 
 function shiftL(n, x) {
@@ -37,11 +38,13 @@ function shiftR(n,x) {
 }
 
 function rotL(n,x) { //int32 only
-	return (n >>> 3)|(n << (32-x));
+    //return ((n << x) % 0xff) | (n >>> (32 - x))    
+	return (n >>> (32 - x))|(n << x)%0xff;
 }
 
 function rotR(n,x) { //int32 only
-	return (n << x)|(n >>> (32-x));
+    return (n >> x) | ((n << (32 - x)) % 0xff)
+	//return (n >>> x)|((n << (32-x)) % 0xff);
 }
 
 function mpos(ind) {
