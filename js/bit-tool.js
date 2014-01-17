@@ -83,6 +83,11 @@ function toHex(bitStr, length) {
         var bits = parseInt(bitStr.substr(i, BITS_PER_BYTE), 2);
         hex += bits.toString(16);        
     }    
+	var hexStr = '0x';	
+	for (var i = 0; i < hex.length; i++) {
+		if (hex.charAt(i) != 0) return '0x' + hex.substr(i);
+	}
+	
 	return '0x' + hex;
 }
 

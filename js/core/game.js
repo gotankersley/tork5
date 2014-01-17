@@ -71,7 +71,7 @@ Game.prototype.onClick = function(e) {
 			else {
 				if (gameState == WIN_PLAYER1) alert('Player 1 wins!');
 				else if (gameState == WIN_PLAYER2) alert('Player 2 wins!');
-				else alert('Tie game!');
+				else if (gameState == WIN_TIE) alert('Tie game!');
 			}
 		}
     }
@@ -88,6 +88,9 @@ Game.prototype.onClick = function(e) {
 			else game.quadRotDir = ROT_LEFT;
 		}
 		game.mode = MODE_ANIM;
+	}
+	else if (game.mode == MODE_ANIM) {
+		game.quadRot = (89 * game.quadRotDir);
 	}
 }
 
