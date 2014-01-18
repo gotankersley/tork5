@@ -48,6 +48,10 @@ function mpos(ind) {
 	return Math.pow(2,ind);
 }
 
+function maskToInd(mask) {
+    return Math.log(mask)/Math.LN2;
+}
+
 function bitCount(x) {
 	//var hi = BIT_COUNTS[Math.floor(x/HI_MASK)];	
 	//x = x - ((x >>> 1) & 0x55555555);

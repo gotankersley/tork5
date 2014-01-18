@@ -80,6 +80,7 @@ function Board() {
     this.p2 = INITIAL; //Player2 bitboard
     this.turn = PLAYER1;
     this.moveCount = 0;
+    this.winLine = [0,0,0,0];
 }
 
 Board.prototype.isOpen = function(ind) {    
@@ -128,7 +129,7 @@ Board.prototype.rotate = function(quadInd, dir) {
 	this.turn = !this.turn;    
 }
 Board.prototype.rotateBoard = function(board, quadId, dir) {      
-	
+	//Rot can be simplified - in situ
 	//Extract quad from board  
 	var quadUnshifted = (and(board, QUADS[quadId]));
     var quad = shiftR(quadUnshifted, quadId * QUAD_SPACES); 
@@ -149,10 +150,41 @@ Board.prototype.isWin = function() {
 	
     for(var w = 0; w < WINS.length; w++) {
 		var win = WINS[w];				
-        if (and(this.p1, win) == win) return WIN_PLAYER1;
-		else if (and(this.p2, win) == win) return WIN_PLAYER2;        
+        if (and(this.p1, win) == win) {
+            this.winLine = this.getWinLine(win);
+            return WIN_PLAYER1;
+        }
+		else if (and(this.p2, win) == win) {
+            this.winLine = this.getWinLine(win);
+            return WIN_PLAYER2;        
+        }
     }
     return IN_PLAY;
+}
+
+Board.prototype.getWinLine = function(win) {       
+    var minR = ROW_SPACES - 1;
+    var minC = COL_SPACES - 1;
+    var maxR = 0;
+    var maxC = 0;
+    var r, c;
+    //Get min, and max points to figure out line dimensions
+    for (var ind = 0; ind < BOARD_SPACES; ind++) {        
+        var mp = mpos(ind);
+        if (and(win,mp)) {
+            r = ROW[ind];
+            c = COL[ind];
+            if (r < minR || (r == minR && c < minC)) {
+                minR = r;
+                minC = c;
+            }
+            if (r > maxR || (r == maxR && c > maxC)) {
+                maxR = r;
+                maxC = c;
+            }
+        }        
+    }
+    return [minR, minC, maxR, maxC];
 }
 
 Board.prototype.show = function() {    
