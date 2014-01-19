@@ -30,6 +30,7 @@ var COLOR_GRID = '#c0c0c0';
 var COLOR_ARROW = '#e0e0e0';
 var COLOR_P1_WIN = '#a00';
 var COLOR_P2_WIN = '#0cc';
+var COLOR_TIE = '#000';
 
 //Animation shim
 var requestAnimationFrame =  
@@ -46,6 +47,10 @@ var requestAnimationFrame =
 function Game() {
 	this.canvas = document.getElementById('mainCanvas');
 	this.ctx = this.canvas.getContext('2d');
+    this.ctx.font = '14pt sans-serif';	
+    this.messageColor = COLOR_P1;
+    this.message = 'Player1 - place marble';
+    
 	this.board = new Board();    
     this.cursorR = 0;
     this.cursorC = 0;
@@ -55,7 +60,7 @@ function Game() {
 	this.quadRotDir = 1;
     this.mode = MODE_PLACE;
     this.winLine = [0,0,0,0];
-    this.winColor = COLOR_P1;
+    this.winColor = COLOR_P1;        
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);
@@ -97,7 +102,10 @@ Game.prototype.onPlacePin = function(r, c) {
     var board = this.board;
     if (board.set(r,c)) {
         var gameState = board.isWin();
-        if (gameState == IN_PLAY) this.mode = MODE_ROTATE;
+        if (gameState == IN_PLAY) {
+            this.message = 'Player' + (this.board.turn + 1) + ' - turn quad';
+            this.mode = MODE_ROTATE;
+        }
         else this.onGameOver(gameState);    
     }
 }
@@ -131,16 +139,30 @@ Game.prototype.onRotateEnd = function() {
         this.quadInd = INVALID;
         this.arrowInd = INVALID;	
         this.cursorR = 0;
-        this.cursorC = 0;			
+        this.cursorC = 0;	
+        this.messageColor = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;	
+        this.message = 'Player' + (this.board.turn + 1) + ' - place marble';
         this.mode = MODE_PLACE;			
     }
     else this.onGameOver(gameState);
 }
 
 Game.prototype.onGameOver = function(gameState) {    
-    if (gameState == WIN_TIE) alert('Tie game!');
+    if (gameState == WIN_TIE) {
+        this.messageColor = COLOR_TIE;
+        this.message = 'TIE GAME!';
+    }
     else {
-        this.winColor = (gameState == WIN_PLAYER1)?  COLOR_P1_WIN : COLOR_P2_WIN;        
+        if (gameState == WIN_PLAYER1) { //Player 1
+            this.winColor = COLOR_P1_WIN;
+            this.messageColor = COLOR_P1;
+            this.message = 'Player1 WINS!';
+        }
+        else { //Player 2
+            this.winColor = COLOR_P2_WIN;
+            this.messageColor = COLOR_P2;
+            this.message = 'Player2 WINS!';
+        }              
         var winRCs = this.board.winLine;
         this.winLine = [toXY(winRCs[1]) + HALF_UNIT, toXY(winRCs[0]) + HALF_UNIT, toXY(winRCs[3]) + HALF_UNIT, toXY(winRCs[2]) + HALF_UNIT];        
     }
@@ -154,10 +176,9 @@ Game.prototype.draw = function() {
     ctx.lineWidth = 1;
     ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
 	
-	//Player Turn			
-	ctx.fillStyle = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;
-	ctx.font = '14pt sans-serif';	
-	ctx.fillText('Player' + (this.board.turn + 1) + '\'s turn', 10, 20);	
+	//Message - (Player Turn)
+	ctx.fillStyle = this.messageColor;
+	ctx.fillText(this.message, 10, 20);	
 			
     ctx.save();
     ctx.translate(CANVAS_OFFSET, CANVAS_OFFSET);
