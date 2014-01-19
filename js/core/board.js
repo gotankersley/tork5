@@ -40,8 +40,8 @@ var PLAYER1 = 0;
 var PLAYER2 = 1;
 var EMPTY = -1;
 
-var ROT_LEFT = -1;
-var ROT_RIGHT = 1;
+var ROT_ANTICLOCKWISE = -1;
+var ROT_CLOCKWISE = 1;
 
 var IN_PLAY = 0;
 var WIN_PLAYER1 = 1;
@@ -135,7 +135,7 @@ Board.prototype.rotateBoard = function(board, quadId, dir) {
     var quad = shiftR(quadUnshifted, quadId * QUAD_SPACES); 
     
     //Bitwise rotate, 3 places will rotate 90 degrees - note bitwise rot is opposite direction of visual
-    var rotQuad = (dir == ROT_RIGHT)? rotL(quad,QUAD_COUNT) : rotR(quad,QUAD_COUNT);    
+    var rotQuad = (dir == ROT_CLOCKWISE)? rotL(quad,QUAD_COUNT) : rotR(quad,QUAD_COUNT);    
 	
     //Add the rotated quad back to the board
 	var quadShifted = shiftL(rotQuad, quadId * QUAD_SPACES);

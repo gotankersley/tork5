@@ -13,11 +13,11 @@ var HALF_CANVAS = CANVAS_SIZE/2;
 var ARROW_WIDTH = 50;
 var ARROW_HEIGHT = 20;
 
-var TURN_SPEED = 3;
+var ROTATE_SPEED = 3;
 
 //Modes
-var MODE_DROP = 0;
-var MODE_TURN = 1;
+var MODE_PLACE = 0;
+var MODE_ROTATE = 1;
 var MODE_ANIM = 2;
 var MODE_WIN = 3;
 
@@ -28,7 +28,8 @@ var COLOR_CURSOR = '#cfc';
 var COLOR_QUAD = '#000';
 var COLOR_GRID = '#c0c0c0';
 var COLOR_ARROW = '#e0e0e0';
-var COLOR_WIN = '#0f0';
+var COLOR_P1_WIN = '#a00';
+var COLOR_P2_WIN = '#0cc';
 
 //Animation shim
 var requestAnimationFrame =  
@@ -45,15 +46,16 @@ var requestAnimationFrame =
 function Game() {
 	this.canvas = document.getElementById('mainCanvas');
 	this.ctx = this.canvas.getContext('2d');
-	this.board = new Board();
+	this.board = new Board();    
     this.cursorR = 0;
     this.cursorC = 0;
     this.arrowInd = INVALID;
 	this.quadInd = INVALID;
 	this.quadRot = 0;
 	this.quadRotDir = 1;
-    this.mode = MODE_DROP;
+    this.mode = MODE_PLACE;
     this.winLine = [0,0,0,0];
+    this.winColor = COLOR_P1;
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);
@@ -65,35 +67,13 @@ function Game() {
 
 //Mouse events
 Game.prototype.onClick = function(e) {
-    if (game.mode == MODE_DROP) {
+    if (game.mode == MODE_PLACE) {
         var r = toRC(e.offsetY);
         var c = toRC(e.offsetX);
-        if (game.board.set(r,c)) {
-			var gameState = game.board.isWin();
-			if (gameState == IN_PLAY) game.mode = MODE_DROP;//game.mode = MODE_TURN;       
-            else if (gameState == WIN_TIE) alert('Tie game!');
-			else {
-				if (gameState == WIN_PLAYER1) alert('Player 1 wins!');
-				else if (gameState == WIN_PLAYER2) alert('Player 2 wins!');
-                game.mode = MODE_WIN;
-                var winRCs = game.board.winLine;
-                game.winLine = [toXY(winRCs[1]) + HALF_UNIT, toXY(winRCs[0]) + HALF_UNIT, toXY(winRCs[3]) + HALF_UNIT, toXY(winRCs[2]) + HALF_UNIT];
-			}
-		}
+        game.onPlacePin(r, c);        
     }
-	else if (game.mode == MODE_TURN) {
-		game.arrowInd = toOctant(e.offsetX, e.offsetY);
-		game.quadInd = toQuad(e.offsetX, e.offsetY);
-		//Get rot dir
-		if (game.quadInd % 3 == 0) { //Quads 0, and 3
-			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = ROT_LEFT;
-			else game.quadRotDir = ROT_RIGHT;
-		}
-		else { //Quads 1, and 2
-			if (game.arrowInd >= BOARD_QUADS) game.quadRotDir = ROT_RIGHT;
-			else game.quadRotDir = ROT_LEFT;
-		}
-		game.mode = MODE_ANIM;
+	else if (game.mode == MODE_ROTATE) {
+		game.onRotateStart();
 	}
 	else if (game.mode == MODE_ANIM) {
 		game.quadRot = (89 * game.quadRotDir);
@@ -101,18 +81,77 @@ Game.prototype.onClick = function(e) {
 }
 
 Game.prototype.onMouse = function(e) {
-    if (game.mode == MODE_DROP) {
+    if (game.mode == MODE_PLACE) {
         game.cursorR = toRC(e.offsetY);
         game.cursorC = toRC(e.offsetX);
     }
-    else if (game.mode == MODE_TURN) {        
-        game.arrowInd = toOctant(e.offsetX, e.offsetY);         
+    else if (game.mode == MODE_ROTATE) {        
+        game.quadInd = toQuad(e.offsetX, e.offsetY);
+		game.arrowInd = toOctant(game.quadInd, e.offsetX, e.offsetY);	        
     }    
 }
+
+//Game logic
+Game.prototype.onPlacePin = function(r, c) {
+    //Board's set() checks to make sure space is open
+    var board = this.board;
+    if (board.set(r,c)) {
+        var gameState = board.isWin();
+        if (gameState == IN_PLAY) this.mode = MODE_ROTATE;
+        else this.onGameOver(gameState);    
+    }
+}
+
+Game.prototype.onRotateStart = function() {       
+    
+    //Get rot dir
+    if (this.quadInd % 3 == 0) { //Quads 0, and 3
+        if (this.arrowInd >= BOARD_QUADS) this.quadRotDir = ROT_ANTICLOCKWISE;
+        else this.quadRotDir = ROT_CLOCKWISE;
+    }
+    else { //Quads 1, and 2
+        if (this.arrowInd >= BOARD_QUADS) this.quadRotDir = ROT_CLOCKWISE;
+        else this.quadRotDir = ROT_ANTICLOCKWISE;
+    }
+    //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
+    this.mode = MODE_ANIM;
+}
+
+Game.prototype.onRotating = function() {
+    if (Math.abs(this.quadRot) >= 90) this.onRotateEnd();
+    else this.quadRot += (this.quadRotDir * ROTATE_SPEED); 
+}
+
+Game.prototype.onRotateEnd = function() {
+    var board = this.board;
+    board.rotate(this.quadInd, this.quadRotDir);
+    var gameState = board.isWin();
+    if (gameState == IN_PLAY) {
+        this.quadRot = 0;
+        this.quadInd = INVALID;
+        this.arrowInd = INVALID;	
+        this.cursorR = 0;
+        this.cursorC = 0;			
+        this.mode = MODE_PLACE;			
+    }
+    else this.onGameOver(gameState);
+}
+
+Game.prototype.onGameOver = function(gameState) {    
+    if (gameState == WIN_TIE) alert('Tie game!');
+    else {
+        this.winColor = (gameState == WIN_PLAYER1)?  COLOR_P1_WIN : COLOR_P2_WIN;        
+        var winRCs = this.board.winLine;
+        this.winLine = [toXY(winRCs[1]) + HALF_UNIT, toXY(winRCs[0]) + HALF_UNIT, toXY(winRCs[3]) + HALF_UNIT, toXY(winRCs[2]) + HALF_UNIT];        
+    }
+    game.mode = MODE_WIN;
+}
+
 
 //Draw functions
 Game.prototype.draw = function() {
     var ctx = this.ctx;
+    ctx.lineWidth = 1;
     ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
 	
 	//Player Turn			
@@ -124,7 +163,7 @@ Game.prototype.draw = function() {
     ctx.translate(CANVAS_OFFSET, CANVAS_OFFSET);
 		    		      
 	//Cursor
-    if (this.mode == MODE_DROP) {
+    if (this.mode == MODE_PLACE) {
         var cursorX = toXY(this.cursorC);
         var cursorY = toXY(this.cursorR);
         ctx.fillStyle = COLOR_CURSOR;
@@ -144,7 +183,7 @@ Game.prototype.draw = function() {
 	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
     	
 	//Rotation arrows
-	if (this.mode == MODE_TURN || this.mode == MODE_ANIM) {
+	if (this.mode == MODE_ROTATE || this.mode == MODE_ANIM) {
 		this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 292.5, 4); //Q0 - A
 		this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 157.5, 0); //Q0 - C
 				
@@ -161,28 +200,10 @@ Game.prototype.draw = function() {
 	//Quad rotation animation
 	if (this.mode == MODE_ANIM) {
 		this.drawQuad(ctx, this.quadInd, this.quadRot, true);
-		if (Math.abs(this.quadRot) >= 90) {
-			this.board.rotate(this.quadInd, this.quadRotDir);
-			var gameState = this.board.isWin();
-			if (gameState == IN_PLAY) {
-				this.quadRot = 0;
-				this.quadInd = INVALID;
-				this.arrowInd = INVALID;	
-				this.cursorR = 0;
-				this.cursorC = 0;			
-				this.mode = MODE_DROP;			
-			}
-            else if (gameState == WIN_TIE) alert('Tie game!');
-			else {
-				if (gameState == WIN_PLAYER1) alert('Player 1 wins!');
-				else if (gameState == WIN_PLAYER2) alert('Player 2 wins!');                
-                this.mode = MODE_WIN;
-                var winRCs = this.board.winLine;
-                this.winLine = [toXY(winRCs[1]), toXY(winRCs[0]), toXY(winRCs[3]), toXY(winRCs[2])];
-			}
-		}
-		else this.quadRot += (this.quadRotDir * TURN_SPEED);
+        this.onRotating();		
 	}    
+    
+    //Win line
     else if (this.mode == MODE_WIN) this.drawWinLine(ctx);
     ctx.restore();
 	
@@ -206,7 +227,7 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 }
 
 Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrowInd) {	    
-    ctx.fillStyle = (this.mode != MODE_DROP && this.arrowInd == arrowInd)? COLOR_CURSOR : COLOR_ARROW;	
+    ctx.fillStyle = (this.mode != MODE_PLACE && this.arrowInd == arrowInd)? COLOR_CURSOR : COLOR_ARROW;	        
 	ctx.save();		
 	var halfW = (w + h)/2;
 	var halfH = h/2;
@@ -263,12 +284,13 @@ Game.prototype.drawQuad = function(ctx, quadInd, degrees, anim) {
 }
 
 Game.prototype.drawWinLine = function(ctx) {
-    ctx.strokeStyle = COLOR_WIN;
+    ctx.strokeStyle = this.winColor;
+    ctx.lineWidth = 5;
     this.drawLine(ctx, this.winLine[0], this.winLine[1], this.winLine[2], this.winLine[3]);
 }
 //End class Game
 
-
+//Conversion functions
 function toXY(rc) {
 	return rc * UNIT_SIZE;
 }
@@ -286,15 +308,10 @@ function toQuad(x, y) {
     return (quadR * QUAD_COUNT) + quadC;
 }
 
-function toOctant(x, y) {
-    //Divide quadrant into triangles - think Union Jack flag
-    //Start by getting quadrant
-    var quadR = Math.floor(y / HALF_CANVAS);
-    var quadC = Math.floor(x / HALF_CANVAS);
-    var quadInd = (quadR * QUAD_COUNT) + quadC;
-    
-    var ax = (quadC == 0)? 0 : CANVAS_SIZE;
-    var ay = (quadR == 0)? 0 : CANVAS_SIZE;
+function toOctant(quadInd, x, y) {
+    //Divide quadrant into triangles - think Union Jack flag    
+    var ax = (quadInd % QUAD_COUNT == 0)? 0 : CANVAS_SIZE;
+    var ay = (quadInd < QUAD_COUNT)? 0 : CANVAS_SIZE;
     
     var bx = HALF_CANVAS;
     var by = HALF_CANVAS;    
