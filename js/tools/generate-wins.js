@@ -1,18 +1,20 @@
 var HORIZONTAL = 0;
 var VERTICAL = 1;
-var DIAGONAL = 2;
+var DIAG_TL_BR = 2;
+var DIAG_TR_BL = 3;
+
 var BITS_PER_BYTE = 4;
 
+var statBoard;
 $(function() {
+	statBoard = new Board();
 	for (var r = 0; r < ROW_SPACES; r++) {
-		for (var c = 0; c < COL_SPACES; c++) {
+		for (var c = 1; c < COL_SPACES; c++) {
 			printLine(r, c, HORIZONTAL);						
 			printLine(r, c, VERTICAL);
-			printLine(r, c, DIAGONAL);
-			
-			//break;
-		}
-		//break;
+			printLine(r, c, DIAG_TL_BR);
+			printLine(r, c, DIAG_TR_BL);			
+		}		
 	}
 });
 
@@ -29,29 +31,57 @@ function getMask(r, c, offset, lineType) {
 			if (onBoard(r + off, c)) mask = or(mask, mpos(IND[r + off][c]));
 			else return false;
 		}
-		else if (lineType == DIAGONAL) {
+		else if (lineType == DIAG_TL_BR) {
 			if (onBoard(r + off, c + off)) mask = or(mask, mpos(IND[r + off][c + off]));
 			else return false;
 		}
+		else if (lineType == DIAG_TR_BL) {
+			if (onBoard(r + off, c - off)) mask = or(mask, mpos(IND[r + off][c - off]));
+			else return false;
+		}		
 		else return false;
 	}
 	return mask;
 }
 
-function printMask(mask) {
-	if (mask) {
-		var bitStr = toBin(mask);
-		var hexStr = toHex(bitStr, bitStr.length);
-		document.write(hexStr + ',<br>');
-	}
+function printMask(mask) {	
+	var bitStr = toBin(mask);
+	var hexStr = toHex(bitStr, bitStr.length);
+	document.write(hexStr + ',<br>');
 }
-function printLine(r, c, lineType) {		
-	for (var i = 0; i < NUM_TO_WIN; i++) {
-		var mask = getMask(r, c, i, lineType);
-		printMask(mask);
-	}
 
-	return true;
+function printRotated(mask, q1, q2) {
+	printMask(statBoard.rotateQuad(mask, q1, ROT_CLOCKWISE));
+	printMask(statBoard.rotateQuad(mask, q1, ROT_ANTICLOCKWISE));
+	printMask(statBoard.rotateQuad(mask, q2, ROT_CLOCKWISE));
+	printMask(statBoard.rotateQuad(mask, q2, ROT_ANTICLOCKWISE));
+}
+
+function printLine(r, c, lineType) {	
+	for (var i = 0; i < NUM_TO_WIN; i++) {
+		var mask = getMask(r, c, i, lineType);		
+		if (mask) {
+			printMask(mask);
+			//Rotate quads - horizontal 
+			if (lineType == HORIZONTAL) {
+				var q = (r < 3)? 0 : 2;		
+				printRotated(mask, q, q + 1);				
+			}
+			
+			//Rotate vertical
+			else if (lineType == VERTICAL) {
+				var q = (c < 3)? 0 : 1;			
+				printRotated(mask, q, q + 2);								
+			}
+			
+			//Rotate - top left -> bottom right
+			else if (lineType == DIAG_TL_BR) printRotated(mask, 0, 3);
+			
+			//Rotate - top right -> bottom left
+			else if (lineType == DIAG_TR_BL) printRotated(mask, 1, 2);
+		}
+		
+	}	
 }
 
 function onBoard(row, col) {
