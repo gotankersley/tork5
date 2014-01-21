@@ -103,9 +103,13 @@ Board.prototype.move = function(ind, quadId, dir) {
     this.turn != this.turn;    
 }
 */
-    
-Board.prototype.set = function(row,col) {        
-	var ind = IND[row][col];	
+
+Board.prototype.set = function(row, col) {   
+    var ind = IND[row][col];	    
+    this.setPin(ind);
+}
+Board.prototype.setPin = function(ind) {        
+	
     if (this.isOpen(ind)) {                
         if (this.turn == PLAYER1) this.p1 = xor(this.p1,mpos(ind));        
         else this.p2 = xor(this.p2, mpos(ind)); //Player 2		
@@ -115,20 +119,35 @@ Board.prototype.set = function(row,col) {
 }
 
 Board.prototype.get = function(row, col) {
-	var ind = IND[row][col];
+    var ind = IND[row][col];
+    this.getPin(ind);
+}
+Board.prototype.getPin = function(ind) {	
 	var mp = mpos(ind);
 	if (and(this.p1,mp)) return PLAYER1;	
 	else if (and(this.p2,mp)) return PLAYER2;
 	else return EMPTY;
 }
 
+Board.prototype.getOpen = function() {
+    var open = [];
+    var avail = not(or(this.p1,this.p2)); 
+    for (var ind = 0; ind < BOARD_SPACES; ind++) {        
+        var mp = mpos(ind);
+        if (and(avail,mp)) {
+            open.push(ind);
+        }
+    }
+    return open;
+}
+
 Board.prototype.rotate = function(quadInd, dir) {
-	this.p1 = this.rotateBoard(this.p1, quadInd, dir);
-	this.p2 = this.rotateBoard(this.p2, quadInd, dir);
+	this.p1 = this.rotateQuad(this.p1, quadInd, dir);
+	this.p2 = this.rotateQuad(this.p2, quadInd, dir);
 	this.moveCount++;
 	this.turn = !this.turn;    
 }
-Board.prototype.rotateBoard = function(board, quadId, dir) {      
+Board.prototype.rotateQuad = function(board, quadId, dir) {      
 	//Rot can be simplified - in situ
 	//Extract quad from board  
 	var quadUnshifted = (and(board, QUADS[quadId]));

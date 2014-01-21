@@ -97,9 +97,9 @@ Game.prototype.onMouse = function(e) {
 }
 
 //Game logic
-Game.prototype.onPlacePin = function(r, c) {
-    //Board's set() checks to make sure space is open
+Game.prototype.onPlacePin = function(r, c) {    
     var board = this.board;
+    //Set returns false if space is not open
     if (board.set(r,c)) {
         var gameState = board.isWin();
         if (gameState == IN_PLAY) {
