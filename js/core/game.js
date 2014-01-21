@@ -32,6 +32,9 @@ var COLOR_P1_WIN = '#a00';
 var COLOR_P2_WIN = '#0cc';
 var COLOR_TIE = '#000';
 
+//Keys
+var KEY_SPACE = 32;
+
 //Animation shim
 var requestAnimationFrame =  
 	window.requestAnimationFrame ||
@@ -61,11 +64,16 @@ function Game() {
     this.mode = MODE_PLACE;
     this.winLine = [0,0,0,0];
     this.winColor = COLOR_P1;        
+	
+	//this.player1 = 0;
+	//this.player2 = new Random();
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);
 	$(this.canvas).mousemove(this.onMouse);	    
+	$(document).keyup(this.onKeyPress);	 
     
+	$('#rand-tool').click(this.onRandomize);
     this.draw();
 }
 
@@ -96,7 +104,17 @@ Game.prototype.onMouse = function(e) {
     }    
 }
 
-//Game logic
+Game.prototype.onKeyPress = function(e) {
+	if (e.keyCode == KEY_SPACE) location.reload();
+}
+
+Game.prototype.onRandomize = function(e) {
+	game.board.randomize();
+	e.preventDefault;
+	return false;
+}
+
+//Game events
 Game.prototype.onPlacePin = function(r, c) {    
     var board = this.board;
     //Set returns false if space is not open

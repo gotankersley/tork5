@@ -87,22 +87,7 @@ Board.prototype.isOpen = function(ind) {
     var avail = not(or(this.p1,this.p2)); 
     return and(avail, mpos(ind));
 }
-/*
-Board.prototype.move = function(ind, quadId, dir) {    
-    this.addPin(ind);    
-    
-    //Check for win    
-    var board = (this.turn == PLAYER1)? this.p1 : this.p2;
-    if (!this.isWin(board)) {
-        board = this.rotateBoard(board, quadId, dir);
-        if (this.isWin(board)) return true;
-    }
-    
-    //Change turn
-    this.moveCount++;
-    this.turn != this.turn;    
-}
-*/
+
 
 Board.prototype.set = function(row, col) {   
     var ind = IND[row][col];	    
@@ -203,6 +188,25 @@ Board.prototype.getWinLine = function(win) {
         }        
     }
     return [minR, minC, maxR, maxC];
+}
+
+Board.prototype.randomize = function() {
+	var pinsToAdd = Math.random() * (BOARD_SPACES - 2);
+	for (var i = 0; i < pinsToAdd; i++) {		
+		this.setPin(i);
+		this.rotate(Math.random() * BOARD_QUADS, (Math.random() * 2) - 1);
+	}
+}
+
+Board.prototype.findWin = function() {
+	var avail = not(or(this.p1,this.p2)); 
+	for (var ind = 0; ind < BOARD_SPACES; ind++) {        
+        var mp = mpos(ind);
+		if (and(avail,mp)) {
+			//AVAIL_WINS
+		}
+		
+	}
 }
 
 Board.prototype.show = function() {    

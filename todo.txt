@@ -1,5 +1,14 @@
-Todo:
-- optimise: asm.js for AI
-- graphics: webgl
-- tools: bitviewer
-- multiplayer: websockets?
+Optimize: 
+- asm.js for AI
+- web worker (multi - threading)
+
+
+Graphics:
+- webgl
+
+
+Multiplayer: 
+
+Misc:
+- Move notation
+- 
