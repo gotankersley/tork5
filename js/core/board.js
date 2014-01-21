@@ -106,10 +106,9 @@ Board.prototype.move = function(ind, quadId, dir) {
 
 Board.prototype.set = function(row, col) {   
     var ind = IND[row][col];	    
-    this.setPin(ind);
+    return this.setPin(ind);
 }
-Board.prototype.setPin = function(ind) {        
-	
+Board.prototype.setPin = function(ind) {        	
     if (this.isOpen(ind)) {                
         if (this.turn == PLAYER1) this.p1 = xor(this.p1,mpos(ind));        
         else this.p2 = xor(this.p2, mpos(ind)); //Player 2		
@@ -120,7 +119,7 @@ Board.prototype.setPin = function(ind) {
 
 Board.prototype.get = function(row, col) {
     var ind = IND[row][col];
-    this.getPin(ind);
+    return this.getPin(ind);
 }
 Board.prototype.getPin = function(ind) {	
 	var mp = mpos(ind);
