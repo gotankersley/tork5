@@ -4,20 +4,46 @@ var DIAG_TL_BR = 2;
 var DIAG_TR_BL = 3;
 
 var BITS_PER_BYTE = 4;
+var EOL = '\r';
 
 var statBoard;
+var masks = [];
+var ind;
 $(function() {
 	statBoard = new Board();
+	for (var i = 0; i < BOARD_SPACES; i++) {
+		masks.push({});
+	}
 	for (var r = 0; r < ROW_SPACES; r++) {
-		for (var c = 1; c < COL_SPACES; c++) {
+		for (var c = 0; c < COL_SPACES; c++) {			
+			ind = IND[r][c];
 			printLine(r, c, HORIZONTAL);						
 			printLine(r, c, VERTICAL);
 			printLine(r, c, DIAG_TL_BR);
-			printLine(r, c, DIAG_TR_BL);			
-		}		
+			printLine(r, c, DIAG_TR_BL);	
+			//break;			
+		}	
+		//break;
 	}
+	
+	outputMasks();
 });
 
+function outputMasks() {
+	document.write('<pre>');
+	document.write('var avail = [' + EOL);
+	for (var i = 0; i < BOARD_SPACES; i++) {
+		document.write('[');
+		var line = '';
+		for (var k in masks[i]) {
+			line += k + ',';			
+		}
+		line = line.substr(0, line.length - 1);
+		document.write(line + '],' + '// ' + i + EOL);		
+	}
+	document.write('];' + EOL);
+	document.write('</pre>');	
+}
 
 function getMask(r, c, offset, lineType) {
 	var mask = 0;
@@ -47,7 +73,8 @@ function getMask(r, c, offset, lineType) {
 function printMask(mask) {	
 	var bitStr = toBin(mask);
 	var hexStr = toHex(bitStr, bitStr.length);
-	document.write(hexStr + ',<br>');
+	masks[ind][hexStr] = true;
+	//document.write(hexStr + ',<br>');
 }
 
 function printRotated(mask, q1, q2) {
