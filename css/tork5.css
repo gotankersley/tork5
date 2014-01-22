@@ -11,3 +11,15 @@ canvas {
     top: 0px;      
     width: 100px;
 }
+
+#find-wins{    
+    bottom: 0px;
+    color: gray;    
+    position: fixed;    
+    right: 0;    
+}
+#find-wins-text {
+    border: 1px solid gray;
+    height: 200px;
+    width: 400px;    
+}

@@ -191,22 +191,32 @@ Board.prototype.getWinLine = function(win) {
 }
 
 Board.prototype.randomize = function() {
+    this.moveCount = 0;
 	var pinsToAdd = Math.random() * (BOARD_SPACES - 2);
 	for (var i = 0; i < pinsToAdd; i++) {		
-		this.setPin(i);
+		this.setPin(Math.random(i) * BOARD_SPACES);
 		this.rotate(Math.random() * BOARD_QUADS, (Math.random() * 2) - 1);
 	}
 }
 
-Board.prototype.findWin = function() {
-	var avail = not(or(this.p1,this.p2)); 
+Board.prototype.findWins = function() {    
+    var wins = [];
+    var board = (this.turn == PLAYER1)? this.p1 : this.p2;
+    //if (this.moveCount < 8) return [];
+	var avail = not(or(this.p1,this.p2));     
 	for (var ind = 0; ind < BOARD_SPACES; ind++) {        
         var mp = mpos(ind);
 		if (and(avail,mp)) {
-			//AVAIL_WINS
-		}
-		
+            var testBoard = xor(board, mp);
+			for (var a in AVAIL_WINS[ind]) {
+                var win = AVAIL_WINS[ind][a];
+                if (and(testBoard, win) == win) {
+                    wins.push(ROW[ind] + ',' + COL[ind]);
+                }
+            }
+		}        
 	}
+    return wins;
 }
 
 Board.prototype.show = function() {    

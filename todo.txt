@@ -11,4 +11,4 @@ Multiplayer:
 
 Misc:
 - Move notation
-- 
+- Monster win! (Multiple wins)

@@ -1,3 +1,8 @@
+//Options
+var OPTION_FIND_WINS = true;
+var OPTION_ROT_ANIM = false;
+var OPTION_ROT_SPEED = 3;
+
 //Constants
 var INVALID = -1;
 var UNIT_SIZE = 100;
@@ -13,7 +18,6 @@ var HALF_CANVAS = CANVAS_SIZE/2;
 var ARROW_WIDTH = 50;
 var ARROW_HEIGHT = 20;
 
-var ROTATE_SPEED = 3;
 
 //Modes
 var MODE_PLACE = 0;
@@ -91,6 +95,7 @@ Game.prototype.onClick = function(e) {
 	else if (game.mode == MODE_ANIM) {
 		game.quadRot = (89 * game.quadRotDir);
 	}
+    game.draw();
 }
 
 Game.prototype.onMouse = function(e) {
@@ -105,10 +110,11 @@ Game.prototype.onMouse = function(e) {
 }
 
 Game.prototype.onKeyPress = function(e) {
-	if (e.keyCode == KEY_SPACE) location.reload();
+	if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;//location.reload();
+    game.draw();
 }
 
-Game.prototype.onRandomize = function(e) {
+Game.prototype.onRandomize = function(e) {    
 	game.board.randomize();
 	e.preventDefault;
 	return false;
@@ -129,7 +135,7 @@ Game.prototype.onPlacePin = function(r, c) {
 }
 
 Game.prototype.onRotateStart = function() {       
-    
+    //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
     //Get rot dir
     if (this.quadInd % 3 == 0) { //Quads 0, and 3
         if (this.arrowInd >= BOARD_QUADS) this.quadRotDir = ROT_ANTICLOCKWISE;
@@ -138,19 +144,19 @@ Game.prototype.onRotateStart = function() {
     else { //Quads 1, and 2
         if (this.arrowInd >= BOARD_QUADS) this.quadRotDir = ROT_CLOCKWISE;
         else this.quadRotDir = ROT_ANTICLOCKWISE;
-    }
-    //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
-    this.mode = MODE_ANIM;
+    }    
+    if (OPTION_ROT_ANIM) this.mode = MODE_ANIM;
+    else this.onRotateEnd();
 }
 
 Game.prototype.onRotating = function() {
     if (Math.abs(this.quadRot) >= 90) this.onRotateEnd();
-    else this.quadRot += (this.quadRotDir * ROTATE_SPEED); 
+    else this.quadRot += (this.quadRotDir * OPTION_ROT_SPEED); 
 }
 
 Game.prototype.onRotateEnd = function() {
     var board = this.board;
-    board.rotate(this.quadInd, this.quadRotDir);
+    board.rotate(this.quadInd, this.quadRotDir); //this changes the turn
     var gameState = board.isWin();
     if (gameState == IN_PLAY) {
         this.quadRot = 0;
@@ -160,6 +166,7 @@ Game.prototype.onRotateEnd = function() {
         this.cursorC = 0;	
         this.messageColor = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;	
         this.message = 'Player' + (this.board.turn + 1) + ' - place marble';
+        if (OPTION_FIND_WINS) this.showFindWins();
         this.mode = MODE_PLACE;			
     }
     else this.onGameOver(gameState);
@@ -326,6 +333,16 @@ Game.prototype.drawWinLine = function(ctx) {
     ctx.strokeStyle = this.winColor;
     ctx.lineWidth = 5;
     this.drawLine(ctx, this.winLine[0], this.winLine[1], this.winLine[2], this.winLine[3]);
+}
+
+Game.prototype.showFindWins = function() {
+    var wins = this.board.findWins();
+    
+    var str = '';
+    for (var i in wins) {
+        str += wins[i] + '<br>';
+    }
+    $('#find-wins-text').html(str);
 }
 //End class Game
 
