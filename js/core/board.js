@@ -200,31 +200,31 @@ Board.prototype.randomize = function() {
 }
 
 Board.prototype.findWins = function() {   	
-    var wins = [];	
+    var wins = {};	
     var board = (this.turn == PLAYER1)? this.p1 : this.p2;
 	//if (this.moveCount < 8) return [];
 	var avail = not(or(this.p1,this.p2));     
 	//Just rotate quads to see if rotation yield a win, if so any avail move can be chosen 
 	var quads = [
-		this.rotateBoard(board, 0, ROT_CLOCKWISE),
-		this.rotateBoard(board, 0, ROT_ANTICLOCKWISE),
-		this.rotateBoard(board, 1, ROT_CLOCKWISE),
-		this.rotateBoard(board, 1, ROT_ANTICLOCKWISE),
-		this.rotateBoard(board, 2, ROT_CLOCKWISE),
-		this.rotateBoard(board, 2, ROT_ANTICLOCKWISE),
-		this.rotateBoard(board, 3, ROT_CLOCKWISE),
-		this.rotateBoard(board, 4, ROT_ANTICLOCKWISE)
+		this.rotateQuad(board, 0, ROT_CLOCKWISE),
+		this.rotateQuad(board, 0, ROT_ANTICLOCKWISE),
+		this.rotateQuad(board, 1, ROT_CLOCKWISE),
+		this.rotateQuad(board, 1, ROT_ANTICLOCKWISE),
+		this.rotateQuad(board, 2, ROT_CLOCKWISE),
+		this.rotateQuad(board, 2, ROT_ANTICLOCKWISE),
+		this.rotateQuad(board, 3, ROT_CLOCKWISE),
+		this.rotateQuad(board, 4, ROT_ANTICLOCKWISE)
 	];
 	for (var w in WINS) { //Can be optimized with win mids
 		var win = WINS[w];
-		if (and(win, quads[0]) == win) wins.push([-1, 0, ROT_CLOCKWISE]);
-		if (and(win, quads[1]) == win) wins.push([-1, 0, ROT_ANTICLOCKWISE]);
-		if (and(win, quads[2]) == win) wins.push([-1, 1, ROT_CLOCKWISE]);
-		if (and(win, quads[3]) == win) wins.push([-1, 1, ROT_ANTICLOCKWISE]);
-		if (and(win, quads[4]) == win) wins.push([-1, 2, ROT_CLOCKWISE]);
-		if (and(win, quads[5]) == win) wins.push([-1, 2, ROT_ANTICLOCKWISE]);
-		if (and(win, quads[6]) == win) wins.push([-1, 3, ROT_CLOCKWISE]);
-		if (and(win, quads[7]) == win) wins.push([-1, 3, ROT_ANTICLOCKWISE]);
+		if (and(win, quads[0]) == win) wins['-' + String(win)] = [INVALID, 0, ROT_CLOCKWISE];
+		if (and(win, quads[1]) == win) wins['-' + String(win)] = [INVALID, 0, ROT_ANTICLOCKWISE];
+		if (and(win, quads[2]) == win) wins['-' + String(win)] = [INVALID, 1, ROT_CLOCKWISE];
+		if (and(win, quads[3]) == win) wins['-' + String(win)] = [INVALID, 1, ROT_ANTICLOCKWISE];
+		if (and(win, quads[4]) == win) wins['-' + String(win)] = [INVALID, 2, ROT_CLOCKWISE];
+		if (and(win, quads[5]) == win) wins['-' + String(win)] = [INVALID, 2, ROT_ANTICLOCKWISE];
+		if (and(win, quads[6]) == win) wins['-' + String(win)] = [INVALID, 3, ROT_CLOCKWISE];
+		if (and(win, quads[7]) == win) wins['-' + String(win)] = [INVALID, 3, ROT_ANTICLOCKWISE];
 		
 	}
 	
@@ -236,17 +236,15 @@ Board.prototype.findWins = function() {
                 var win = AVAIL_WINS[ind][a];
 				var boardLine = and(board,win);
 				var count = bitCount(boardLine);
-                if (count >= 4) {
-					if (count >= NUM_TO_WIN) wins.push([ind, 0, 0]); //Win without rotation
-					//4 in-a-row, but need to make sure 5th space is avail						
-					else if (and(avail, xor(boardLine, win))) { 
-						meta = WIN_META[ind + String(win)];
-						wins.push([ind, meta[0], meta[1]]);
-						//if (typeof(meta) != 'undefined') {						
-							//var dir = (meta.d == ROT_CLOCKWISE)? 'Clockwise' : 'Anti-clockwise';						
-							//wins.push(ROW[ind] + ',' + COL[ind] + ' - ' + meta.q + ' ' + dir);
-						//}
-						//else wins.push(ROW[ind] + ',' + COL[ind]);
+                if (count >= 4) {							
+					//4 in-a-row, but need to make sure 5th space is avail
+					var fifthMpos = xor(boardLine, win);					
+					if (and(avail, fifthMpos)) {
+						var fifthInd = maskToInd(fifthMpos);	
+						var winId = String(win);
+						meta = WIN_META[ind + winId];
+						if (typeof(meta) == 'undefined') wins[winId] = [fifthInd, INVALID, INVALID]; //Win without rotation
+						else wins[winId] = [fifthInd, meta[0], meta[1]];						
 					}
                 }
             }

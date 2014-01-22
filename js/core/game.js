@@ -376,9 +376,9 @@ Game.prototype.showFindWins = function() {
 		if (w[2] == ROT_CLOCKWISE) dir = 'Clockwise';
 		else if (w[2] == ROT_ANTICLOCKWISE) dir = 'Anti-clockwise';
 		
-		if (w[0] < 0) str += '&gt;any&lt; - Q' + w[1] + ' ' + dir; //Can win just by rotation
-		else if (w[1] < 0) str += ROW[w[0]] + ',' + COL[w[0]]; //Can with by placing a pin with no rotation
-		else str += ROW[w[0]] + ',' + COL[w[0]] + ' - Q' + w[1] + ' ' + dir; //Can win by placing a pin and rotating        
+		if (w[0] == INVALID) str += '&lt;any&gt; - Q' + w[1] + ' ' + dir + '<br>'; //Can win just by rotation
+		else if (w[1] == INVALID) str += ROW[w[0]] + ',' + COL[w[0]] + '<br>'; //Can with by placing a pin with no rotation
+		else str += ROW[w[0]] + ',' + COL[w[0]] + ' - Q' + w[1] + ' ' + dir + '<br>'; //Can win by placing a pin and rotating        
     }
     $('#find-wins-text').html(str);
 }
