@@ -97,6 +97,7 @@ Board.prototype.setPin = function(ind) {
     if (this.isOpen(ind)) {                
         if (this.turn == PLAYER1) this.p1 = xor(this.p1,mpos(ind));        
         else this.p2 = xor(this.p2, mpos(ind)); //Player 2		
+		this.moveCount++;
 		return true;
     }
 	else return false;
@@ -127,8 +128,7 @@ Board.prototype.getOpen = function() {
 
 Board.prototype.rotate = function(quadInd, dir) {
 	this.p1 = this.rotateQuad(this.p1, quadInd, dir);
-	this.p2 = this.rotateQuad(this.p2, quadInd, dir);
-	this.moveCount++;
+	this.p2 = this.rotateQuad(this.p2, quadInd, dir);	
 	this.turn = !this.turn;    
 }
 Board.prototype.rotateQuad = function(board, quadId, dir) {      
@@ -199,19 +199,55 @@ Board.prototype.randomize = function() {
 	}
 }
 
-Board.prototype.findWins = function() {    
-    var wins = [];
+Board.prototype.findWins = function() {   	
+    var wins = [];	
     var board = (this.turn == PLAYER1)? this.p1 : this.p2;
-    //if (this.moveCount < 8) return [];
+	//if (this.moveCount < 8) return [];
 	var avail = not(or(this.p1,this.p2));     
+	//Just rotate quads to see if rotation yield a win, if so any avail move can be chosen 
+	var quads = [
+		this.rotateBoard(board, 0, ROT_CLOCKWISE),
+		this.rotateBoard(board, 0, ROT_ANTICLOCKWISE),
+		this.rotateBoard(board, 1, ROT_CLOCKWISE),
+		this.rotateBoard(board, 1, ROT_ANTICLOCKWISE),
+		this.rotateBoard(board, 2, ROT_CLOCKWISE),
+		this.rotateBoard(board, 2, ROT_ANTICLOCKWISE),
+		this.rotateBoard(board, 3, ROT_CLOCKWISE),
+		this.rotateBoard(board, 4, ROT_ANTICLOCKWISE)
+	];
+	for (var w in WINS) { //Can be optimized with win mids
+		var win = WINS[w];
+		if (and(win, quads[0]) == win) wins.push([-1, 0, ROT_CLOCKWISE]);
+		if (and(win, quads[1]) == win) wins.push([-1, 0, ROT_ANTICLOCKWISE]);
+		if (and(win, quads[2]) == win) wins.push([-1, 1, ROT_CLOCKWISE]);
+		if (and(win, quads[3]) == win) wins.push([-1, 1, ROT_ANTICLOCKWISE]);
+		if (and(win, quads[4]) == win) wins.push([-1, 2, ROT_CLOCKWISE]);
+		if (and(win, quads[5]) == win) wins.push([-1, 2, ROT_ANTICLOCKWISE]);
+		if (and(win, quads[6]) == win) wins.push([-1, 3, ROT_CLOCKWISE]);
+		if (and(win, quads[7]) == win) wins.push([-1, 3, ROT_ANTICLOCKWISE]);
+		
+	}
+	
+	//Check all of the player's marbles to see if they have 4 in-a-row followed by an open space
 	for (var ind = 0; ind < BOARD_SPACES; ind++) {        
         var mp = mpos(ind);
-		if (and(avail,mp)) {
-            var testBoard = xor(board, mp);
+		if (and(board,mp)) {            
 			for (var a in AVAIL_WINS[ind]) {
                 var win = AVAIL_WINS[ind][a];
-                if (and(testBoard, win) == win) {
-                    wins.push(ROW[ind] + ',' + COL[ind]);
+				var boardLine = and(board,win);
+				var count = bitCount(boardLine);
+                if (count >= 4) {
+					if (count >= NUM_TO_WIN) wins.push([ind, 0, 0]); //Win without rotation
+					//4 in-a-row, but need to make sure 5th space is avail						
+					else if (and(avail, xor(boardLine, win))) { 
+						meta = WIN_META[ind + String(win)];
+						wins.push([ind, meta[0], meta[1]]);
+						//if (typeof(meta) != 'undefined') {						
+							//var dir = (meta.d == ROT_CLOCKWISE)? 'Clockwise' : 'Anti-clockwise';						
+							//wins.push(ROW[ind] + ',' + COL[ind] + ' - ' + meta.q + ' ' + dir);
+						//}
+						//else wins.push(ROW[ind] + ',' + COL[ind]);
+					}
                 }
             }
 		}        

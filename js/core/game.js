@@ -1,5 +1,7 @@
 //Options
 var OPTION_FIND_WINS = true;
+var OPTION_ROW_NUMBERS = true;
+var OPTION_ROW_NOTATION = false;
 var OPTION_ROT_ANIM = false;
 var OPTION_ROT_SPEED = 3;
 
@@ -35,9 +37,11 @@ var COLOR_ARROW = '#e0e0e0';
 var COLOR_P1_WIN = '#a00';
 var COLOR_P2_WIN = '#0cc';
 var COLOR_TIE = '#000';
+var COLOR_ROW_NUMBERS = '#c0c0c0';
 
 //Keys
 var KEY_SPACE = 32;
+var KEY_ENTER = 13;
 
 //Animation shim
 var requestAnimationFrame =  
@@ -111,6 +115,10 @@ Game.prototype.onMouse = function(e) {
 
 Game.prototype.onKeyPress = function(e) {
 	if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;//location.reload();
+	else if (e.keyCode == KEY_ENTER) {		
+		game.board.turn = !game.board.turn;
+		game.mode = MODE_PLACE
+	}
     game.draw();
 }
 
@@ -207,7 +215,11 @@ Game.prototype.draw = function() {
 			
     ctx.save();
     ctx.translate(CANVAS_OFFSET, CANVAS_OFFSET);
-		    		      
+		    
+	//Row numbers
+	if (OPTION_ROW_NUMBERS) this.drawRowNumbers(ctx);
+	else if (OPTION_ROW_NOTATION) this.drawRowNotation(ctx);
+	
 	//Cursor
     if (this.mode == MODE_PLACE) {
         var cursorX = toXY(this.cursorC);
@@ -329,6 +341,25 @@ Game.prototype.drawQuad = function(ctx, quadInd, degrees, anim) {
     ctx.restore();
 }
 
+Game.prototype.drawRowNumbers = function(ctx) {
+	ctx.fillStyle = COLOR_ROW_NUMBERS;
+	for (var i = 0; i < ROW_SPACES; i++) {
+		ctx.fillText(i, -15, toXY(i) + HALF_UNIT); //Rows
+		ctx.fillText(i, toXY(i) + HALF_UNIT, -5); //Columns
+	}
+}
+Game.prototype.drawRowNotation = function(ctx) {
+	ctx.fillStyle = COLOR_ROW_NUMBERS;
+	for (var i = 0; i < ROW_SPACES; i++) {
+		ctx.fillText((COL_SPACES - i), -15, toXY(i) + HALF_UNIT); //Rows
+		ctx.fillText(String.fromCharCode(65 + i), toXY(i) + HALF_UNIT, BOARD_SIZE + 20); //Columns		
+	}
+	ctx.fillText('X', HALF_QUAD, -5); //Quad col 0
+	ctx.fillText('Y', 3 * HALF_QUAD, -5); //Quad col 1
+	ctx.fillText('1', BOARD_SIZE + 15, HALF_QUAD); //Quad row 0
+	ctx.fillText('2', BOARD_SIZE + 15, 3 * HALF_QUAD); //Quad row 1
+}
+
 Game.prototype.drawWinLine = function(ctx) {
     ctx.strokeStyle = this.winColor;
     ctx.lineWidth = 5;
@@ -340,7 +371,14 @@ Game.prototype.showFindWins = function() {
     
     var str = '';
     for (var i in wins) {
-        str += wins[i] + '<br>';
+		var w = wins[i];
+		var dir = '';
+		if (w[2] == ROT_CLOCKWISE) dir = 'Clockwise';
+		else if (w[2] == ROT_ANTICLOCKWISE) dir = 'Anti-clockwise';
+		
+		if (w[0] < 0) str += '&gt;any&lt; - Q' + w[1] + ' ' + dir; //Can win just by rotation
+		else if (w[1] < 0) str += ROW[w[0]] + ',' + COL[w[0]]; //Can with by placing a pin with no rotation
+		else str += ROW[w[0]] + ',' + COL[w[0]] + ' - Q' + w[1] + ' ' + dir; //Can win by placing a pin and rotating        
     }
     $('#find-wins-text').html(str);
 }

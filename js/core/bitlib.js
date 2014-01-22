@@ -25,7 +25,7 @@ function or(n1, n2) {
 }
 
 function not(n) {    
-    return ((((~Math.floor(n/HI_MASK)) >>> 0) ^ 0xfffffff0) * HI_MASK) + (~n >>> 0);
+    return ((((~Math.floor(n/HI_MASK)) >>> 0) ^ 0xffffff00) * HI_MASK) + (~n >>> 0);
 }
 
 function shiftL(n, x) {

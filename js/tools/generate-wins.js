@@ -8,6 +8,7 @@ var EOL = '\r';
 
 var statBoard;
 var masks = [];
+var winMeta = {};
 var ind;
 $(function() {
 	statBoard = new Board();
@@ -20,10 +21,10 @@ $(function() {
 			printLine(r, c, HORIZONTAL);						
 			printLine(r, c, VERTICAL);
 			printLine(r, c, DIAG_TL_BR);
-			printLine(r, c, DIAG_TR_BL);	
-			//break;			
-		}	
-		//break;
+			printLine(r, c, DIAG_TR_BL);					
+		
+		}			
+		
 	}
 	
 	outputMasks();
@@ -31,9 +32,9 @@ $(function() {
 
 function outputMasks() {
 	document.write('<pre>');
-	document.write('var avail = [' + EOL);
+	document.write('var AVAIL_WINS = [' + EOL);
 	for (var i = 0; i < BOARD_SPACES; i++) {
-		document.write('[');
+		document.write('\t[');
 		var line = '';
 		for (var k in masks[i]) {
 			line += k + ',';			
@@ -42,6 +43,13 @@ function outputMasks() {
 		document.write(line + '],' + '// ' + i + EOL);		
 	}
 	document.write('];' + EOL);
+	
+	document.write('var WIN_META = {' + EOL);
+	for (var key in winMeta) {
+		document.write("\t'" + key + "':[" + w.q + ',' + w.d + '],' + EOL);
+		var w = winMeta[key];
+	}
+	document.write('};' + EOL);
 	document.write('</pre>');	
 }
 
@@ -70,18 +78,18 @@ function getMask(r, c, offset, lineType) {
 	return mask;
 }
 
-function printMask(mask) {	
+function printMask(mask, metaData) {	
 	var bitStr = toBin(mask);
 	var hexStr = toHex(bitStr, bitStr.length);
-	masks[ind][hexStr] = true;
-	//document.write(hexStr + ',<br>');
+	masks[ind][hexStr] = true;	
+	if (typeof(metaData) != 'undefined') winMeta[ind + String(mask)] = metaData;
 }
 
-function printRotated(mask, q1, q2) {
-	printMask(statBoard.rotateQuad(mask, q1, ROT_CLOCKWISE));
-	printMask(statBoard.rotateQuad(mask, q1, ROT_ANTICLOCKWISE));
-	printMask(statBoard.rotateQuad(mask, q2, ROT_CLOCKWISE));
-	printMask(statBoard.rotateQuad(mask, q2, ROT_ANTICLOCKWISE));
+function printRotated(mask, q1, q2) {	
+	printMask(statBoard.rotateQuad(mask, q1, ROT_CLOCKWISE), {'q': q1, 'd':ROT_ANTICLOCKWISE});
+	printMask(statBoard.rotateQuad(mask, q1, ROT_ANTICLOCKWISE), {'q': q1, 'd':ROT_CLOCKWISE});
+	printMask(statBoard.rotateQuad(mask, q2, ROT_CLOCKWISE), {'q': q2, 'd':ROT_ANTICLOCKWISE});
+	printMask(statBoard.rotateQuad(mask, q2, ROT_ANTICLOCKWISE), {'q': q2, 'd':ROT_CLOCKWISE});
 }
 
 function printLine(r, c, lineType) {	
