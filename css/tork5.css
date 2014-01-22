@@ -23,3 +23,7 @@ canvas {
     height: 200px;
     width: 400px;    
 }
+
+#options-menu {
+	display: none;
+}

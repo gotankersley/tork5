@@ -42,6 +42,7 @@ var COLOR_ROW_NUMBERS = '#c0c0c0';
 //Keys
 var KEY_SPACE = 32;
 var KEY_ENTER = 13;
+var KEY_DELETE = 46;
 
 //Animation shim
 var requestAnimationFrame =  
@@ -98,7 +99,7 @@ Game.prototype.onClick = function(e) {
 	}
 	else if (game.mode == MODE_ANIM) {
 		game.quadRot = (89 * game.quadRotDir);
-	}
+	}	
     game.draw();
 }
 
@@ -119,6 +120,15 @@ Game.prototype.onKeyPress = function(e) {
 		game.board.turn = !game.board.turn;
 		game.mode = MODE_PLACE
 	}
+	else if (e.keyCode == KEY_DELETE) {
+		var ind = IND[toRC(e.offsetY), toRC(e.offsetX)];
+		if (!game.board.isOpen(ind)) {
+			var mp = mpos(ind);
+			game.board.p1 = xor(game.board.p1, mp);
+			game.board.p2 = xor(game.board.p2, mp);
+			game.moveCount--;
+		}
+	}	
     game.draw();
 }
 
@@ -380,6 +390,8 @@ Game.prototype.showFindWins = function() {
 		else if (w[1] == INVALID) str += ROW[w[0]] + ',' + COL[w[0]] + '<br>'; //Can with by placing a pin with no rotation
 		else str += ROW[w[0]] + ',' + COL[w[0]] + ' - Q' + w[1] + ' ' + dir + '<br>'; //Can win by placing a pin and rotating        
     }
+	var color = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;
+	$('#find-wins-text').css('color', color);
     $('#find-wins-text').html(str);
 }
 //End class Game
