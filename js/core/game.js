@@ -41,6 +41,9 @@ var COLOR_ROW_NUMBERS = '#c0c0c0';
 
 //Keys
 var KEY_DELETE = 46;
+var KEY_ENTER = 13;
+var KEY_R = 82;
+var KEY_SPACE = 32;
 
 //Animation shim
 var requestAnimationFrame =  
@@ -126,7 +129,10 @@ Game.prototype.onKeyPress = function(e) {
                 game.moveCount--;
             }
         }
-	}	
+	}
+	else if (e.keyCode == KEY_R) game.mode = MODE_ROTATE;
+	else if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;
+	else if (e.keyCode == KEY_ENTER) game.onChangeTurn(true);
     
     game.draw();
 }
@@ -180,11 +186,10 @@ Game.prototype.onRotateEnd = function() {
         this.quadInd = INVALID;
         this.arrowInd = INVALID;	
         this.cursorR = 0;
-        this.cursorC = 0;	
-        this.messageColor = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;	
-        this.message = 'Player' + (this.board.turn + 1) + ' - place marble';
+        this.cursorC = 0;	        
         if (OPTION_FIND_WINS) this.showFindWins();
-        if (!this.rotateMode) this.mode = MODE_PLACE;			
+        this.onChangeTurn(false);
+		if (!this.rotateMode) this.mode = MODE_PLACE;	
     }
     else this.onGameOver(gameState);
 }
@@ -211,6 +216,14 @@ Game.prototype.onGameOver = function(gameState) {
     game.mode = MODE_WIN;
 }
 
+Game.prototype.onChangeTurn = function(change) {
+	if (change) {
+		this.board.turn = !this.board.turn;
+		this.mode = MODE_PLACE;
+	}
+	this.messageColor = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;	
+	this.message = 'Player' + (this.board.turn + 1) + ' - place marble';		
+}
 
 //Draw functions
 Game.prototype.draw = function() {
