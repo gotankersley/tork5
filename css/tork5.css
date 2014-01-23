@@ -9,7 +9,7 @@ canvas {
     right: 0px;
     text-align: center;
     top: 0px;      
-    width: 100px;
+    width: 300px;
 }
 
 #find-wins{    
@@ -24,6 +24,16 @@ canvas {
     width: 400px;    
 }
 
+#options {
+    border: 1px solid blue;
+    height: 30px;
+    position: relative;
+    vertical-align: top;
+    width: 100px;
+}
 #options-menu {
+    bottom: 0;
 	display: none;
+    position: absolute;
+    width: 100px;
 }

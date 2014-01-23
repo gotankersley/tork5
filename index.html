@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>tork5</title>
+<!-- Includes -->
 <link rel="stylesheet" href="css/tork5.css" />
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="js/core/bitlib.js"></script>
@@ -17,10 +18,23 @@ $(function() {
 </head>
 <body>
 <h1>tork5</h1>
+
+<!-- Tools -->
 <div id="tools">
 <a href="tools/bit-tool.html" target="_new">Bit tool</a>
-<a href="#" id="rand-tool">Randomize</a>
+<!--<a href="#" id="rand-tool">Randomize</a>-->
+
+<!-- Options -->
+<div id="options">Options
+<div id="options-menu">
+<label><input type="checkbox" />Rotate animation</label><br>
+<label><input type="checkbox" />Row numbers</label><br>
+<label><input type="checkbox" />Row notation</label><br>
 </div>
+</div>
+
+</div>
+
 <div id="find-wins"><h3>Wins found:</h3>
 <div id="find-wins-text"></div>
 </div>
