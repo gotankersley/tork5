@@ -40,8 +40,6 @@ var COLOR_TIE = '#000';
 var COLOR_ROW_NUMBERS = '#c0c0c0';
 
 //Keys
-var KEY_SPACE = 32;
-var KEY_ENTER = 13;
 var KEY_DELETE = 46;
 
 //Animation shim
@@ -55,6 +53,7 @@ var requestAnimationFrame =
 		return setTimeout(callback, 1);
 	};
 		
+var game;
 //Class Game
 function Game() {
 	this.canvas = document.getElementById('mainCanvas');
@@ -71,6 +70,7 @@ function Game() {
 	this.quadRot = 0;
 	this.quadRotDir = 1;
     this.mode = MODE_PLACE;
+    this.rotateMode = false;
     this.winLine = [0,0,0,0];
     this.winColor = COLOR_P1;        
 	
@@ -89,12 +89,13 @@ function Game() {
 
 //Mouse events
 Game.prototype.onClick = function(e) {
-    if (game.mode == MODE_PLACE) {
+    if (game.mode == MODE_PLACE || e.ctrlKey) {
         var r = toRC(e.offsetY);
         var c = toRC(e.offsetX);
-        game.onPlacePin(r, c);        
+        game.onPlacePin(r, c, e.ctrlKey);        
     }
-	else if (game.mode == MODE_ROTATE) {
+	else if (game.mode == MODE_ROTATE || e.altKey) {
+        game.rotateMode = e.altKey;
 		game.onRotateStart();
 	}
 	else if (game.mode == MODE_ANIM) {
@@ -114,21 +115,19 @@ Game.prototype.onMouse = function(e) {
     }    
 }
 
-Game.prototype.onKeyPress = function(e) {
-	if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;//location.reload();
-	else if (e.keyCode == KEY_ENTER) {		
-		game.board.turn = !game.board.turn;
-		game.mode = MODE_PLACE
-	}
-	else if (e.keyCode == KEY_DELETE) {
-		var ind = IND[toRC(e.offsetY), toRC(e.offsetX)];
-		if (!game.board.isOpen(ind)) {
-			var mp = mpos(ind);
-			game.board.p1 = xor(game.board.p1, mp);
-			game.board.p2 = xor(game.board.p2, mp);
-			game.moveCount--;
-		}
+Game.prototype.onKeyPress = function(e) {	
+	if (e.keyCode == KEY_DELETE) {
+        if (game.mode == MODE_PLACE) {
+            var ind = IND[game.cursorR][game.cursorC];
+            if (!game.board.isOpen(ind)) {
+                var mp = not(mpos(ind));
+                game.board.p1 = and(game.board.p1, mp);
+                game.board.p2 = and(game.board.p2, mp);
+                game.moveCount--;
+            }
+        }
 	}	
+    
     game.draw();
 }
 
@@ -139,14 +138,14 @@ Game.prototype.onRandomize = function(e) {
 }
 
 //Game events
-Game.prototype.onPlacePin = function(r, c) {    
+Game.prototype.onPlacePin = function(r, c, placeMode) {    
     var board = this.board;
     //Set returns false if space is not open
     if (board.set(r,c)) {
         var gameState = board.isWin();
         if (gameState == IN_PLAY) {
             this.message = 'Player' + (this.board.turn + 1) + ' - turn quad';
-            this.mode = MODE_ROTATE;
+            if (!placeMode) this.mode = MODE_ROTATE;
         }
         else this.onGameOver(gameState);    
     }
@@ -185,7 +184,7 @@ Game.prototype.onRotateEnd = function() {
         this.messageColor = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;	
         this.message = 'Player' + (this.board.turn + 1) + ' - place marble';
         if (OPTION_FIND_WINS) this.showFindWins();
-        this.mode = MODE_PLACE;			
+        if (!this.rotateMode) this.mode = MODE_PLACE;			
     }
     else this.onGameOver(gameState);
 }
@@ -352,12 +351,14 @@ Game.prototype.drawQuad = function(ctx, quadInd, degrees, anim) {
 }
 
 Game.prototype.drawRowNumbers = function(ctx) {
+
 	ctx.fillStyle = COLOR_ROW_NUMBERS;
 	for (var i = 0; i < ROW_SPACES; i++) {
 		ctx.fillText(i, -15, toXY(i) + HALF_UNIT); //Rows
 		ctx.fillText(i, toXY(i) + HALF_UNIT, -5); //Columns
 	}
 }
+
 Game.prototype.drawRowNotation = function(ctx) {
 	ctx.fillStyle = COLOR_ROW_NUMBERS;
 	for (var i = 0; i < ROW_SPACES; i++) {
@@ -433,8 +434,3 @@ function toOctant(quadInd, x, y) {
         else return quadInd;
     } 
 }
-
-var game;
-$(function() {
-	game = new Game();	
-});
