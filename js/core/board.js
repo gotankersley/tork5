@@ -199,36 +199,44 @@ Board.prototype.randomize = function() {
 	}
 }
 
-Board.prototype.findWins = function() {   	
+Board.prototype.findWins = function() {
+    //Check if there are enough pins on the board for a win   	    
+	if (this.moveCount < 8) return []; 
+    
     var wins = {};	
-    var board = (this.turn == PLAYER1)? this.p1 : this.p2;
-	//if (this.moveCount < 8) return [];
-	var avail = not(or(this.p1,this.p2));     
-	//Just rotate quads to see if rotation yield a win, if so any avail move can be chosen 
-	var quads = [
-		this.rotateQuad(board, 0, ROT_CLOCKWISE),
-		this.rotateQuad(board, 0, ROT_ANTICLOCKWISE),
-		this.rotateQuad(board, 1, ROT_CLOCKWISE),
-		this.rotateQuad(board, 1, ROT_ANTICLOCKWISE),
-		this.rotateQuad(board, 2, ROT_CLOCKWISE),
-		this.rotateQuad(board, 2, ROT_ANTICLOCKWISE),
-		this.rotateQuad(board, 3, ROT_CLOCKWISE),
-		this.rotateQuad(board, 4, ROT_ANTICLOCKWISE)
-	];
-	for (var w in WINS) { //Can be optimized with win mids
-		var win = WINS[w];
-		if (and(win, quads[0]) == win) wins['-' + String(win)] = [INVALID, 0, ROT_CLOCKWISE];
-		if (and(win, quads[1]) == win) wins['-' + String(win)] = [INVALID, 0, ROT_ANTICLOCKWISE];
-		if (and(win, quads[2]) == win) wins['-' + String(win)] = [INVALID, 1, ROT_CLOCKWISE];
-		if (and(win, quads[3]) == win) wins['-' + String(win)] = [INVALID, 1, ROT_ANTICLOCKWISE];
-		if (and(win, quads[4]) == win) wins['-' + String(win)] = [INVALID, 2, ROT_CLOCKWISE];
-		if (and(win, quads[5]) == win) wins['-' + String(win)] = [INVALID, 2, ROT_ANTICLOCKWISE];
-		if (and(win, quads[6]) == win) wins['-' + String(win)] = [INVALID, 3, ROT_CLOCKWISE];
-		if (and(win, quads[7]) == win) wins['-' + String(win)] = [INVALID, 3, ROT_ANTICLOCKWISE];
-		
-	}
+    var board;
+    var opp;
+    
+    //Get current player's bitboard, and opponent's bitboard
+    if (this.turn == PLAYER1) {
+        board = this.p1;
+        opp = this.p2;        
+    }
+    else {
+        board = this.p2;
+        opp = this.p1;
+    }
+	var avail = not(or(this.p1,this.p2)); //All the available empty spaces
+    
+	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
+    for (var q = 0; q < BOARD_QUADS; q++) {
+        var curQuadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
+        var curQuadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);
+        var oppQuadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
+        var oppQuadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);
+        
+        //Check for any available wins with rotated board - Use mid wins to optimize
+        for (var w in MID_WINS) { 
+            var mid = MID_WINS[w];
+            if (and(curQuadC, mid) == mid && and(curQuadC, SPAN_WINS[w])) wins[String(mid)] = [this.turn, INVALID, 0, ROT_CLOCKWISE];
+            if (and(curQuadA, mid) == mid && and(curQuadA, SPAN_WINS[w])) wins[String(mid)] = [this.turn, INVALID, 0, ROT_ANTICLOCKWISE];
+            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[String(mid)] = [!this.turn, INVALID, 0, ROT_CLOCKWISE];
+            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[String(mid)] = [!this.turn, INVALID, 0, ROT_ANTICLOCKWISE];
+        }
+    }
 	
-	//Check all of the player's marbles to see if they have 4 in-a-row followed by an open space
+	
+	//Check all of the player's marbles to see if they have 4 in-a-row followed by an open space, (includes gaps)
 	for (var ind = 0; ind < BOARD_SPACES; ind++) {        
         var mp = mpos(ind);
 		if (and(board,mp)) {            
