@@ -85,7 +85,7 @@ function Board() {
 
 Board.prototype.isOpen = function(ind) {    
     var avail = not(or(this.p1,this.p2)); 
-    return and(avail, mpos(ind));
+    return and(avail, indToMpos(ind));
 }
 
 
@@ -95,8 +95,8 @@ Board.prototype.set = function(row, col) {
 }
 Board.prototype.setPin = function(ind) {        	
     if (this.isOpen(ind)) {                
-        if (this.turn == PLAYER1) this.p1 = xor(this.p1,mpos(ind));        
-        else this.p2 = xor(this.p2, mpos(ind)); //Player 2		
+        if (this.turn == PLAYER1) this.p1 = xor(this.p1, indToMpos(ind));        
+        else this.p2 = xor(this.p2, indToMpos(ind)); //Player 2		
 		this.moveCount++;
 		return true;
     }
@@ -108,9 +108,9 @@ Board.prototype.get = function(row, col) {
     return this.getPin(ind);
 }
 Board.prototype.getPin = function(ind) {	
-	var mp = mpos(ind);
-	if (and(this.p1,mp)) return PLAYER1;	
-	else if (and(this.p2,mp)) return PLAYER2;
+	var mpos = indToMpos(ind);
+	if (and(this.p1,mpos)) return PLAYER1;	
+	else if (and(this.p2,mpos)) return PLAYER2;
 	else return EMPTY;
 }
 
@@ -118,8 +118,8 @@ Board.prototype.getOpen = function() {
     var open = [];
     var avail = not(or(this.p1,this.p2)); 
     for (var ind = 0; ind < BOARD_SPACES; ind++) {        
-        var mp = mpos(ind);
-        if (and(avail,mp)) {
+        var mpos = indToMpos(ind);
+        if (and(avail,mpos)) {
             open.push(ind);
         }
     }
@@ -173,8 +173,8 @@ Board.prototype.getWinLine = function(win) {
     var r, c;
     //Get min, and max points to figure out line dimensions
     for (var ind = 0; ind < BOARD_SPACES; ind++) {        
-        var mp = mpos(ind);
-        if (and(win,mp)) {
+        var mpos = indToMpos(ind);
+        if (and(win,mpos)) {
             r = ROW[ind];
             c = COL[ind];
             if (r < minR || (r == minR && c < minC)) {
@@ -200,10 +200,11 @@ Board.prototype.randomize = function() {
 }
 
 Board.prototype.findWins = function() {
-    //Check if there are enough pins on the board for a win   	    
-	if (this.moveCount < 8) return []; 
-    
-    var wins = {};	
+    //Check if there are enough pins on the board for a win   	    	
+	//if (this.moveCount < 8) return []; 
+    //else if (this.moveCount >= BOARD_SPACES) return []; 
+	
+    var wins = [{},{}];	
     var board;
     var opp;
     
@@ -216,9 +217,11 @@ Board.prototype.findWins = function() {
         board = this.p2;
         opp = this.p1;
     }
-	var avail = not(or(this.p1,this.p2)); //All the available empty spaces
+	var avail = not(or(board, opp)); //All the available empty spaces
     
 	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
+	var side = Number(this.turn);
+	var oppSide = Number(!side);
     for (var q = 0; q < BOARD_QUADS; q++) {
         var curQuadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
         var curQuadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);
@@ -228,37 +231,52 @@ Board.prototype.findWins = function() {
         //Check for any available wins with rotated board - Use mid wins to optimize
         for (var w in MID_WINS) { 
             var mid = MID_WINS[w];
-            if (and(curQuadC, mid) == mid && and(curQuadC, SPAN_WINS[w])) wins[String(mid)] = [this.turn, INVALID, 0, ROT_CLOCKWISE];
-            if (and(curQuadA, mid) == mid && and(curQuadA, SPAN_WINS[w])) wins[String(mid)] = [this.turn, INVALID, 0, ROT_ANTICLOCKWISE];
-            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[String(mid)] = [!this.turn, INVALID, 0, ROT_CLOCKWISE];
-            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[String(mid)] = [!this.turn, INVALID, 0, ROT_ANTICLOCKWISE];
+            if (and(curQuadC, mid) == mid && and(curQuadC, SPAN_WINS[w])) wins[side][String(mid)] = {ind:INVALID, quad:0, dir:ROT_CLOCKWISE};
+            if (and(curQuadA, mid) == mid && and(curQuadA, SPAN_WINS[w])) wins[side][String(mid)] = {ind:INVALID, quad:0, dir:ROT_ANTICLOCKWISE};
+            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][String(mid)] = {ind:INVALID, quad:0, dir:ROT_CLOCKWISE};
+            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][String(mid)] = {ind:INVALID, quad:0, dir:ROT_ANTICLOCKWISE};
         }
     }
 	
-	
-	//Check all of the player's marbles to see if they have 4 in-a-row followed by an open space, (includes gaps)
-	for (var ind = 0; ind < BOARD_SPACES; ind++) {        
-        var mp = mpos(ind);
-		if (and(board,mp)) {            
-			for (var a in AVAIL_WINS[ind]) {
-                var win = AVAIL_WINS[ind][a];
-				var boardLine = and(board,win);
-				var count = bitCount(boardLine);
-                if (count >= 4) {							
-					//4 in-a-row, but need to make sure 5th space is avail
-					var fifthMpos = xor(boardLine, win);					
-					if (and(avail, fifthMpos)) {
-						var fifthInd = maskToInd(fifthMpos);	
-						var winId = String(win);
-						meta = WIN_META[ind + winId];
-						if (typeof(meta) == 'undefined') wins[winId] = [fifthInd, INVALID, INVALID]; //Win without rotation
-						else wins[winId] = [fifthInd, meta[0], meta[1]];						
-					}
-                }
-            }
-		}        
+	//Optimization to check contiguous wins for pins, when there are fewer pins than available spaces
+	if (bitCount(board) < 12) {	
+		//Check all of each player's pins to see if they have a line with 4 pins with an open space for a 5th pin to go
+		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
+			var mpos = indToMpos(ind);			
+			if (and(board, mpos)) TestWinLineFromSpace(side, board, ind, avail, wins); //Wins passed by reference
+			if (and(opp, mpos)) TestWinLineFromSpace(oppSide, opp, ind, avail, wins); //Wins passed by reference				
+		}
+	}
+	//Else just check the available spaces when there are more pins than available
+	else {
+		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
+			var mpos = indToMpos(ind);
+			if (and(avail, mpos)) {			
+				TestWinLineFromSpace(side, board, ind, false, wins); //Wins passed by reference
+				TestWinLineFromSpace(oppSide, opp, ind, false, wins); //Wins passed by reference	
+			}
+		}
 	}
     return wins;
+}
+
+
+function TestWinLineFromSpace(side, board, ind, avail, winsRef) { //Wins passed by reference
+	for (var a in AVAIL_WINS[ind]) {
+		var win = AVAIL_WINS[ind][a];	
+		var boardLine = and(board, win);		
+		var count = bitCount(boardLine);
+		if (count >= 4) { //4 in a line, but need to make sure 5th space is avail to win							 			
+			var fifthMpos = xor(boardLine, win);					
+			if (!avail || and(avail, fifthMpos)) {
+				var fifthInd = mposToInd(fifthMpos);	
+				var winId = String(win);
+				meta = WIN_META[ind + winId];
+				if (meta == undefined) winsRef[side][winId] = {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation
+				else winsRef[side][winId] = {ind:fifthInd, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation
+			}
+		}
+	}
 }
 
 Board.prototype.show = function() {    
@@ -266,8 +284,8 @@ Board.prototype.show = function() {
         for (var c = 0; c < COL_SPACES; c++) {            
             var ind = IND[r][c];            
             var space = ' ';
-            if (and(this.p1, mpos(ind))) space = 'X';
-            else if (and(this.p2, mpos(ind))) space = 'O';
+            if (and(this.p1, indToMpos(ind))) space = 'X';
+            else if (and(this.p2, indToMpos(ind))) space = 'O';
             console.log(space);
         }
         console.log('\n');

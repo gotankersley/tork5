@@ -55,7 +55,8 @@ var requestAnimationFrame =
 	function(callback) {
 		return setTimeout(callback, 1);
 	};
-		
+	
+
 var game;
 //Class Game
 function Game() {
@@ -91,10 +92,19 @@ function Game() {
 
 
 //Mouse events
-Game.prototype.onClick = function(e) {
+Game.prototype.onClick = function(e) {	
+	if(e.offsetX == undefined) { //Required for FF
+		x = e.pageX - $('#mainCanvas').offset().left;
+		y = e.pageY - $('#mainCanvas').offset().top;
+	}
+	else {
+		x = e.offsetX; 
+		y = e.offsetY; 
+	}
+	
     if (game.mode == MODE_PLACE || e.ctrlKey) {
-        var r = toRC(e.offsetY);
-        var c = toRC(e.offsetX);
+        var r = toRC(y);
+        var c = toRC(x);
         game.onPlacePin(r, c, e.ctrlKey);        
     }
 	else if (game.mode == MODE_ROTATE || e.altKey) {
@@ -108,13 +118,21 @@ Game.prototype.onClick = function(e) {
 }
 
 Game.prototype.onMouse = function(e) {
+	if(e.offsetX == undefined) { //Required for FF
+		x = e.pageX - $('#mainCanvas').offset().left;
+		y = e.pageY - $('#mainCanvas').offset().top; 
+	}
+	else {
+		x = e.offsetX; 
+		y = e.offsetY; 
+	}
     if (game.mode == MODE_PLACE) {
-        game.cursorR = toRC(e.offsetY);
-        game.cursorC = toRC(e.offsetX);
+        game.cursorR = toRC(y);
+        game.cursorC = toRC(x);
     }
     else if (game.mode == MODE_ROTATE) {        
-        game.quadInd = toQuad(e.offsetX, e.offsetY);
-		game.arrowInd = toOctant(game.quadInd, e.offsetX, e.offsetY);	        
+        game.quadInd = toQuad(x, y);
+		game.arrowInd = toOctant(game.quadInd, x, y);	        
     }    
 }
 
@@ -123,9 +141,9 @@ Game.prototype.onKeyPress = function(e) {
         if (game.mode == MODE_PLACE) {
             var ind = IND[game.cursorR][game.cursorC];
             if (!game.board.isOpen(ind)) {
-                var mp = not(mpos(ind));
-                game.board.p1 = and(game.board.p1, mp);
-                game.board.p2 = and(game.board.p2, mp);
+                var mpos = not(indToMpos(ind));
+                game.board.p1 = and(game.board.p1, mpos);
+                game.board.p2 = and(game.board.p2, mpos);
                 game.moveCount--;
             }
         }
@@ -140,7 +158,7 @@ Game.prototype.onKeyPress = function(e) {
 Game.prototype.onRandomize = function(e) {    
 	game.board.randomize();
 	e.preventDefault();
-	return false;
+	//return false;
 }
 
 //Game events
@@ -226,7 +244,7 @@ Game.prototype.onChangeTurn = function(change) {
 }
 
 //Draw functions
-Game.prototype.draw = function() {
+Game.prototype.draw = function() {	
     var ctx = this.ctx;
     ctx.lineWidth = 1;
     ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
@@ -287,7 +305,7 @@ Game.prototype.draw = function() {
     else if (this.mode == MODE_WIN) this.drawWinLine(ctx);
     ctx.restore();
 	
-	requestAnimationFrame(this.draw.bind(this));
+	requestAnimationFrame(this.draw.bind(this));	
 }
 
 Game.prototype.drawLine = function(ctx, x1, y1, x2, y2) {
@@ -338,8 +356,11 @@ Game.prototype.drawQuad = function(ctx, quadInd, degrees, anim) {
     ctx.translate((quadC * QUAD_SIZE) + HALF_QUAD, (quadR * QUAD_SIZE) + HALF_QUAD);
     ctx.rotate(degrees*Math.PI/180);    
     ctx.translate(-HALF_QUAD, -HALF_QUAD);        
-    
-	if (anim) ctx.clearRect(0,0, QUAD_SIZE, QUAD_SIZE);	    	
+    	
+	if (anim) { //FF doesn't rotate clearRect - this works in chrome:  if (anim) ctx.clearRect(0,0, QUAD_SIZE, QUAD_SIZE);	    	
+		ctx.fillStyle = "#fff";
+		ctx.fillRect(0,0, QUAD_SIZE, QUAD_SIZE);	    	
+	}
 		   
 	var x,y;
     for (var r = 0; r < QUAD_ROW_SPACES; r++) {
@@ -391,22 +412,34 @@ Game.prototype.drawWinLine = function(ctx) {
 }
 
 Game.prototype.showFindWins = function() {
+	//Three ways to win
+	//1. Can win just by rotation
+	//2. Can with by placing a pin with no rotation
+	//3.. Can win by placing a pin and rotating        
     var wins = this.board.findWins();
+    $('#find-wins-text').html('');
     
-    var str = '';
-    for (var i in wins) {
-		var w = wins[i];
-		var dir = '';
-		if (w[2] == ROT_CLOCKWISE) dir = 'Clockwise';
-		else if (w[2] == ROT_ANTICLOCKWISE) dir = 'Anti-clockwise';
-		
-		if (w[0] == INVALID) str += '&lt;any&gt; - Q' + w[1] + ' ' + dir + '<br>'; //Can win just by rotation
-		else if (w[1] == INVALID) str += ROW[w[0]] + ',' + COL[w[0]] + '<br>'; //Can with by placing a pin with no rotation
-		else str += ROW[w[0]] + ',' + COL[w[0]] + ' - Q' + w[1] + ' ' + dir + '<br>'; //Can win by placing a pin and rotating        
-    }
-	var color = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;
-	$('#find-wins-text').css('color', color);
-    $('#find-wins-text').html(str);
+	for (var side in wins) {
+		var sideWins = wins[side];	
+		var winStr = '';
+		for (var winId in sideWins) {
+			var winInfo = sideWins[winId];
+						
+			var space = (winInfo.ind == INVALID)? '&lt;any&gt;' : (ROW[winInfo.ind] + ',' + COL[winInfo.ind]); 		
+			
+			var quad = (winInfo.quad == INVALID)? '' : (' - Q' + winInfo.quad);
+			
+			var dir;
+			if (!winInfo.dir) dir = '';
+			else if (winInfo.dir == ROT_CLOCKWISE) dir = ' Clockwise';
+			else if (winInfo.dir == ROT_ANTICLOCKWISE) dir = ' Anti-clockwise';		
+			
+			winStr += '<div>' + space + quad + dir + '</div>';
+		}	
+		var color = (side == PLAYER1)? COLOR_P1 : COLOR_P2;			
+		$('#find-wins-text').append('<div style="color: ' + color + '">' + winStr + '</div>');
+	}
+	
 }
 //End class Game
 

@@ -58,19 +58,19 @@ function getMask(r, c, offset, lineType) {
 	for (var i = 0; i < NUM_TO_WIN; i++) {
 		var off = i - offset;
 		if (lineType == HORIZONTAL) {
-			if (onBoard(r, c + off)) mask = or(mask, mpos(IND[r][c + off]));
+			if (onBoard(r, c + off)) mask = or(mask, indToMpos(IND[r][c + off]));
 			else return false;
 		}
 		else if (lineType == VERTICAL) {
-			if (onBoard(r + off, c)) mask = or(mask, mpos(IND[r + off][c]));
+			if (onBoard(r + off, c)) mask = or(mask, indToMpos(IND[r + off][c]));
 			else return false;
 		}
 		else if (lineType == DIAG_TL_BR) {
-			if (onBoard(r + off, c + off)) mask = or(mask, mpos(IND[r + off][c + off]));
+			if (onBoard(r + off, c + off)) mask = or(mask, indToMpos(IND[r + off][c + off]));
 			else return false;
 		}
 		else if (lineType == DIAG_TR_BL) {
-			if (onBoard(r + off, c - off)) mask = or(mask, mpos(IND[r + off][c - off]));
+			if (onBoard(r + off, c - off)) mask = or(mask, indToMpos(IND[r + off][c - off]));
 			else return false;
 		}		
 		else return false;
@@ -82,7 +82,7 @@ function printMask(mask, metaData) {
 	var bitStr = toBin(mask);
 	var hexStr = toHex(bitStr, bitStr.length);
 	masks[ind][hexStr] = true;	
-	if (typeof(metaData) != 'undefined') winMeta[ind + String(mask)] = metaData;
+	if (metaData != undefined) winMeta[ind + String(mask)] = metaData;
 }
 
 function printRotated(mask, q1, q2) {	
