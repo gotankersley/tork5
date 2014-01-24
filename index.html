@@ -1,19 +1,44 @@
 <!DOCYTYPE html>
 <html>
 <head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
 <title>tork5</title>
 <!-- Includes -->
+<!--CSS:tork5-->
 <link rel="stylesheet" href="css/tork5.css" />
+<!--END-->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<!--JS:tork5-->
 <script src="js/lib/bitlib.js"></script>
 <script src="js/data/avail-wins.js"></script>
 <script src="js/data/win-meta.js"></script>
 <script src="js/core/board.js"></script>
 <script src="js/ai/random.js"></script>
 <script src="js/core/game.js"></script>
+<!--END-->
 <script>
-$(function() {
+$(function() {    
 	game = new Game();	
+    
+    $("#options-button").click(function() {
+        var button = $('#options-button');
+        if (button.hasClass('options-menu-down')) button.removeClass('options-menu-down');
+        else button.addClass('options-menu-down');
+        $("#options-menu").slideToggle();
+    });
+    
+    $('.game-option').change(function() {
+        var opt = $(this).val();
+        if ($(this).attr('name') == 'speed') OPTION_ROT_SPEED = opt;
+        else if (opt == 0) OPTION_ROT_ANIM = !OPTION_ROT_ANIM;
+        else if (opt == 1) OPTION_ROW_NUMBERS = !OPTION_ROW_NUMBERS;
+        else if (opt == 2) OPTION_ROW_NOTATION = !OPTION_ROW_NOTATION;
+        else if (opt == 3) {
+            OPTION_FIND_WINS = !OPTION_FIND_WINS;
+            $('#find-wins').toggle();
+        }        
+        
+    });
 });
 </script>
 </head>
@@ -22,15 +47,18 @@ $(function() {
 
 <!-- Tools -->
 <div id="tools">
-<a href="tools/bit-tool.html" target="_new">Bit tool</a>
+<a class="tool-link" href="tools/bit-tool.html" target="_new">Bit tool</a>
 <!--<a href="#" id="rand-tool">Randomize</a>-->
 
 <!-- Options -->
-<div id="options">Options
+<div id="options">
+<div id="options-button">Options</div>
 <div id="options-menu">
-<label><input type="checkbox" />Rotate animation</label><br>
-<label><input type="checkbox" />Row numbers</label><br>
-<label><input type="checkbox" />Row notation</label><br>
+<label><input type="checkbox" class="game-option" value="1" checked="checked"/>Row numbers</label><br>
+<label><input type="checkbox" class="game-option" value="2"/>Row notation</label><br>
+<label><input type="checkbox" class="game-option" value="3" checked="checked"/>Find wins</label><br>
+<label><input type="checkbox" class="game-option" value="0" checked="checked"/>Rotation animation</label><br>
+<label>Rotate speed: <input type="input" name="speed" size="8" class="game-option" value="1"/></label><br>
 </div>
 </div>
 

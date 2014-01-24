@@ -2,16 +2,6 @@ canvas {
     border: 1px solid black;
 }
 
-#tools {    
-    border: 1px solid black;
-    
-    position: fixed;
-    right: 0px;
-    text-align: center;
-    top: 0px;      
-    width: 300px;
-}
-
 #find-wins{    
     bottom: 0px;
     color: gray;    
@@ -24,16 +14,58 @@ canvas {
     width: 400px;    
 }
 
+#tools {        
+    position: fixed;
+    right: 0px;
+    text-align: right;
+    top: 0px;      
+    width: 300px;
+}
+
+.tool-link {
+    margin-right: 10px;
+}
+
+
+/* OPTIONS */
 #options {
-    border: 1px solid blue;
+    float: right;
+}
+
+#options-button {
+    background-color: #b0b0b0;
+    border: 2px solid #777;
+    border-radius: 5px;
+    color: #777;
+    cursor: pointer;
+    font-family: arial;
+    font-weight: bold;    
     height: 30px;
-    position: relative;
+    padding-top: 8px;
+    position: relative;   
+    text-align: center;
     vertical-align: top;
-    width: 100px;
+    width: 100px;   
+}
+
+#options-button:hover, #options .options-menu-down {
+    background-color: #c8c8c8;
+    border: 2px solid #ddd;
+    color: #ddd;    
 }
 #options-menu {
-    bottom: 0;
+    background-color: #b0b0b0;
+    border: 1px solid #777;        
 	display: none;
+    margin: 0;
+    padding: 5px 10px;
     position: absolute;
-    width: 100px;
+    right: 2px;
+    text-align: left;
+    top: 42px;    
+    width: 200px;
 }
+#options-menu label:hover {
+    text-decoration: underline;
+}
+/* END OPTIONS */

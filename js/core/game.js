@@ -2,7 +2,7 @@
 var OPTION_FIND_WINS = true;
 var OPTION_ROW_NUMBERS = true;
 var OPTION_ROW_NOTATION = false;
-var OPTION_ROT_ANIM = false;
+var OPTION_ROT_ANIM = true;
 var OPTION_ROT_SPEED = 3;
 
 //Constants
@@ -139,7 +139,7 @@ Game.prototype.onKeyPress = function(e) {
 
 Game.prototype.onRandomize = function(e) {    
 	game.board.randomize();
-	e.preventDefault;
+	e.preventDefault();
 	return false;
 }
 
