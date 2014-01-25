@@ -49,7 +49,7 @@ function indToMpos(ind) {
 }
 
 function mposToInd(mask) {
-    return Math.log(mask)/Math.LN2;
+    return Math.floor(Math.log(mask)/Math.LN2);
 }
 
 function bitCount(x) {

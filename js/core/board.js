@@ -225,16 +225,16 @@ Board.prototype.findWins = function() {
     for (var q = 0; q < BOARD_QUADS; q++) {
         var curQuadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
         var curQuadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);
-        var oppQuadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
-        var oppQuadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);
+        var oppQuadC = this.rotateQuad(opp, q, ROT_CLOCKWISE);
+        var oppQuadA = this.rotateQuad(opp, q, ROT_ANTICLOCKWISE);
         
         //Check for any available wins with rotated board - Use mid wins to optimize
         for (var w in MID_WINS) { 
             var mid = MID_WINS[w];
-            if (and(curQuadC, mid) == mid && and(curQuadC, SPAN_WINS[w])) wins[side][String(mid)] = {ind:INVALID, quad:0, dir:ROT_CLOCKWISE};
-            if (and(curQuadA, mid) == mid && and(curQuadA, SPAN_WINS[w])) wins[side][String(mid)] = {ind:INVALID, quad:0, dir:ROT_ANTICLOCKWISE};
-            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][String(mid)] = {ind:INVALID, quad:0, dir:ROT_CLOCKWISE};
-            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][String(mid)] = {ind:INVALID, quad:0, dir:ROT_ANTICLOCKWISE};
+            if (and(curQuadC, mid) == mid && and(curQuadC, SPAN_WINS[w])) wins[side][q + '_0' + String(mid)] = {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
+            if (and(curQuadA, mid) == mid && and(curQuadA, SPAN_WINS[w])) wins[side][q + '_1' + String(mid)] = {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
+            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][q + '_0' + String(mid)] = {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
+            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][q + '_1' + String(mid)] = {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
         }
     }
 	
