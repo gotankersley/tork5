@@ -1,6 +1,7 @@
 java -jar c:\src\gclosure.jar --compilation_level SIMPLE_OPTIMIZATIONS ^
 --js c:\www\tork5\js\data\avail-wins.js ^
 --js c:\www\tork5\js\data\win-meta.js ^
+--js c:\www\tork5\js\data\mid-wins.js ^
 --js c:\www\tork5\js\lib\bitlib.js ^
 --js c:\www\tork5\js\core\board.js ^
 --js c:\www\tork5\js\core\game.js ^
