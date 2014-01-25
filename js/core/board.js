@@ -231,10 +231,10 @@ Board.prototype.findWins = function() {
         //Check for any available wins with rotated board - Use mid wins to optimize
         for (var w in MID_WINS) { 
             var mid = MID_WINS[w];
-            if (and(curQuadC, mid) == mid && and(curQuadC, SPAN_WINS[w])) wins[side][q + '_0' + String(mid)] = {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
-            if (and(curQuadA, mid) == mid && and(curQuadA, SPAN_WINS[w])) wins[side][q + '_1' + String(mid)] = {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
-            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][q + '_0' + String(mid)] = {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
-            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][q + '_1' + String(mid)] = {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
+            if (and(curQuadC, mid) == mid && and(curQuadC, SPAN_WINS[w])) wins[side][q + '_0'] = {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
+            if (and(curQuadA, mid) == mid && and(curQuadA, SPAN_WINS[w])) wins[side][q + '_1'] = {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
+            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][q + '_0'] = {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
+            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide][q + '_1'] = {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
         }
     }
 	
@@ -246,8 +246,7 @@ Board.prototype.findWins = function() {
 			if (and(board, mpos)) TestWinLineFromSpace(side, board, ind, avail, wins); //Wins passed by reference
 			if (and(opp, mpos)) TestWinLineFromSpace(oppSide, opp, ind, avail, wins); //Wins passed by reference				
 		}
-	}
-	//Else just check the available spaces when there are more pins than available
+	}	//Else just check the available spaces when there are more pins than available
 	else {
 		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
 			var mpos = indToMpos(ind);
@@ -272,8 +271,8 @@ function TestWinLineFromSpace(side, board, ind, avail, winsRef) { //Wins passed 
 				var fifthInd = mposToInd(fifthMpos);	
 				var winId = String(win);
 				meta = WIN_META[ind + winId];
-				if (meta == undefined) winsRef[side][winId] = {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation
-				else winsRef[side][winId] = {ind:fifthInd, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation
+				if (meta == undefined) winsRef[side][fifthInd] = {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation
+				else winsRef[side][fifthInd] = {ind:fifthInd, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation
 			}
 		}
 	}

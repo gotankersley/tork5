@@ -65,3 +65,9 @@
     text-decoration: underline;
 }
 /* END OPTIONS */
+
+#status {
+    position: fixed;
+    bottom: 0;
+    left: 5px;
+}

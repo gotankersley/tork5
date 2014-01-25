@@ -61,8 +61,8 @@ var game;
 //Class Game
 function Game() {
 	this.canvas = document.getElementById('mainCanvas');
-	this.ctx = this.canvas.getContext('2d');
-    this.ctx.font = '14pt sans-serif';	
+	this.ctx = this.canvas.getContext('2d');    
+    this.ctx.font = '14pt sans-serif';
     this.messageColor = COLOR_P1;
     this.message = 'Player1 - place marble';
     
@@ -77,7 +77,7 @@ function Game() {
     this.rotateMode = false;
     this.winLine = [0,0,0,0];
     this.winColor = COLOR_P1;        
-	
+    this.status = $('#status');
 	//this.player1 = 0;
 	//this.player2 = new Random();
     
@@ -129,6 +129,7 @@ Game.prototype.onMouse = function(e) {
     if (game.mode == MODE_PLACE) {
         game.cursorR = toRC(y);
         game.cursorC = toRC(x);
+        game.status.text(game.cursorR + ', ' + game.cursorC);
     }
     else if (game.mode == MODE_ROTATE) {        
         game.quadInd = toQuad(x, y);
@@ -249,10 +250,10 @@ Game.prototype.draw = function() {
     ctx.lineWidth = 1;
     ctx.clearRect(0,0, CANVAS_SIZE, CANVAS_SIZE);		
 	
-	//Message - (Player Turn)
+	//Message - (Player Turn)    
 	ctx.fillStyle = this.messageColor;
-	ctx.fillText(this.message, 10, 20);	
-			
+	ctx.fillText(this.message, 10, 20);				   
+    
     ctx.save();
     ctx.translate(CANVAS_OFFSET, CANVAS_OFFSET);
 		    
@@ -265,7 +266,7 @@ Game.prototype.draw = function() {
         var cursorX = toXY(this.cursorC);
         var cursorY = toXY(this.cursorR);
         ctx.fillStyle = COLOR_CURSOR;
-        ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);
+        ctx.fillRect(cursorX, cursorY, UNIT_SIZE, UNIT_SIZE);        
 	}
 	
     //Quads
