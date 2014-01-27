@@ -279,16 +279,22 @@ function TestWinLineFromSpace(side, board, ind, avail, winsRef) { //Wins passed 
 }
 
 Board.prototype.show = function() {    
+    var str = '';
     for (var r = 0; r < ROW_SPACES; r++) {
+        if (r == 3) str += '-------\n';
         for (var c = 0; c < COL_SPACES; c++) {            
-            var ind = IND[r][c];            
-            var space = ' ';
-            if (and(this.p1, indToMpos(ind))) space = 'X';
-            else if (and(this.p2, indToMpos(ind))) space = 'O';
-            console.log(space);
+            if (c == 3) str += '|';
+            var ind = IND[r][c];     
+            var mpos = indToMpos(ind);            
+            var space = ':';
+            if (and(this.p1, mpos)) space = 'X';
+            else if (and(this.p2, mpos)) space = 'O';
+                        
+            str += space;
         }
-        console.log('\n');
+        str += '\n';        
     }
+    console.log(str);
 }
 
 //End class Board

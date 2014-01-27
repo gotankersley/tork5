@@ -20,12 +20,12 @@ var HALF_CANVAS = CANVAS_SIZE/2;
 var ARROW_WIDTH = 50;
 var ARROW_HEIGHT = 20;
 
-
 //Modes
 var MODE_PLACE = 0;
 var MODE_ROTATE = 1;
 var MODE_ANIM = 2;
-var MODE_WIN = 3;
+var MODE_WAIT = 3;
+var MODE_WIN = 4;
 
 //Colors
 var COLOR_P1 = '#C00';
@@ -73,26 +73,27 @@ function Game() {
     this.arrowInd = INVALID;
 	this.quadInd = INVALID;
 	this.quadRot = 0;
-	this.quadRotDir = 1;
-    this.mode = MODE_PLACE;
+	this.quadRotDir = 1;    
     this.rotateMode = false;
     this.winLine = [0,0,0,0];
     this.winColor = COLOR_P1;        
     this.status = $('#status');
-	//this.player1 = 0;
-	//this.player2 = new Random();
+    this.player = new Player(this.board, PLAYER_HUMAN, PLAYER_RANDOM);            
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);
 	$(this.canvas).mousemove(this.onMouse);	    
 	$(document).keyup(this.onKeyPress);	 
     
-	$('#rand-tool').click(this.onRandomize);
-    this.draw();
+	//$('#rand-tool').click(this.onRandomize);
+    this.mode = (this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
+    this.player.play();
+    
+    this.onFrame();
 }
 
 
-//Mouse events
+//Events
 Game.prototype.onClick = function(e) {	
 	if(e.offsetX == undefined) { //Required for FF
 		x = e.pageX - $('#mainCanvas').offset().left;
@@ -158,11 +159,18 @@ Game.prototype.onKeyPress = function(e) {
     game.draw();
 }
 
-Game.prototype.onRandomize = function(e) {    
-	game.board.randomize();
-	e.preventDefault();
-	return false;
+
+Game.prototype.onFrame = function() {
+    if (this.mode == MODE_ANIM) this.onRotating();		
+    this.draw();
+    requestAnimationFrame(this.onFrame.bind(this));	
 }
+
+// Game.prototype.onRandomize = function(e) {    
+	// game.board.randomize();
+	// e.preventDefault();
+	// return false;
+// }
 
 //Game events
 Game.prototype.onPlacePin = function(r, c, placeMode) {    
@@ -237,8 +245,8 @@ Game.prototype.onGameOver = function(gameState) {
     game.mode = MODE_WIN;
 }
 
-Game.prototype.onChangeTurn = function(change) {
-	if (change) {
+Game.prototype.onChangeTurn = function(changeBoard) {
+	if (changeBoard) {
 		this.board.turn = !this.board.turn;
 		this.mode = MODE_PLACE;
 	}
@@ -299,16 +307,11 @@ Game.prototype.draw = function() {
     }
 	
 	//Quad rotation animation
-	if (this.mode == MODE_ANIM) {
-		this.drawQuad(ctx, this.quadInd, this.quadRot, true);
-        this.onRotating();		
-	}    
+	if (this.mode == MODE_ANIM) this.drawQuad(ctx, this.quadInd, this.quadRot, true);  
     
     //Win line
     else if (this.mode == MODE_WIN) this.drawWinLine(ctx);
     ctx.restore();
-	
-	requestAnimationFrame(this.draw.bind(this));	
 }
 
 Game.prototype.drawLine = function(ctx, x1, y1, x2, y2) {
@@ -414,6 +417,7 @@ Game.prototype.drawWinLine = function(ctx) {
     this.drawLine(ctx, this.winLine[0], this.winLine[1], this.winLine[2], this.winLine[3]);
 }
 
+//Helper functions
 Game.prototype.showFindWins = function() {
 	//Three ways to win
 	//1. Can win just by rotation

@@ -7,4 +7,4 @@ java -jar c:\src\gclosure.jar --compilation_level SIMPLE_OPTIMIZATIONS ^
 --js c:\www\tork5\js\core\game.js ^
 --js_output_file c:\Users\Glen\Dropbox\Public\tork5\js\tork5.min.js
 
-java -jar c:\src\yuicompressor.jar c:\www\tork5\css\tork5.css -o c:\Users\Glen\Dropbox\Public\tork5\css\tork5.min.css
+rem java -jar c:\src\yuicompressor.jar c:\www\tork5\css\tork5.css -o c:\Users\Glen\Dropbox\Public\tork5\css\tork5.min.css

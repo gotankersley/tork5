@@ -1,9 +1,10 @@
 //Class random
-function Random() {
-
+function Random(board) {    
+    this.board = board;
 }
 
-Random.prototype.getMove = function(board) {
+Random.prototype.getMove = function() {
+    var board = this.board;
     var open = board.getOpen();    
     
     //Pick random space
