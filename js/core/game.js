@@ -81,7 +81,7 @@ function Game() {
     this.winLine = [0,0,0,0];
     this.winColor = COLOR_P1;        
     this.status = $('#status');
-    this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);            
+    this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_RANDOM);            
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);

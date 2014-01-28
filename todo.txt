@@ -9,6 +9,16 @@ Graphics:
 
 Multiplayer: 
 
+Opening book: 
+- need sqllite localhost?
+
 Misc:
 - Move notation
-- Monster win! (Multiple wins)
+- Player can hover / rotate when AI is turning board error
+- Monster win! (Multiple wins),
+- Show last board state
+- Show hotkeys
+- undefined error
+- options -> settings
+- generic dropdown menu
+- console output

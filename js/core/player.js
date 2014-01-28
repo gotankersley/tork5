@@ -35,7 +35,7 @@ Player.prototype.play = function() {
     var player = this.get();
 	if (player != null) {
 		var move = player.getMove();
-		//Check validity		
+		//Make sure move validity		
 		if (this.board.isOpen(move.ind)) {			
 			setTimeout(function() { //Delay before placing pin
 				this.game.onPlacePin(ROW[move.ind], COL[move.ind], false);					
