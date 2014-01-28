@@ -147,7 +147,8 @@ Board.prototype.rotateQuad = function(board, quadId, dir) {
     return rotBoard;    
 }
 
-Board.prototype.isWin = function() {    
+Board.prototype.isWin = function() {   
+    return IN_PLAY;
     if (this.moveCount >= BOARD_SPACES) return WIN_TIE;
     //else if (this.moveCount <= (2 * NUM_TO_WIN) - 1) return IN_PLAY;
 	

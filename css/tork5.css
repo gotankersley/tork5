@@ -10,12 +10,12 @@
     width: 400px;    
 }
 
-#tools {        
+#tools {       
     position: fixed;
     right: 0px;
     text-align: right;
     top: 0px;      
-    width: 300px;
+    width: 500px;
 }
 
 .tool-link {
@@ -70,4 +70,11 @@
     position: fixed;
     bottom: 0;
     left: 5px;
+}
+
+#players {
+    border: 1px solid gray;
+    display: inline-block;
+    padding: 5px;
+    margin: auto 10px;
 }

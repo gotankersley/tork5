@@ -1,11 +1,11 @@
-//Options
-var OPTION_FIND_WINS = true;
-var OPTION_ROW_NUMBERS = true;
-var OPTION_ROW_NOTATION = false;
-var OPTION_ROT_ANIM = true;
-var OPTION_ROT_SPEED = 3;
-var OPTION_AI_PLACE_DELAY = 300;
-var OPTION_AI_ROTATE_DELAY = 1000;
+//Settings
+var SETTING_FIND_WINS = true;
+var SETTING_ROW_NUMBERS = true;
+var SETTING_ROW_NOTATION = false;
+var SETTING_ROT_ANIM = true;
+var SETTING_ROT_SPEED = 3;
+var SETTING_AI_PLACE_DELAY = 300;
+var SETTING_AI_ROTATE_DELAY = 1000;
 
 
 //Constants
@@ -81,7 +81,7 @@ function Game() {
     this.winLine = [0,0,0,0];
     this.winColor = COLOR_P1;        
     this.status = $('#status');
-    this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_RANDOM);            
+    this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);            
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);
@@ -194,13 +194,13 @@ Game.prototype.onRotateStart = function(quadInd, dir, rotateMode) {
 	this.quadRot = 0;
 	this.quadRotDir = dir;
 	this.rotateMode = rotateMode;	
-    if (OPTION_ROT_ANIM) this.mode = MODE_ANIM;
+    if (SETTING_ROT_ANIM) this.mode = MODE_ANIM;
     else this.onRotateEnd();
 }
 
 Game.prototype.onRotating = function() {
     if (Math.abs(this.quadRot) >= 90) this.onRotateEnd();
-    else this.quadRot += (this.quadRotDir * OPTION_ROT_SPEED); 
+    else this.quadRot += (this.quadRotDir * SETTING_ROT_SPEED); 
 }
 
 Game.prototype.onRotateEnd = function() {    
@@ -220,7 +220,7 @@ Game.prototype.onTurnChanged = function(changeTurn) {
 Game.prototype.onMoveOver = function() {			
 	var gameState = this.board.isWin();
     if (gameState == IN_PLAY) {
-		if (OPTION_FIND_WINS) this.showFindWins();	
+		if (SETTING_FIND_WINS) this.showFindWins();	
         this.quadRot = 0;
         this.quadInd = INVALID;
         this.arrowInd = INVALID;	
@@ -276,8 +276,8 @@ Game.prototype.draw = function() {
     ctx.translate(CANVAS_OFFSET, CANVAS_OFFSET);
 		    
 	//Row numbers
-	if (OPTION_ROW_NUMBERS) this.drawRowNumbers(ctx);
-	else if (OPTION_ROW_NOTATION) this.drawRowNotation(ctx);
+	if (SETTING_ROW_NUMBERS) this.drawRowNumbers(ctx);
+	else if (SETTING_ROW_NOTATION) this.drawRowNotation(ctx);
 	
 	//Cursor
     if (this.mode == MODE_PLACE) {

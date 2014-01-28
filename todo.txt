@@ -19,6 +19,6 @@ Misc:
 - Show last board state
 - Show hotkeys
 - undefined error
-- options -> settings
 - generic dropdown menu
 - console output
+- optimize bitloop

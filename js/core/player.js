@@ -13,6 +13,11 @@ function Player(currentGame, board, player1Type, player2Type) {
     this.player2Type = player2Type;    
 }
 
+Player.prototype.set = function(playerNum, playerType) {
+    if (playerNum == PLAYER1) this.player1 = this.create(playerType);
+    else this.player2 = this.create(playerType);
+}
+
 Player.prototype.create = function(playerType) {
     switch (playerType) {
         case PLAYER_HUMAN: return null;
@@ -43,9 +48,9 @@ Player.prototype.play = function() {
 					this.game.arrowInd = dirToArrow(move.quad, move.dir);
 					setTimeout(function() { //Delay before rotating quad
 						this.game.onRotateStart(move.quad, move.dir, false);
-					}, OPTION_AI_ROTATE_DELAY/2);
-				}, OPTION_AI_ROTATE_DELAY/2);
-			}, OPTION_AI_PLACE_DELAY);
+					}, SETTING_AI_ROTATE_DELAY/2);
+				}, SETTING_AI_ROTATE_DELAY/2);
+			}, SETTING_AI_PLACE_DELAY);
 		}
 		else this.game.onInvalidMove(move);
 		
