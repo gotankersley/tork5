@@ -79,10 +79,13 @@ function getMask(r, c, offset, lineType) {
 }
 
 function printMask(mask, metaData) {	
-	var bitStr = toBin(mask);
-	var hexStr = toHex(bitStr, bitStr.length);
-	masks[ind][hexStr] = true;	
-	if (metaData != undefined) winMeta[ind + String(mask)] = metaData;
+	var mpos = indToMpos(ind);
+	if (and(mask, mpos)){
+		var bitStr = toBin(mask);
+		var hexStr = toHex(bitStr, bitStr.length);
+		masks[ind][hexStr] = true;	
+		if (metaData != undefined) winMeta[ind + String(mask)] = metaData;
+	}
 }
 
 function printRotated(mask, q1, q2) {	

@@ -1,5 +1,6 @@
 var PLAYER_HUMAN = 0;
 var PLAYER_RANDOM = 1;
+var PLAYER_RANDOM_SMART = 2;
 
 
 //Class Player
@@ -22,6 +23,7 @@ Player.prototype.create = function(playerType) {
     switch (playerType) {
         case PLAYER_HUMAN: return null;
         case PLAYER_RANDOM: return new Random(this.board);
+		case PLAYER_RANDOM_SMART: return new RandomSmart(this.board);
     }    
     return null;
 }
@@ -41,7 +43,9 @@ Player.prototype.play = function() {
 	if (player != null) {
 		var move = player.getMove();
 		//Make sure move validity		
-		if (this.board.isOpen(move.ind)) {			
+		if (this.board.isOpen(move.ind)) {	
+			this.game.cursorR = ROW[move.ind];
+			this.game.cursorC = COL[move.ind];
 			setTimeout(function() { //Delay before placing pin
 				this.game.onPlacePin(ROW[move.ind], COL[move.ind], false);					
 				setTimeout(function () { //Delay before showing rotation arrow indicator

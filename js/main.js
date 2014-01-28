@@ -22,8 +22,9 @@ $(function() {
     });
     
     $('#players select').change(function() {
-        var playerNum = $(this).attr('name') == 'player1'? PLAYER1 : PLAYER2;
-        var playerType = $(this).val();
+        var playerNum = ($(this).attr('id') == 'player1')? PLAYER1 : PLAYER2;
+        var playerType = Number($(this).val());
         game.player.set(playerNum, playerType);
+		game.player.play();
     });
 });

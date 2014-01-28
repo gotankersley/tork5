@@ -431,7 +431,7 @@ Game.prototype.showFindWins = function() {
 	//1. Can win just by rotation
 	//2. Can with by placing a pin with no rotation
 	//3.. Can win by placing a pin and rotating        
-    var wins = this.board.findWins();
+    var wins = this.board.findAllWins();
     $('#find-wins-text').html('');
     
 	for (var side in wins) {
