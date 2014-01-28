@@ -1,11 +1,13 @@
 var PLAYER_HUMAN = 0;
 var PLAYER_RANDOM = 1;
 
+
 //Class Player
-function Player(board, player1Type, player2Type) {
+function Player(currentGame, board, player1Type, player2Type) {
+	this.game = currentGame;
     this.board = board;
     this.player1 = this.create(player1Type);
-    this.player2 = this.create(player2Type);
+    this.player2 = this.create(player2Type);	
     
     this.player1Type = player1Type;
     this.player2Type = player2Type;    
@@ -30,7 +32,24 @@ Player.prototype.get = function() {
 }
 
 Player.prototype.play = function() {
-   
+    var player = this.get();
+	if (player != null) {
+		var move = player.getMove();
+		//Check validity		
+		if (this.board.isOpen(move.ind)) {			
+			setTimeout(function() { //Delay before placing pin
+				this.game.onPlacePin(ROW[move.ind], COL[move.ind], false);					
+				setTimeout(function () { //Delay before showing rotation arrow indicator
+					this.game.arrowInd = dirToArrow(move.quad, move.dir);
+					setTimeout(function() { //Delay before rotating quad
+						this.game.onRotateStart(move.quad, move.dir, false);
+					}, OPTION_AI_ROTATE_DELAY/2);
+				}, OPTION_AI_ROTATE_DELAY/2);
+			}, OPTION_AI_PLACE_DELAY);
+		}
+		else this.game.onInvalidMove(move);
+		
+	}
 }
 
 //End class Player
