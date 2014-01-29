@@ -59,3 +59,12 @@ function bitCount(x) {
 	x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
 	return hi + ((((x + (x >>> 4)) & 0x0F0F0F0F) * 0x01010101) >>> 24);
 }
+
+//function bitScan(x){
+//    while ( x ) {
+//        var ls1b = x & -x; // isolate LS1B
+//        console.log(ls1b);
+//        x &= x-1; // reset LS1B
+//    }
+//    console.log(c);
+//}
