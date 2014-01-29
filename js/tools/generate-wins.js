@@ -44,10 +44,10 @@ function outputMasks() {
 	}
 	document.write('];' + EOL);
 	
-	document.write('var WIN_META = {' + EOL);
+	document.write('var WIN_META = { //Keyed by ind + base10str(winMask). Each array position contains quad, and dir' + EOL);
 	for (var key in winMeta) {
-		document.write("\t'" + key + "':[" + w.q + ',' + w.d + '],' + EOL);
-		var w = winMeta[key];
+        var w = winMeta[key];
+		document.write("\t'" + key + "':[" + w.q + ',' + w.d + '],' + EOL);		
 	}
 	document.write('};' + EOL);
 	document.write('</pre>');	
@@ -84,7 +84,7 @@ function printMask(mask, metaData) {
 		var bitStr = toBin(mask);
 		var hexStr = toHex(bitStr, bitStr.length);
 		masks[ind][hexStr] = true;	
-		if (metaData != undefined) winMeta[ind + String(mask)] = metaData;
+		if (metaData != undefined) winMeta[mask] = metaData;
 	}
 }
 

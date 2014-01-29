@@ -314,9 +314,8 @@ function testWinLineFromSpace(side, board, ind, avail, winsRef) { //Wins passed 
 		if (count >= 4) { //4 in a line, but need to make sure 5th space is avail to win							 			
 			var fifthMpos = xor(boardLine, win);					
 			if (!avail || and(avail, fifthMpos)) {
-				var fifthInd = mposToInd(fifthMpos);	
-				var winId = String(win);
-				meta = WIN_META[ind + winId];
+				var fifthInd = mposToInd(fifthMpos);					
+				meta = WIN_META[String(win)];
 				if (meta == undefined) {
 					winsRef[side][fifthInd + '_xx'] = {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation				
 				}
@@ -337,9 +336,8 @@ function testWinFromSpace(board, ind, avail) {
 		if (count >= 4) { //4 in a line, but need to make sure 5th space is avail to win							 			
 			var fifthMpos = xor(boardLine, win);					
 			if (!avail || and(avail, fifthMpos)) {
-				var fifthInd = mposToInd(fifthMpos);	
-				var winId = String(win);
-				meta = WIN_META[ind + winId];
+				var fifthInd = mposToInd(fifthMpos);					
+				meta = WIN_META[String(win)];
 				if (meta == undefined) return {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation
 				else return {ind:fifthInd, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation
 			}
