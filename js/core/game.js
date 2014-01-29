@@ -147,7 +147,7 @@ Game.prototype.onKeyPress = function(e) {
         if (game.mode == MODE_PLACE) {
             var ind = IND[game.cursorR][game.cursorC];
             if (!game.board.isOpen(ind)) {
-                var mpos = not(indToMpos(ind));
+                var mpos = not(IND_TO_MPOS[ind]);
                 game.board.p1 = and(game.board.p1, mpos);
                 game.board.p2 = and(game.board.p2, mpos);
                 game.moveCount--;

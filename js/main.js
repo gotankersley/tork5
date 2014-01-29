@@ -26,5 +26,5 @@ $(function() {
         var playerType = Number($(this).val());
         game.player.set(playerNum, playerType);
 		game.player.play();
-    });
+    });	
 });

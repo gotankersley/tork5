@@ -44,7 +44,7 @@ function outputMasks() {
 	}
 	document.write('];' + EOL);
 	
-	document.write('var WIN_META = { //Keyed by ind + base10str(winMask). Each array position contains quad, and dir' + EOL);
+	document.write('var WIN_META = { //Keyed by winMask(base10). Each array position contains quad, and dir' + EOL);
 	for (var key in winMeta) {
         var w = winMeta[key];
 		document.write("\t'" + key + "':[" + w.q + ',' + w.d + '],' + EOL);		
@@ -58,19 +58,19 @@ function getMask(r, c, offset, lineType) {
 	for (var i = 0; i < NUM_TO_WIN; i++) {
 		var off = i - offset;
 		if (lineType == HORIZONTAL) {
-			if (onBoard(r, c + off)) mask = or(mask, indToMpos(IND[r][c + off]));
+			if (onBoard(r, c + off)) mask = or(mask, IND_TO_MPOS[IND[r][c + off]]);
 			else return false;
 		}
 		else if (lineType == VERTICAL) {
-			if (onBoard(r + off, c)) mask = or(mask, indToMpos(IND[r + off][c]));
+			if (onBoard(r + off, c)) mask = or(mask, IND_TO_MPOS[IND[r + off][c]]);
 			else return false;
 		}
 		else if (lineType == DIAG_TL_BR) {
-			if (onBoard(r + off, c + off)) mask = or(mask, indToMpos(IND[r + off][c + off]));
+			if (onBoard(r + off, c + off)) mask = or(mask, IND_TO_MPOS[IND[r + off][c + off]]);
 			else return false;
 		}
 		else if (lineType == DIAG_TR_BL) {
-			if (onBoard(r + off, c - off)) mask = or(mask, indToMpos(IND[r + off][c - off]));
+			if (onBoard(r + off, c - off)) mask = or(mask, IND_TO_MPOS[IND[r + off][c - off]]);
 			else return false;
 		}		
 		else return false;
@@ -79,7 +79,7 @@ function getMask(r, c, offset, lineType) {
 }
 
 function printMask(mask, metaData) {	
-	var mpos = indToMpos(ind);
+	var mpos = IND_TO_MPOS[ind];
 	if (and(mask, mpos)){
 		var bitStr = toBin(mask);
 		var hexStr = toHex(bitStr, bitStr.length);

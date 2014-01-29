@@ -85,7 +85,7 @@ function Board() {
 
 Board.prototype.isOpen = function(ind) {    
     var avail = not(or(this.p1,this.p2)); 
-    return and(avail, indToMpos(ind));
+    return and(avail, IND_TO_MPOS[ind]);
 }
 
 
@@ -95,8 +95,8 @@ Board.prototype.set = function(row, col) {
 }
 Board.prototype.setPin = function(ind) {        	
     if (this.isOpen(ind)) {                
-        if (this.turn == PLAYER1) this.p1 = xor(this.p1, indToMpos(ind));        
-        else this.p2 = xor(this.p2, indToMpos(ind)); //Player 2		
+        if (this.turn == PLAYER1) this.p1 = xor(this.p1, IND_TO_MPOS[ind]);        
+        else this.p2 = xor(this.p2, IND_TO_MPOS[ind]); //Player 2		
 		this.moveCount++;
 		return true;
     }
@@ -108,7 +108,7 @@ Board.prototype.get = function(row, col) {
     return this.getPin(ind);
 }
 Board.prototype.getPin = function(ind) {	
-	var mpos = indToMpos(ind);
+	var mpos = IND_TO_MPOS[ind];
 	if (and(this.p1,mpos)) return PLAYER1;	
 	else if (and(this.p2,mpos)) return PLAYER2;
 	else return EMPTY;
@@ -116,12 +116,10 @@ Board.prototype.getPin = function(ind) {
 
 Board.prototype.getOpen = function() {
     var open = [];
-    var avail = not(or(this.p1,this.p2)); 
-    for (var ind = 0; ind < BOARD_SPACES; ind++) {        
-        var mpos = indToMpos(ind);
-        if (and(avail,mpos)) {
-            open.push(ind);
-        }
+    var avail = not(or(this.p1,this.p2));
+	var availBits = bitScan(avail);
+	for (var i in availBits) {		
+		open.push(availBits[i]);        
     }
     return open;
 }
@@ -147,7 +145,7 @@ Board.prototype.rotateQuad = function(board, quadId, dir) {
     return rotBoard;    
 }
 
-Board.prototype.isWin = function() {       
+Board.prototype.isWin = function() {       	
     if (this.moveCount >= BOARD_SPACES) return WIN_TIE;
     //else if (this.moveCount <= (2 * NUM_TO_WIN) - 1) return IN_PLAY;
 	
@@ -172,32 +170,31 @@ Board.prototype.getWinLine = function(win) {
     var maxC = 0;
     var r, c;
     //Get min, and max points to figure out line dimensions
-    for (var ind = 0; ind < BOARD_SPACES; ind++) {        
-        var mpos = indToMpos(ind);
-        if (and(win,mpos)) {
-            r = ROW[ind];
-            c = COL[ind];
-            if (r < minR || (r == minR && c < minC)) {
-                minR = r;
-                minC = c;
-            }
-            if (r > maxR || (r == maxR && c > maxC)) {
-                maxR = r;
-                maxC = c;
-            }
-        }        
+	var winBits = bitScan(win);
+	for (var i in winBits) {
+		var ind = winBits[i];    
+		r = ROW[ind];
+		c = COL[ind];
+		if (r < minR || (r == minR && c < minC)) {
+			minR = r;
+			minC = c;
+		}
+		if (r > maxR || (r == maxR && c > maxC)) {
+			maxR = r;
+			maxC = c;
+		}        
     }
     return [minR, minC, maxR, maxC];
 }
 
-Board.prototype.randomize = function() {
-    this.moveCount = 0;
-	var pinsToAdd = Math.random() * (BOARD_SPACES - 2);
-	for (var i = 0; i < pinsToAdd; i++) {		
-		this.setPin(Math.random(i) * BOARD_SPACES);
-		this.rotate(Math.random() * BOARD_QUADS, (Math.random() * 2) - 1);
-	}
-}
+// Board.prototype.randomize = function() {
+    // this.moveCount = 0;
+	// var pinsToAdd = Math.random() * (BOARD_SPACES - 2);
+	// for (var i = 0; i < pinsToAdd; i++) {		
+		// this.setPin(Math.random(i) * BOARD_SPACES);
+		// this.rotate(Math.random() * BOARD_QUADS, (Math.random() * 2) - 1);
+	// }
+// }
 
 Board.prototype.findWin = function(board) {
 	//Check if there are enough pins on the board for a win   
@@ -225,21 +222,19 @@ Board.prototype.findWin = function(board) {
 	
 	if (count < 12) {	
 		//Check all of each player's pins to see if they have a line with 4 pins with an open space for a 5th pin to go
-		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
-			var mpos = indToMpos(ind);			
-			if (and(board, mpos)) {
-				var winFound = testWinFromSpace(board, ind, avail);
-				if (winFound != null) return winFound;
-			}
+		var pinBits = bitScan(board);
+		for (var i in pinBits) {
+			var ind = pinBits[i];			
+			var winFound = testWinFromSpace(board, ind, avail);
+			if (winFound != null) return winFound;			
 		}
 	}	//Else just check the available spaces when there are more pins than available
 	else {
-		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
-			var mpos = indToMpos(ind);
-			if (and(avail, mpos)) {			
-				var winFound = testWinFromSpace(board, ind, false); 
-				if (winFound != null) return winFound;
-			}
+		var availBits = bitScan(avail);
+		for (var i in availBits) {
+			var ind = availBits[i];						
+			var winFound = testWinFromSpace(board, ind, false); 
+			if (winFound != null) return winFound;			
 		}
 	}
 	return null;
@@ -265,9 +260,13 @@ Board.prototype.findAllWins = function() {
     }
 	var avail = not(or(board, opp)); //All the available empty spaces
     
-	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
+	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 	
 	var side = Number(this.turn);
 	var oppSide = Number(!side);
+	//for (var i in QUAD_MID_WINS) {
+	//	var mid = QUAD_MID_WINS[i];
+		//if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) wins[side]['x_'] = 
+	//}
     for (var q = 0; q < BOARD_QUADS; q++) {
         var curQuadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
         var curQuadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);
@@ -286,16 +285,16 @@ Board.prototype.findAllWins = function() {
 	
 	//Optimization to check contiguous wins for pins, when there are fewer pins than available spaces
 	if (bitCount(board) < 12) {	
-		//Check all of each player's pins to see if they have a line with 4 pins with an open space for a 5th pin to go
+		//Check all of each player's pins to see if they have a line with 4 pins with an open space for a 5th pin to go		
 		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
-			var mpos = indToMpos(ind);			
+			var mpos = IND_TO_MPOS[ind];			
 			if (and(board, mpos)) testWinLineFromSpace(side, board, ind, avail, wins); //Wins passed by reference
 			if (and(opp, mpos)) testWinLineFromSpace(oppSide, opp, ind, avail, wins); //Wins passed by reference				
 		}
 	}	//Else just check the available spaces when there are more pins than available
 	else {
 		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
-			var mpos = indToMpos(ind);
+			var mpos = IND_TO_MPOS[ind];
 			if (and(avail, mpos)) {			
 				testWinLineFromSpace(side, board, ind, false, wins); //Wins passed by reference
 				testWinLineFromSpace(oppSide, opp, ind, false, wins); //Wins passed by reference	
@@ -314,7 +313,7 @@ function testWinLineFromSpace(side, board, ind, avail, winsRef) { //Wins passed 
 		if (count >= 4) { //4 in a line, but need to make sure 5th space is avail to win							 			
 			var fifthMpos = xor(boardLine, win);					
 			if (!avail || and(avail, fifthMpos)) {
-				var fifthInd = mposToInd(fifthMpos);					
+				var fifthInd = MPOS_TO_IND[fifthMpos];					
 				meta = WIN_META[String(win)];
 				if (meta == undefined) {
 					winsRef[side][fifthInd + '_xx'] = {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation				
@@ -336,7 +335,7 @@ function testWinFromSpace(board, ind, avail) {
 		if (count >= 4) { //4 in a line, but need to make sure 5th space is avail to win							 			
 			var fifthMpos = xor(boardLine, win);					
 			if (!avail || and(avail, fifthMpos)) {
-				var fifthInd = mposToInd(fifthMpos);					
+				var fifthInd = MPOS_TO_IND[fifthMpos];					
 				meta = WIN_META[String(win)];
 				if (meta == undefined) return {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation
 				else return {ind:fifthInd, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation
@@ -353,7 +352,7 @@ Board.prototype.show = function() {
         for (var c = 0; c < COL_SPACES; c++) {            
             if (c == 3) str += '|';
             var ind = IND[r][c];     
-            var mpos = indToMpos(ind);            
+            var mpos = IND_TO_MPOS[ind];            
             var space = ':';
             if (and(this.p1, mpos)) space = 'X';
             else if (and(this.p2, mpos)) space = 'O';

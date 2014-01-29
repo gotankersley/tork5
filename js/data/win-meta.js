@@ -1,4 +1,4 @@
-var WIN_META = { //Keyed by ind + base10str(winMask). Each array position contains quad, and dir
+var WIN_META = { //Keyed by winMask(base10). Each array position contains quad, and dir
 	'1564':[0,-1],
 	'1729':[0,1],
 	'3608':[0,-1],
