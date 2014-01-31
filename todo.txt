@@ -1,24 +1,31 @@
-Optimize: 
+Optimizations: 
 - asm.js for AI
-- web worker (multi - threading)
+- change mcts node from assoc to indexed array?
 
 
-Graphics:
-- webgl
+Wins:
+- optimize avail wins with mid/spans
+- calcuate wins and spans for quads non-rotated
+- Render 6-in-a-row, and multiple win lines
+- Handle tie wins in isWin
+- Handle tie wins in findWin
 
-
-Multiplayer: 
-
-Opening book: 
-- need sqllite localhost?
 
 Misc:
 - Move notation
 - Player can hover / rotate when AI is turning board error
-- Monster win! (Multiple wins),
 - Show last board state
 - Show hotkeys
-- undefined error
 - generic dropdown menu
 - console output
-- optimize bitloop
+
+AI:
+- web worker
+
+Cool FX:
+- webgl
+- CSS3 animations
+- multiplayer
+
+Opening book: 
+- need sqllite localhost?

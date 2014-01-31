@@ -17,7 +17,7 @@ RandomSmart.prototype.getMove = function() {
         
     //Pick random quad to rotate
     var quadInd = Math.floor(Math.random() * BOARD_QUADS);
-    var rotDir = (Math.floor(Math.random() * 2) == 0)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
-	return {ind:ind, quad: quadInd, dir:rotDir};    
+    var dir = Math.floor(Math.random() * 2);
+	return {ind:ind, quad:quadInd, dir:dir};    
 }
 //End class random

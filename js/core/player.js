@@ -1,7 +1,9 @@
 var PLAYER_HUMAN = 0;
 var PLAYER_RANDOM = 1;
 var PLAYER_RANDOM_SMART = 2;
+var PLAYER_MCTS = 3;
 
+var INFINITY = 1000000;
 
 //Class Player
 function Player(currentGame, board, player1Type, player2Type) {
@@ -24,6 +26,7 @@ Player.prototype.create = function(playerType) {
         case PLAYER_HUMAN: return null;
         case PLAYER_RANDOM: return new Random(this.board);
 		case PLAYER_RANDOM_SMART: return new RandomSmart(this.board);
+        case PLAYER_MCTS: return new MCTS(this.board);
     }    
     return null;
 }

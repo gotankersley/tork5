@@ -345,6 +345,13 @@ function testWinFromSpace(board, ind, avail) {
 	return null;
 }
 
+Board.prototype.clone = function() {
+    var newBoard = new Board();
+    board.p1 = this.p1;
+    board.p2 = this.p2;
+    return newBoard;
+}
+
 Board.prototype.show = function() {    
     var str = '';
     for (var r = 0; r < ROW_SPACES; r++) {

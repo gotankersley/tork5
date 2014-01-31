@@ -260,7 +260,7 @@ Game.prototype.onGameOver = function(gameState) {
 }
 
 Game.prototype.onInvalidMove = function() {
-	alert('nope');
+	alert('invalid move');
 }
 
 //Draw functions
