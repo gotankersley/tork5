@@ -206,8 +206,14 @@ Board.prototype.findWin = function(board) {
 	var avail = not(or(this.p1, this.p2));
 	
 	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
-	var side = Number(this.turn);
-	var oppSide = Number(!side);
+	for (var i in QUAD_MID_WINS) {
+		var mid = QUAD_MID_WINS[i];
+        if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
+            var q = Math.floor(i / 20);
+            var d = ((i / 10) % 2 == 0)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
+            return {ind:INVALID, quad:q, dir:d};
+        }
+    }
     for (var q = 0; q < BOARD_QUADS; q++) {
         var quadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
         var quadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);        
@@ -263,29 +269,19 @@ Board.prototype.findAllWins = function() {
 	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 	
 	var side = Number(this.turn);
 	var oppSide = Number(!side);
-	// for (var i in QUAD_MID_WINS) {
-		// var mid = QUAD_MID_WINS[i];
-		// if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
-            // var q = i / 20;
-            // var dir = (i / 10) % 2 == 0? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
-            // wins[side]['x_' + q + dir] = 
-        // }
-	// }
-    for (var q = 0; q < BOARD_QUADS; q++) {
-        var curQuadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
-        var curQuadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);
-        var oppQuadC = this.rotateQuad(opp, q, ROT_CLOCKWISE);
-        var oppQuadA = this.rotateQuad(opp, q, ROT_ANTICLOCKWISE);
-        
-        //Check for any available wins with rotated board - Use mid wins to optimize
-        for (var w in MID_WINS) { 
-            var mid = MID_WINS[w];
-            if (and(curQuadC, mid) == mid && and(curQuadC, SPAN_WINS[w])) wins[side]['x_' + q + 'c'] = {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
-            if (and(curQuadA, mid) == mid && and(curQuadA, SPAN_WINS[w])) wins[side]['x_' + q + 'a'] = {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
-            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide]['x_' + q + 'c'] = {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
-            if (and(oppQuadC, mid) == mid && and(oppQuadC, SPAN_WINS[w])) wins[oppSide]['x_' + q + 'a'] = {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
+	for (var i in QUAD_MID_WINS) {
+		var mid = QUAD_MID_WINS[i];
+		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
+            var q = Math.floor(i / 20);
+            var d = ((i / 10) % 2 == 0)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
+            wins[side]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
         }
-    }
+        if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
+            var q = Math.floor(i / 20);
+            var d = ((i / 10) % 2 == 0)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
+            wins[oppSide]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
+        }
+	}    
 	
 	//Optimization to check contiguous wins for pins, when there are fewer pins than available spaces
 	if (bitCount(board) < 12) {	
