@@ -3,7 +3,6 @@ var PLAYER_RANDOM = 1;
 var PLAYER_RANDOM_SMART = 2;
 var PLAYER_MCTS = 3;
 
-var INFINITY = 1000000;
 
 //Class Player
 function Player(currentGame, board, player1Type, player2Type) {

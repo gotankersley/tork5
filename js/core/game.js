@@ -149,8 +149,7 @@ Game.prototype.onKeyPress = function(e) {
             if (!game.board.isOpen(ind)) {
                 var mpos = not(IND_TO_MPOS[ind]);
                 game.board.p1 = and(game.board.p1, mpos);
-                game.board.p2 = and(game.board.p2, mpos);
-                game.moveCount--;
+                game.board.p2 = and(game.board.p2, mpos);                
             }
         }
 	}
@@ -177,7 +176,7 @@ Game.prototype.onFrame = function() {
 //Game events
 Game.prototype.onPlacePin = function(r, c, placeMode) {    
     var board = this.board;
-    //Set returns false if space is not open
+    //Set returns false if space is not open	
     if (board.set(r,c)) {
         var gameState = board.isWin();
         if (gameState == IN_PLAY) {
@@ -205,7 +204,7 @@ Game.prototype.onRotating = function() {
 
 Game.prototype.onRotateEnd = function() {   
     var dir = (this.quadRotDir == 1)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
-    this.board.rotate(this.quadInd, dir); //this changes the turn  
+    this.board.rotate(this.quadInd, dir); //this changes the turn  	
 	this.onTurnChanged(false);
 	this.onMoveOver();
 }

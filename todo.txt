@@ -1,6 +1,8 @@
-Optimizations: 
+Optimizations: (create branch for these)
 - asm.js for AI
 - change mcts node from assoc to indexed array?
+- change bitboard object to p1, p2 to avoid overhead?
+- inline functions / function vs prototype functions?
 
 
 Wins:
@@ -11,21 +13,33 @@ Wins:
 - Handle tie wins in findWin
 
 
-Misc:
-- Move notation
-- Player can hover / rotate when AI is turning board error
+Features to add:
 - Show last board state
 - Show hotkeys
-- generic dropdown menu
 - console output
+- arena tool
+
+Bugs / issues:
+- Player can hover / rotate when AI is turning board error
+
+Cleanup / Refactor:
+- Change dir to rot
+- generic dropdown menu
+- player select code in HTML
+- Ind to pos maybe?
+- some magic numbers like 8, and 12 in find wins
+- terminology - consistant use of board, or bitboard / boardObj, and also quadId
 
 AI:
-- web worker
+- web worker threads
+
+Multiplayer
+- websockets?
+- move notation
 
 Cool FX:
 - webgl
 - CSS3 animations
-- multiplayer
 
 Opening book: 
-- need sqllite localhost?
+- sqlite on localhost
