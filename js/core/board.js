@@ -40,8 +40,8 @@ var PLAYER1 = 0;
 var PLAYER2 = 1;
 var EMPTY = -1;
 
-var ROT_ANTICLOCKWISE = -1;
-var ROT_CLOCKWISE = 1;
+var ROT_CLOCKWISE = 0;
+var ROT_ANTICLOCKWISE = 1;
 
 var IN_PLAY = 0;
 var WIN_PLAYER1 = 1;
@@ -263,10 +263,14 @@ Board.prototype.findAllWins = function() {
 	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 	
 	var side = Number(this.turn);
 	var oppSide = Number(!side);
-	//for (var i in QUAD_MID_WINS) {
-	//	var mid = QUAD_MID_WINS[i];
-		//if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) wins[side]['x_'] = 
-	//}
+	// for (var i in QUAD_MID_WINS) {
+		// var mid = QUAD_MID_WINS[i];
+		// if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
+            // var q = i / 20;
+            // var dir = (i / 10) % 2 == 0? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
+            // wins[side]['x_' + q + dir] = 
+        // }
+	// }
     for (var q = 0; q < BOARD_QUADS; q++) {
         var curQuadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
         var curQuadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);
@@ -316,7 +320,7 @@ function testWinLineFromSpace(side, board, ind, avail, winsRef) { //Wins passed 
 				var fifthInd = MPOS_TO_IND[fifthMpos];					
 				meta = WIN_META[String(win)];
 				if (meta == undefined) {
-					winsRef[side][fifthInd + '_xx'] = {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation				
+					winsRef[side][fifthInd + '_xx'] = {ind:fifthInd, quad:INVALID, dir:INVALID}; //Win without rotation				
 				}
 				else {
 					var dirAbbrev = (meta[1] == ROT_CLOCKWISE)? 'c' : 'a';
@@ -337,7 +341,7 @@ function testWinFromSpace(board, ind, avail) {
 			if (!avail || and(avail, fifthMpos)) {
 				var fifthInd = MPOS_TO_IND[fifthMpos];					
 				meta = WIN_META[String(win)];
-				if (meta == undefined) return {ind:fifthInd, quad:INVALID, dir:false}; //Win without rotation
+				if (meta == undefined) return {ind:fifthInd, quad:INVALID, dir:INVALID}; //Win without rotation
 				else return {ind:fifthInd, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation
 			}
 		}

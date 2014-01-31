@@ -192,7 +192,7 @@ Game.prototype.onRotateStart = function(quadInd, dir, rotateMode) {
     //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
 	this.quadInd = quadInd;
 	this.quadRot = 0;
-	this.quadRotDir = dir;
+	this.quadRotDir = (dir == ROT_CLOCKWISE)? 1 : -1;
 	this.rotateMode = rotateMode;	
     if (SETTING_ROT_ANIM) this.mode = MODE_ANIM;
     else this.onRotateEnd();
@@ -203,8 +203,9 @@ Game.prototype.onRotating = function() {
     else this.quadRot += (this.quadRotDir * SETTING_ROT_SPEED); 
 }
 
-Game.prototype.onRotateEnd = function() {    
-    this.board.rotate(this.quadInd, this.quadRotDir); //this changes the turn  
+Game.prototype.onRotateEnd = function() {   
+    var dir = (this.quadRotDir == 1)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
+    this.board.rotate(this.quadInd, dir); //this changes the turn  
 	this.onTurnChanged(false);
 	this.onMoveOver();
 }
@@ -445,7 +446,7 @@ Game.prototype.showFindWins = function() {
 			var quad = (winInfo.quad == INVALID)? '' : (' - Q' + winInfo.quad);
 			
 			var dir;
-			if (!winInfo.dir) dir = '';
+			if (winInfo.dir == INVALID) dir = '';
 			else if (winInfo.dir == ROT_CLOCKWISE) dir = ' Clockwise';
 			else if (winInfo.dir == ROT_ANTICLOCKWISE) dir = ' Anti-clockwise';		
 			
