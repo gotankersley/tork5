@@ -236,23 +236,6 @@ Game.prototype.onMoveOver = function() {
 }
 
 Game.prototype.onGameOver = function(gameState) {    
-    if (gameState == WIN_TIE || gameState == WIN_DUAL) {
-        this.messageColor = COLOR_TIE;
-        this.message = 'TIE GAME!';		
-    }
-    else {        
-        if (gameState == WIN_PLAYER1) { //Player 1
-            this.winColor = COLOR_P1_WIN;
-            this.messageColor = COLOR_P1;
-            this.message = 'Player1 WINS!';
-        }
-        else { //Player 2
-            this.winColor = COLOR_P2_WIN;
-            this.messageColor = COLOR_P2;
-            this.message = 'Player2 WINS!';
-        }               
-    }
-    
     //Convert win lines from row/col to x/y    
     var winRCs = this.board.getWinLines(); 
     this.winLines = [[],[]];
@@ -265,7 +248,26 @@ Game.prototype.onGameOver = function(gameState) {
             var y2 = toXY(line[2]) + HALF_UNIT;
             this.winLines[side].push([x1, y1, x2, y2]);
         }
-    }        
+    }    
+    
+    if (gameState == WIN_TIE || gameState == WIN_DUAL) {
+        this.messageColor = COLOR_TIE;
+        this.message = 'TIE GAME!';		
+    }
+    else {        
+        if (gameState == WIN_PLAYER1) { //Player 1
+            this.winColor = COLOR_P1_WIN;
+            this.messageColor = COLOR_P1;
+            this.message = 'Player1 WINS!';            
+        }
+        else { //Player 2
+            this.winColor = COLOR_P2_WIN;
+            this.messageColor = COLOR_P2;
+            this.message = 'Player2 WINS!';            
+        }                       
+        if (winRCs[PLAYER1].length > 1 || winRCs[PLAYER2].length > 1) this.message += ' Multi-win!';
+    }
+           
     game.mode = MODE_WIN;
 }
 
