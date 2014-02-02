@@ -255,14 +255,15 @@ Game.prototype.onGameOver = function(gameState) {
     
     //Convert win lines from row/col to x/y    
     var winRCs = this.board.getWinLines(); 
-    this.winLine = [[],[]];
-    for (var side in winRCS) {
-        for (var line in winRCS[side]) {
+    this.winLines = [[],[]];
+    for (var side in winRCs) {
+        for (var i in winRCs[side]) {
+            var line = winRCs[side][i];
             var x1 = toXY(line[1]) + HALF_UNIT;
             var y1 = toXY(line[0]) + HALF_UNIT;
             var x2 = toXY(line[3]) + HALF_UNIT;
             var y2 = toXY(line[2]) + HALF_UNIT;
-            this.winLine[side].push(x1, y1, x2, y2);
+            this.winLines[side].push([x1, y1, x2, y2]);
         }
     }        
     game.mode = MODE_WIN;
@@ -330,10 +331,10 @@ Game.prototype.draw = function() {
     //Win line(s)
     else if (this.mode == MODE_WIN) {       
         for (var line in this.winLines[PLAYER1]) {
-            this.drawWinLine(ctx, COLOR_P1);
+            this.drawWinLine(ctx, this.winLines[PLAYER1][line], COLOR_P1_WIN);
         }
         for (var line in this.winLines[PLAYER2]) {
-            this.drawWinLine(ctx, COLOR_P2);
+            this.drawWinLine(ctx, this.winLines[PLAYER2][line], COLOR_P2_WIN);
         }
     }
     ctx.restore();
@@ -436,10 +437,10 @@ Game.prototype.drawRowNotation = function(ctx) {
 	ctx.fillText('2', BOARD_SIZE + 15, 3 * HALF_QUAD); //Quad row 1
 }
 
-Game.prototype.drawWinLine = function(ctx, color) {
+Game.prototype.drawWinLine = function(ctx, line, color) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 5;
-    this.drawLine(ctx, this.winLine[0], this.winLine[1], this.winLine[2], this.winLine[3]);
+    this.drawLine(ctx, line[0], line[1], line[2], line[3]);
 }
 
 //Helper functions
