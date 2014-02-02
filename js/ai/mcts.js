@@ -5,8 +5,12 @@ var VISITS_TO_ADD_NODE = 1;
 var MIN_FAIR_PLAY = 0;
 var INFINITY = 1000000;
 
+var WIN_SCORE = 1;
+var LOSE_SCORE = -1;
+var TIE_SCORE = 0;
+
 //Node 
-var node = {visits:0, score:0, board:EMPTY, parent:null, kids:[]};
+//var node = {visits:0, score:0, board:EMPTY, parent:null, kids:[]};
 
 //Class MCTS
 function MCTS(board) {    
@@ -50,13 +54,15 @@ MCTS.prototype.runMCTS = function(board) {
         var node = this.selectNode(root);
 		
 		//Expand - but make sure an adequate number of simulations have been run before expanding	
+        var score;
 		if (node.visits >= VISITS_TO_ADD_NODE) {
-			
+			score = -this.expandNode(node); //Negative because it's from the parent's point of view
 		}
 		//Simulate
-		//else 
+		else score = this.simulate(node);
 		
 		//Backpropagate
+        this.backpropagate(node, score);
 		
 	}
 	
@@ -94,18 +100,77 @@ MCTS.prototype.selectNode = function(root) {
 	return bestNode;
 }
 
-MCTS.prototype.expandNode = function(node) {
-	//Check for win - don't expand if we can win
-	//Check for lose rotations - and avoid those
+MCTS.prototype.expandNode = function(node) {	
 	var board = node.board;	
-	board.findRotateWin(
+    //Check for win - don't expand if we can win	
+    var winFound = board.findWin();
+	if (winFound) return INFINITY;
+    //Handle dual win Ties?
+    
+    //Else add all possible unique moves that don't lead to a loss
+    var moves = board.getAllNonLossMoves();
+    
+    //Tie
+    if (moves.length == 0) return TIE_SCORE;
+    
+    for (var m in moves) {
+        node.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
+    }
+    
+    //Simulate from first child
+    return this.simulate(node.kid[0]);
 }
 
-MCTS.prototype.simulate = function() {
-
+MCTS.prototype.simulate = function(node) {
+    //Scoring from point of view of node
+    var board = node.board.clone();
+    var moveCount = bitCount(or(board.p1, board.p2));
+    
+    for (var i = 0; i < (BOARD_SPACES - moveCount); i++) {
+        //Check for wins
+        var winFound = board.findwin();
+        if (winFound) {
+            if (node.board.turn == board.turn) return WIN_SCORE;
+            else return LOSE_SCORE;
+        }
+        
+        //Make random moves
+        board.makeRandomMove();        
+    }    
+    return TIE_SCORE;
 }
 
-MCTS.prototype.backpropagate = function() {
+MCTS.prototype.backpropagate = function(node, score) {
+	//Update leaf
+    node.visits++;
+	if (Math.abs(score) == INFINITY) node.score = score; //Don't average score if terminal position			
+	else node.score = ((node.score * (node.visits - 1)) + score) / node.visits; //Average    
+
+    //Backpropagate from the leaf's parent up to the root, inverting the score each level due to minmax
+    while (node.parent != null) {
+        score *= -1;
+        node = node.parent;
+        node.visits++;
+        
+        //Win
+        if (score == INFINITY) node.score = INFINITY;
+        
+        //Loss - but all children must be checked to prove parent loss
+        else if (score == -INFINITY) {
+            var loss = true;
+            for (i in node.kids) {
+                if (node.kids[i].score != -INFINITY) {
+                    loss = false;
+                    break;
+                }
+            }
+            if (loss) node.score = -INFINITY;
+            else node.score = LOSE_SCORE; //Can't prove parent loss, so not terminal
+        }
+        
+        //Non-terminal position, so just average score        			
+		else node.score = ((node.score * (node.visits - 1)) + score) / node.visits;
+    }
 
 }
 

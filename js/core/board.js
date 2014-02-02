@@ -34,6 +34,7 @@ var QUAD_SPACES = 9;
 var QUAD_COUNT = 2;
 var QUAD_ROW_SPACES = 3;
 var QUAD_COL_SPACES = 3;
+var ALL_ROTATIONS = 8;
 
 //Enums
 var PLAYER1 = 0;
@@ -194,17 +195,60 @@ Board.prototype.getWinLine = function(win) {
 	// }
 // }
 
-Board.prototype.findRotateWin(board) {
-	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
-	for (var i in QUAD_MID_WINS) {
-		var mid = QUAD_MID_WINS[i];
-        if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
-            var q = Math.floor(i / 20);
-            var d = (i / 10) % 2;
-            return (d * BOARD_QUADS) + q;
+Board.prototype.makeRandomMove = function() { 
+    var avail = not(or(this.p1, this.p2));
+    var availBits = bitScan(avail);
+    var randInd = Math.floor(Math.random() * availBits.length);
+    if (this.turn == PLAYER1) this.p1 = xor(this.p1, IND_TO_MPOS[randInd]);
+    else this.p2 = xor(this.p2, IND_TO_MPOS[randInd]);
+    
+    var randQuad = Math.floor(Math.random() * BOARD_QUADS);
+    var randDir = Math.floor(Math.random() * 2);
+    this.rotate(randQuad, randDir);
+}
+
+Board.prototype.getAllNonLossMoves = function() { 
+    var board;
+    var opp;
+    var moves = {};
+    if (this.turn == PLAYER1) {
+        board = this.p1;
+        opp = this.p2;
+    }
+    else {
+        board = this.p2;
+        opp = this.p1;
+    }
+    
+    var oppWins = this.findOppRotateWins(opp);
+    var avail = not(or(board,opp));
+    var availBits = bitScan(avail);
+    for (var a in availBits) {
+        for (var i = 0; i < ALL_ROTATIONS; i++) {
+            if (oppWins[i]) continue;
+            var q = Math.floor(i/2);
+            var d = i%2;
+            var newBoard = this.clone();
+            if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, IND_TO_MPOS[a]); 
+            newBoard.rotate(q, d);
+            moves[String(newBoard.p1) + '_' + String(newBoard.p2)] = newBoard;
         }
     }
-	return INVALID;
+    return moves;
+}
+
+Board.prototype.findOppRotateWins = function(opp) {
+	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
+    var wins = [0,0,0,0,0,0,0,0];
+	for (var i in QUAD_MID_WINS) {
+		var mid = QUAD_MID_WINS[i];
+        if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
+            var q = Math.floor(i / 20);
+            var d = (i / 10) % 2;
+            wins[(d * BOARD_QUADS) + q] = true;
+        }
+    }
+	return wins;
 }
 
 Board.prototype.findWin = function() {
@@ -285,7 +329,7 @@ Board.prototype.findAllWins = function() {
 		var mid = QUAD_MID_WINS[i];
 		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = ((i / 10) % 2 == 0)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
+            var d = (i / 10) % 2;
             wins[side]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
         }
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
@@ -357,29 +401,45 @@ function testWinFromSpace(board, ind, avail) {
 	return false;
 }
 
-Board.prototype.deriveMove = function(afterBoard) {
+Board.prototype.deriveMove = function(after) {
 	//Derive the move (i.e. pin position and quad rotation) that was made by looking at the difference 
 	//between a board state before and after the move was made. 
 	
 	//Note: there can be multiple moves that result in the same after state (e.g. rotating quad centers), 
 	//so this just picks the first one it finds
-	var beforeBoard = (this.turn == PLAYER1)? this.p1 : this.p2;	
+	var beforeBoard;
+    var beforeOpp;
+    var afterBoard;
+    var afterOpp;
+    if (this.turn == PLAYER1) {
+        beforeBoard = this.p1;
+        beforeOpp = this.p2;
+        afterBoard = after.p1;
+        afterOpp = after.p2;
+    }
+    else {
+        beforeBoard = this.p2;
+        beforeOpp = this.p1;
+        afterBoard = after.p2;
+        afterOpp = after.p1;    
+    }
 	var afterCount = bitCount(afterBoard);
 	
 	//See if there is a move with no rotation (win)
-	var combined = and(beforeBoard, afterBoard);
-	if (afterCount - bitCount(combined) == 1) {
+	var combinedBoard = and(beforeBoard, afterBoard);    
+	if (afterCount - bitCount(combinedBoard) == 1 && (beforeOpp == afterOpp)) {
 		var ind = MPOS_TO_IND[xor(beforeBoard, afterBoard)];
 		return {ind:ind, quad:INVALID, dir:INVALID};
 	}
 	
 	//Try all 8 possible quad rotations to look for one that is only one bit different after rotation
-	for (var i = 0; i < 8; i++) {
+	for (var i = 0; i < ALL_ROTATIONS; i++) {
 		var q = Math.floor(i/2);
 		var d = i % 2;
 		var rotatedBoard = this.rotateQuad(beforeBoard, q, d);
-		combined = and(rotatedBoard, afterBoard);		
-		if (afterCount - bitCount(combined) == 1) {
+        var rotatedOpp = this.rotateQuad(beforeOpp, q, d);
+		combinedBoard = and(rotatedBoard, afterBoard);		
+		if (afterCount - bitCount(combinedBoard) == 1 && (rotatedOpp == afterOpp)) {
 			var reverseRotated = this.rotateQuad(afterBoard, q, !d); //Rotate after board in reverse to get position
 			var ind = MPOS_TO_IND[xor(beforeBoard, reverseRotated)];
 			return {ind:ind, quad:q, dir:d};

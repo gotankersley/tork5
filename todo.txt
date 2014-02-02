@@ -1,8 +1,10 @@
 Optimizations: (create branch for these)
 - asm.js for AI
 - change mcts node from assoc to indexed array?
-- change bitboard object to p1, p2 to avoid overhead?
+- change bitboard object to p1, p2 vars to avoid overhead? (hi bit turn?)
 - inline functions / function vs prototype functions?
+- different minification options (closure advanced)
+- add move children during expansion directly to node
 
 
 Wins:
