@@ -11,7 +11,6 @@ Wins:
 - optimize avail wins with mid/spans
 - calcuate wins and spans for quads non-rotated
 - Render 6-in-a-row, and multiple win lines
-- Handle tie wins in isWin
 - Handle tie wins in findWin
 
 

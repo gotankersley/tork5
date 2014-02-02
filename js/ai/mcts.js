@@ -9,8 +9,6 @@ var WIN_SCORE = 1;
 var LOSE_SCORE = -1;
 var TIE_SCORE = 0;
 
-//Node 
-//var node = {visits:0, score:0, board:EMPTY, parent:null, kids:[]};
 
 //Class MCTS
 function MCTS(board) {    

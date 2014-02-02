@@ -80,7 +80,7 @@ function Board() {
     this.p1 = INITIAL; //Player1 bitboard
     this.p2 = INITIAL; //Player2 bitboard
     this.turn = PLAYER1;    
-    this.winLine = [0,0,0,0];
+    //this.winLine = [0,0,0,0];
 }
 
 Board.prototype.isOpen = function(ind) {    
@@ -147,20 +147,19 @@ Board.prototype.rotateQuad = function(board, quadId, dir) {
 Board.prototype.isWin = function() {    
 	var moveCount = bitCount(and(this.p1, this.p2));
     if (moveCount >= BOARD_SPACES) return WIN_TIE;
-    //else if (moveCount <= (2 * NUM_TO_WIN) - 1) return IN_PLAY;
+    else if (moveCount < NUM_TO_WIN) return IN_PLAY;
 	
-    for(var w = 0; w < WINS.length; w++) {
-		var win = WINS[w];				
-        if (and(this.p1, win) == win) {
-            this.winLine = this.getWinLine(win);
-            return WIN_PLAYER1;
-        }
-		else if (and(this.p2, win) == win) {
-            this.winLine = this.getWinLine(win);
-            return WIN_PLAYER2;        
-        }
+    var p1Win = false;
+    var p2Win = false;
+    for (var i in MID_WINS) {
+        var mid = MID_WINS[i];
+        if (and(this.p1, mid) == mid && and(this.p1, SPAN_WINS[i])) p1Win = true;
+        else if (and(this.p2, mid) == mid && and(this.p2, SPAN_WINS[i])) p2Win = true;
     }
-    return IN_PLAY;
+    if (p1Win && p2Win) return WIN_TIE;
+    else if (p1Win) return WIN_PLAYER1;
+    else if (p2Win) return WIN_PLAYER2;
+    else return IN_PLAY;    
 }
 
 Board.prototype.getWinLine = function(win) {       
