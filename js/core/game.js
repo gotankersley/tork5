@@ -78,8 +78,8 @@ function Game() {
 	this.quadRot = 0;
 	this.quadRotDir = 0;    
     this.rotateMode = false;
-    this.winLine = [0,0,0,0];
-    this.winColor = COLOR_P1;        
+    this.winLines = null;
+         
     this.status = $('#status');
     this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);            
     
@@ -236,12 +236,11 @@ Game.prototype.onMoveOver = function() {
 }
 
 Game.prototype.onGameOver = function(gameState) {    
-    if (gameState == WIN_TIE) {
+    if (gameState == WIN_TIE || gameState == WIN_DUAL) {
         this.messageColor = COLOR_TIE;
-        this.message = 'TIE GAME!';
-		this.winLine = [INVALID, INVALID, INVALID, INVALID];
+        this.message = 'TIE GAME!';		
     }
-    else {
+    else {        
         if (gameState == WIN_PLAYER1) { //Player 1
             this.winColor = COLOR_P1_WIN;
             this.messageColor = COLOR_P1;
@@ -251,10 +250,21 @@ Game.prototype.onGameOver = function(gameState) {
             this.winColor = COLOR_P2_WIN;
             this.messageColor = COLOR_P2;
             this.message = 'Player2 WINS!';
-        }              
-        var winRCs = this.board.winLine;
-        this.winLine = [toXY(winRCs[1]) + HALF_UNIT, toXY(winRCs[0]) + HALF_UNIT, toXY(winRCs[3]) + HALF_UNIT, toXY(winRCs[2]) + HALF_UNIT];        
+        }               
     }
+    
+    //Convert win lines from row/col to x/y    
+    var winRCs = this.board.getWinLines(); 
+    this.winLine = [[],[]];
+    for (var side in winRCS) {
+        for (var line in winRCS[side]) {
+            var x1 = toXY(line[1]) + HALF_UNIT;
+            var y1 = toXY(line[0]) + HALF_UNIT;
+            var x2 = toXY(line[3]) + HALF_UNIT;
+            var y2 = toXY(line[2]) + HALF_UNIT;
+            this.winLine[side].push(x1, y1, x2, y2);
+        }
+    }        
     game.mode = MODE_WIN;
 }
 
@@ -317,8 +327,15 @@ Game.prototype.draw = function() {
 	//Quad rotation animation
 	if (this.mode == MODE_ANIM) this.drawQuad(ctx, this.quadInd, this.quadRot, true);  
     
-    //Win line
-    else if (this.mode == MODE_WIN) this.drawWinLine(ctx);
+    //Win line(s)
+    else if (this.mode == MODE_WIN) {       
+        for (var line in this.winLines[PLAYER1]) {
+            this.drawWinLine(ctx, COLOR_P1);
+        }
+        for (var line in this.winLines[PLAYER2]) {
+            this.drawWinLine(ctx, COLOR_P2);
+        }
+    }
     ctx.restore();
 }
 
@@ -419,8 +436,8 @@ Game.prototype.drawRowNotation = function(ctx) {
 	ctx.fillText('2', BOARD_SIZE + 15, 3 * HALF_QUAD); //Quad row 1
 }
 
-Game.prototype.drawWinLine = function(ctx) {
-    ctx.strokeStyle = this.winColor;
+Game.prototype.drawWinLine = function(ctx, color) {
+    ctx.strokeStyle = color;
     ctx.lineWidth = 5;
     this.drawLine(ctx, this.winLine[0], this.winLine[1], this.winLine[2], this.winLine[3]);
 }

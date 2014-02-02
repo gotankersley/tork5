@@ -48,6 +48,7 @@ var IN_PLAY = 0;
 var WIN_PLAYER1 = 1;
 var WIN_PLAYER2 = 2;
 var WIN_TIE = 3;
+var WIN_DUAL = 4;
 
 
 //Index maps
@@ -156,10 +157,26 @@ Board.prototype.isWin = function() {
         if (and(this.p1, mid) == mid && and(this.p1, SPAN_WINS[i])) p1Win = true;
         else if (and(this.p2, mid) == mid && and(this.p2, SPAN_WINS[i])) p2Win = true;
     }
-    if (p1Win && p2Win) return WIN_TIE;
+    if (p1Win && p2Win) return WIN_DUAL;
     else if (p1Win) return WIN_PLAYER1;
     else if (p2Win) return WIN_PLAYER2;
     else return IN_PLAY;    
+}
+
+Board.prototype.getWinLines = function(win) {
+    var lines = [[],[]];
+    for (var i in MID_WINS) {
+        var mid = MID_WINS[i];        
+        if (and(this.p1, mid) == mid && and(this.p1, SPAN_WINS[i])) {
+            var boardSpan = and(this.p1, SPAN_WINS[i]);            
+            lines[PLAYER1].push(this.getWinLine(or(mid, boardSpan)));
+        }
+        else if (and(this.p2, mid) == mid && and(this.p2, SPAN_WINS[i])) {
+            var boardSpan = and(this.p2, SPAN_WINS[i]);            
+            lines[PLAYER2].push(this.getWinLine(or(mid, boardSpan)));
+        }
+    }
+    return lines;
 }
 
 Board.prototype.getWinLine = function(win) {       
