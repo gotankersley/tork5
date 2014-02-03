@@ -134,7 +134,8 @@ MCTS.prototype.simulate = function(node) {
         }
         
         //Make random moves
-        board.makeRandomMove();        
+        board.makeRandomMove();   
+        board.print();
     }    
     return TIE_SCORE;
 }

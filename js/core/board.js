@@ -333,7 +333,7 @@ Board.prototype.findWin = function() {
 
 Board.prototype.findAllWins = function() {
     //Check if there are enough pins on the board for a win   	    	
-	var moveCount = bitCount(and(this.p1,this.p2));
+	var moveCount = bitCount(or(this.p1,this.p2));
 	if (moveCount < 4) return []; 
     else if (moveCount >= BOARD_SPACES) return []; 
 	
