@@ -1,6 +1,6 @@
 var PLAYER_HUMAN = 0;
 var PLAYER_RANDOM = 1;
-var PLAYER_RANDOM_SMART = 2;
+var PLAYER_SIM = 2;
 var PLAYER_MCTS = 3;
 
 
@@ -24,7 +24,7 @@ Player.prototype.create = function(playerType) {
     switch (playerType) {
         case PLAYER_HUMAN: return null;
         case PLAYER_RANDOM: return new Random(this.board);
-		case PLAYER_RANDOM_SMART: return new RandomSmart(this.board);
+		case PLAYER_SIM: return new Sim(this.board);
         case PLAYER_MCTS: return new MCTS(this.board);
     }    
     return null;
@@ -58,7 +58,13 @@ Player.prototype.play = function() {
 				}, SETTING_AI_ROTATE_DELAY/2);
 			}, SETTING_AI_PLACE_DELAY);
 		}
-		else this.game.onInvalidMove(move);
+		else {
+			console.log(move.ind);
+			if (this.board.isOpen(move.ind)) {
+				alert('not open: ' + move.ind);
+			}
+			this.game.onInvalidMove(move);
+		}
 		
 	}
 }

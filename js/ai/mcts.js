@@ -17,9 +17,9 @@ function MCTS(board) {
 
 MCTS.prototype.getMove = function() {		
 	//Check for available wins before trying to build the search tree
-	var winFound = this.board.findWin();
-	if (winFound) return winFound;
-	else { //Run the monte-carlo search
+	//var winFound = this.board.findWin();
+	//if (winFound) return winFound;
+	//else { //Run the monte-carlo search
         console.log('MCTS: Initial board');
 		this.board.print();
 		var node = this.runMCTS(this.board.clone());	
@@ -27,17 +27,26 @@ MCTS.prototype.getMove = function() {
 		console.log('Visits: ' + node.visits + ', Score: ' + node.score);
 		this.board.printMove(move);
 		return move;
-	}
+	//}
 }
 
 MCTS.prototype.runMCTS = function(board) {	     
     //Steps:
+	//0. Pre-expansion
     //1. Selection
     //2. Expansion
     //3. Simulation
     //4. Back-propagation        
     //5. Pick final move
     var root = {visits:0, score:0, board:board, parent:null, kids:[]};
+	
+	//Pre-expand root's children
+	var moves = board.getAllNonLossMoves();       
+    if (moves.length == 0) return TIE_SCORE;    
+    for (var m in moves) {
+        root.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
+    }
+	
     for (var i = 0; i < MAX_ITERATIONS; i++) {	
 		
 		//Check to see if win has been propagated up in direct decendents of root (i.e. first level)		
@@ -94,9 +103,8 @@ MCTS.prototype.selectNode = function(root) {
 
 		node = bestNode;
 		if (bestNode == null) console.log("No best kid found - broken select! " + root.board.toString());
-    }
-	if (bestNode == null) return root;
-	else return bestNode;
+    }	
+	return bestNode;
 }
 
 MCTS.prototype.expandNode = function(node) {	
@@ -117,7 +125,7 @@ MCTS.prototype.expandNode = function(node) {
     }
     
     //Simulate from first child
-    return this.simulate(node.kid[0]);
+    return -this.simulate(node.kid[0]);
 }
 
 MCTS.prototype.simulate = function(node) {
@@ -171,6 +179,9 @@ MCTS.prototype.backpropagate = function(node, score) {
         //Non-terminal position, so just average score        			
 		else node.score = ((node.score * (node.visits - 1)) + score) / node.visits;
     }
+	
+	//Check to see if win has been propagated up in direct decendents of root (i.e. first level)
+	//if (node.score == IN
 
 }
 

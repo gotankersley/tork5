@@ -1,4 +1,4 @@
-//Class random
+//Class Random
 function Random(board) {    
     this.board = board;
 }
@@ -18,4 +18,4 @@ Random.prototype.getMove = function() {
     //board.rotateQuad(quadInd, rotDir);
     //return board;
 }
-//End class random
+//End class Random

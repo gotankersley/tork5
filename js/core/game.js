@@ -271,8 +271,9 @@ Game.prototype.onGameOver = function(gameState) {
     game.mode = MODE_WIN;
 }
 
-Game.prototype.onInvalidMove = function() {
+Game.prototype.onInvalidMove = function(move) {
 	alert('invalid move');
+	this.board.printMove(move);
 }
 
 //Draw functions

@@ -48,6 +48,7 @@ function bitCount(x) {
 function bitScan(x){	
 	bits = [];
 	var hi = Math.floor(x/HI_MASK);		
+	x %= HI_MASK;
     while (x) {
         var minBit = x & -x; // isolate least significant bit
         bits.push(MPOS_TO_IND[minBit>>>0]);
