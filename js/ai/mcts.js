@@ -20,6 +20,7 @@ MCTS.prototype.getMove = function() {
 	var winFound = this.board.findWin();
 	if (winFound) return winFound;
 	else { //Run the monte-carlo search
+        console.log('MCTS: Initial board');
 		this.board.print();
 		var node = this.runMCTS(this.board.clone());	
 		var move = this.board.deriveMove(node.board);
@@ -41,10 +42,10 @@ MCTS.prototype.runMCTS = function(board) {
 		
 		//Check to see if win has been propagated up in direct decendents of root (i.e. first level)		
 		var kids = root.kids;
-		for (var i in kids) {
-			if (kids[i].score == INFINITY) {
+		for (var k in kids) {
+			if (kids[k].score == INFINITY) {
 				console.log("Win found!");
-				return kids[i];
+				return kids[k];
 			}
 		}
 		
@@ -94,8 +95,8 @@ MCTS.prototype.selectNode = function(root) {
 		node = bestNode;
 		if (bestNode == null) console.log("No best kid found - broken select! " + root.board.toString());
     }
-	
-	return bestNode;
+	if (bestNode == null) return root;
+	else return bestNode;
 }
 
 MCTS.prototype.expandNode = function(node) {	
@@ -126,10 +127,10 @@ MCTS.prototype.simulate = function(node) {
     
     for (var i = 0; i < (BOARD_SPACES - moveCount); i++) {
         //Check for wins
-        var winFound = board.findwin();
+        var winFound = board.findWin();
         if (winFound) {
-            if (node.board.turn == board.turn) return WIN_SCORE;
-            else return LOSE_SCORE;
+            //TODO: test for dual win
+            return WIN_SCORE;
         }
         
         //Make random moves

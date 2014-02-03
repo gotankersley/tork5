@@ -267,6 +267,31 @@ Board.prototype.findOppRotateWins = function(opp) {
 	return wins;
 }
 
+Board.prototype.findWin2 = function() {
+	//Check if there are enough pins on the board for a win   
+	var board = (this.turn == PLAYER1)? this.p1 : this.p2;
+	var count = bitCount(board);
+	if (count < 4) return false;     
+	
+	var avail = not(or(this.p1, this.p2));
+	if (!avail) return false; 
+	
+	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
+	for (var i in ALL_MID_WINS) {
+		var mid = ALL_MID_WINS[i];
+        var combinedMid = and(board, mid);
+        if (combinedMid == mid) {
+            if (and(avail, ALL_SPAN_WINS[i])) return true;
+        }
+        else if (bitCount(combinedMid) == 3) { 
+            if (and(board, ALL_SPAN_WINS[i]) && and(avail, mid)) return true; 
+        }
+    }    
+		
+	return false;
+}
+
+
 Board.prototype.findWin = function() {
 	//Check if there are enough pins on the board for a win   
 	var board = (this.turn == PLAYER1)? this.p1 : this.p2;
@@ -283,17 +308,6 @@ Board.prototype.findWin = function() {
             var q = Math.floor(i / 20);
             var d = (i / 10) % 2;
             return {ind:INVALID, quad:q, dir:d};
-        }
-    }
-    for (var q = 0; q < BOARD_QUADS; q++) {
-        var quadC = this.rotateQuad(board, q, ROT_CLOCKWISE);
-        var quadA = this.rotateQuad(board, q, ROT_ANTICLOCKWISE);        
-        
-        //Check for any available wins with rotated board - Use mid wins to optimize
-        for (var w in MID_WINS) { 
-            var mid = MID_WINS[w];
-            if (and(quadC, mid) == mid && and(quadC, SPAN_WINS[w])) return {ind:INVALID, quad:q, dir:ROT_CLOCKWISE};
-            if (and(quadA, mid) == mid && and(quadA, SPAN_WINS[w])) return {ind:INVALID, quad:q, dir:ROT_ANTICLOCKWISE};
         }
     }
 	
