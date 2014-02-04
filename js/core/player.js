@@ -42,7 +42,7 @@ Player.prototype.get = function() {
 
 Player.prototype.play = function() {
     var player = this.get();
-	if (player != null) {
+	if (player != null && game.mode != MODE_WIN) {		
 		var move = player.getMove();
 		//Make sure move validity		
 		if (this.board.isOpen(move.ind)) {	
@@ -51,10 +51,12 @@ Player.prototype.play = function() {
 			setTimeout(function() { //Delay before placing pin
 				this.game.onPlacePin(ROW[move.ind], COL[move.ind], false);					
 				setTimeout(function () { //Delay before showing rotation arrow indicator
-					this.game.arrowInd = dirToArrow(move.quad, move.dir);
-					setTimeout(function() { //Delay before rotating quad
-						this.game.onRotateStart(move.quad, move.dir, false);
-					}, SETTING_AI_ROTATE_DELAY/2);
+					if (game.mode != MODE_WIN) {
+						this.game.arrowInd = dirToArrow(move.quad, move.dir);
+						setTimeout(function() { //Delay before rotating quad
+							this.game.onRotateStart(move.quad, move.dir, false);
+						}, SETTING_AI_ROTATE_DELAY/2);
+					}
 				}, SETTING_AI_ROTATE_DELAY/2);
 			}, SETTING_AI_PLACE_DELAY);
 		}

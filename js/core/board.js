@@ -262,7 +262,7 @@ Board.prototype.findOppRotateWins = function(opp) {
 		var mid = QUAD_MID_WINS[i];
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = (i / 10) % 2;
+            var d = Math.floor(i / 10) % 2;
             wins[(d * BOARD_QUADS) + q] = true;
         }
     }
@@ -318,7 +318,7 @@ Board.prototype.findWin3 = function() {
 				var d = INVALID;
 				if (i < 80) {
 					q = Math.floor(i/20);
-					d = (i/10)%2;
+					d = Math.floor(i/10)%2;
 				}
 				return {ind:ind, quad:q, dir:d};				
 			}
@@ -337,7 +337,7 @@ Board.prototype.findWin3 = function() {
 				var d = INVALID;
 				if (i < 80) {
 					q = Math.floor(i/20);
-					d = (i/10)%2;
+					d = Math.floor(i/10)%2;
 				}
 				return {ind:ind, quad:q, dir:d};							
 			}
@@ -362,7 +362,7 @@ Board.prototype.findWin = function() {
 		var mid = QUAD_MID_WINS[i];
         if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = (i / 10) % 2;
+            var d = Math.floor(i / 10) % 2;
             return {ind:INVALID, quad:q, dir:d};
         }
     }
@@ -421,7 +421,7 @@ Board.prototype.findAllWins = function() {
         }
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = ((i / 10) % 2 == 0)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
+            var d = Math.floor(i / 10) % 2;
             wins[oppSide]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
         }
 	}    
