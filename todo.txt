@@ -4,6 +4,7 @@ Optimizations: (create branch for these)
 - change bitboard object to p1, p2 vars to avoid overhead? (hi bit turn?)
 - inline functions / function vs prototype functions?
 - different minification options (closure advanced)
+- pre-calc bitcount in findwin
 - add move children during expansion directly to node
 
 

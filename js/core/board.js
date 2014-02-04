@@ -284,9 +284,13 @@ Board.prototype.findWin = function() {
         if (combinedMid == mid) {
             if (and(avail, ALL_SPAN_WINS[i])) return true;
         }
-        else if (bitCount(combinedMid) == 3) { 
-			var span = ALL_SPAN_WINS[i];
-            if (and(board, span) && and(avail, mid)) return true; 
+        else {
+            if (bitCount(mid) == 3) {
+                if (and(board, ALL_SPAN_WINS[i] == ALL_SPAN_WINS[i]) && and(avail, mid)) return true; 
+            }
+            else if (bitCount(combinedMid) == 3) { 			
+                if (and(board, ALL_SPAN_WINS[i]) && and(avail, mid)) return true; 
+            }
         }
     }    
 		
@@ -347,46 +351,6 @@ Board.prototype.findWin3 = function() {
 	return false;
 }
 
-/*
-Board.prototype.findWin = function() {
-	//Check if there are enough pins on the board for a win   
-	var board = (this.turn == PLAYER1)? this.p1 : this.p2;
-	var count = bitCount(board);
-	if (count < 4) return false;     
-	
-	var avail = not(or(this.p1, this.p2));
-	if (!avail) return false; 
-	
-	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
-	for (var i in QUAD_MID_WINS) {
-		var mid = QUAD_MID_WINS[i];
-        if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
-            var q = Math.floor(i / 20);
-            var d = Math.floor(i / 10) % 2;
-            return {ind:INVALID, quad:q, dir:d};
-        }
-    }
-	
-	if (count < 12) {	
-		//Check all of each player's pins to see if they have a line with 4 pins with an open space for a 5th pin to go
-		var pinBits = bitScan(board);
-		for (var i in pinBits) {
-			var ind = pinBits[i];			
-			var winFound = testWinFromSpace(board, ind, avail);
-			if (winFound) return winFound;			
-		}
-	}	//Else just check the available spaces when there are more pins than available
-	else {
-		var availBits = bitScan(avail);
-		for (var i in availBits) {
-			var ind = availBits[i];						
-			var winFound = testWinFromSpace(board, ind, false); 
-			if (winFound) return winFound;			
-		}
-	}
-	return false;
-}
-*/
 
 Board.prototype.findAllWins = function() {
     //Check if there are enough pins on the board for a win   	    	
@@ -470,23 +434,6 @@ function testWinLineFromSpace(side, board, ind, avail, winsRef) { //Wins passed 
 	}
 }
 
-function testWinFromSpace(board, ind, avail) {
-	for (var a in AVAIL_WINS[ind]) {
-		var win = AVAIL_WINS[ind][a];	
-		var boardLine = and(board, win);		
-		var count = bitCount(boardLine);
-		if (count >= 4) { //4 in a line, but need to make sure 5th space is avail to win							 			
-			var fifthMpos = xor(boardLine, win);					
-			if (!avail || and(avail, fifthMpos)) {
-				var fifthInd = MPOS_TO_IND[fifthMpos];					
-				meta = WIN_META[String(win)];
-				if (meta == undefined) return {ind:fifthInd, quad:INVALID, dir:INVALID}; //Win without rotation
-				else return {ind:fifthInd, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation
-			}
-		}
-	}
-	return false;
-}
 
 Board.prototype.deriveMove = function(after) {
 	//Derive the move (i.e. pin position and quad rotation) that was made by looking at the difference 

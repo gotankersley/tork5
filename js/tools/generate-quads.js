@@ -21,9 +21,8 @@ $(function() {
             if (and(win, QUADS[q])) {
                 var span = getSpan(win);
                 var mid;
-                //if (bitCount(win) == 5) mid = win;
-                //else
-				mid = xor(win, span);
+                if (bitCount(win) == 5) mid = win;
+                else mid = xor(win, span);
                 mids[q*2].push(statBoard.rotateQuad(mid, q, ROT_CLOCKWISE));
                 mids[(q*2)+1].push(statBoard.rotateQuad(mid, q, ROT_ANTICLOCKWISE));
                 
