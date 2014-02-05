@@ -246,8 +246,8 @@ Board.prototype.getAllNonLossMoves = function() {
             var q = Math.floor(i/2);
             var d = i%2;
             var newBoard = this.clone();
-            if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, IND_TO_MPOS[a]); 
-			else newBoard.p2 = xor(newBoard.p2, IND_TO_MPOS[a]); 
+            if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, IND_TO_MPOS[availBits[a]]); 
+			else newBoard.p2 = xor(newBoard.p2, IND_TO_MPOS[availBits[a]]); 
             newBoard.rotate(q, d);
             moves[String(newBoard.p1) + '_' + String(newBoard.p2)] = newBoard;
         }
@@ -262,7 +262,7 @@ Board.prototype.findOppRotateWins = function(opp) {
 		var mid = QUAD_MID_WINS[i];
         if (and(opp, mid) == mid) {            
             var q = Math.floor(i / 20);
-            var d = Math.floor(i / 10) % 2;
+            var d = !(Math.floor(i / 10) % 2);
             wins[(d * BOARD_QUADS) + q] = true;
         }
     }
@@ -329,7 +329,7 @@ Board.prototype.getMoveFromMidWin = function(i) {
         var mid = LONG_MID_WINS[i];  
         var span = LONG_SPAN_WINS[i];
         if (and(board, mid) == mid) {   
-            var availBits = (and(board,span) == span)? bitScan(avail) : bitScan(and(avail, span));            
+            var availBits = (and(board,span) == span)? bitScan(and(avail, span)) : bitScan(avail);            
             ind = availBits[0];
         }
         else {
@@ -425,12 +425,12 @@ Board.prototype.findAllWins = function() {
 		var mid = QUAD_MID_WINS[i];
 		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = Math.floor(i / 10) % 2;
+            var d = !(Math.floor(i / 10) % 2);
             wins[side]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
         }
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = Math.floor(i / 10) % 2;
+            var d = !(Math.floor(i / 10) % 2);
             wins[oppSide]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
         }
 	}    

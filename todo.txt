@@ -28,6 +28,7 @@ Cleanup / Refactor:
 - Ind to pos maybe?
 - some magic numbers like 8, and 12 in find wins
 - terminology - consistant use of board, or bitboard / boardObj, and also quadId
+- cleanup QUAD-MID-WINS so rotation is reversed
 
 AI:
 - web worker threads
