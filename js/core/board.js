@@ -291,7 +291,7 @@ Board.prototype.findWin = function() {
     for (var i in SHORT_WINS) {
         var win = SHORT_WINS[i];
         var combined = and(board, win);
-        if (combined == win) return true;  //Win just with rotation
+        if (combined == win) return Number(i) + 71;  //Win just with rotation
         else if (bitCount(combined) == 4 && and(avail, win)) return Number(i) + 71;
     }
 		
