@@ -9,13 +9,16 @@ Sim.prototype.getMove = function() {
 	//See if win available
 	var winFound = board.findWin();
 	if (winFound) {
-		return board.getMoveFromMidWin(winFound);
+        //alert('win found');
+		var move = board.getMoveFromMidWin(winFound);
+        board.printMove(move);
+        return move;
 	}
 	console.log('Making random move...');
 	board.makeRandomMove();   
-	//board.print();
+	board.print();
 	var move = this.board.deriveMove(board); 
-	//board.printMove(move);
+	board.printMove(move);
 	console.log('----');
 	return move;
 }

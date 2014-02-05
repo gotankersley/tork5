@@ -311,7 +311,7 @@ Board.prototype.getMoveFromMidWin = function(i) {
     else if (i > 70) { 
         i -= 71;
         quad = Math.floor(i/6);
-        dir = Math.floor(i/3)%2;
+        dir = !(Math.floor(i/3)%2);
         var win = SHORT_WINS[i];        
         if (and(board, win) == win) {
             var availBits = bitScan(avail);
@@ -321,11 +321,11 @@ Board.prototype.getMoveFromMidWin = function(i) {
     }
     //Long wins
     else {
+        i--;    
         if (i < 56) { //With rotation
             quad = Math.floor(i/14);            
-            dir = Math.floor(i/7)%2;
-        }
-        i--;        
+            dir = !(Math.floor(i/7)%2);
+        }    
         var mid = LONG_MID_WINS[i];  
         var span = LONG_SPAN_WINS[i];
         if (and(board, mid) == mid) {   
@@ -425,7 +425,7 @@ Board.prototype.findAllWins = function() {
 		var mid = QUAD_MID_WINS[i];
 		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = (i / 10) % 2;
+            var d = Math.floor(i / 10) % 2;
             wins[side]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
         }
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            

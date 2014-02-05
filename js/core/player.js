@@ -44,6 +44,7 @@ Player.prototype.play = function() {
     var player = this.get();
 	if (player != null && game.mode != MODE_WIN) {		
 		var move = player.getMove();
+
 		//Make sure move validity		
 		if (this.board.isOpen(move.ind)) {	
 			this.game.cursorR = ROW[move.ind];
