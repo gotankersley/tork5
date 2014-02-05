@@ -9,8 +9,6 @@ Optimizations: (create branch for these)
 
 
 Wins:
-- optimize avail wins with mid/spans
-- calcuate wins and spans for quads non-rotated
 - Handle tie wins in findWin
 
 

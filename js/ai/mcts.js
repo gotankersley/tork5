@@ -17,17 +17,17 @@ function MCTS(board) {
 
 MCTS.prototype.getMove = function() {		
 	//Check for available wins before trying to build the search tree
-	//var winFound = this.board.findWin();
-	//if (winFound) return winFound;
-	//else { //Run the monte-carlo search
-        console.log('MCTS: Initial board');
-		this.board.print();
+	var winFound = this.board.findWin();
+	if (winFound) return this.board.getMoveFromMidWin(winFound);
+	else { //Run the monte-carlo search
+        //console.log('MCTS: Initial board');
+		//this.board.print();
 		var node = this.runMCTS(this.board.clone());	
 		var move = this.board.deriveMove(node.board);
 		console.log('Visits: ' + node.visits + ', Score: ' + node.score);
-		this.board.printMove(move);
+		//this.board.printMove(move);
 		return move;
-	//}
+	}
 }
 
 MCTS.prototype.runMCTS = function(board) {	     
@@ -42,18 +42,23 @@ MCTS.prototype.runMCTS = function(board) {
 	
 	//Pre-expand root's children
 	var moves = board.getAllNonLossMoves();       
-    if (moves.length == 0) return TIE_SCORE;    
+    if (moves.length == 0) {
+        console.log('No non-loss moves found - making random');
+        root.board.makeRandomMove();
+        return root;    
+    }
     for (var m in moves) {
         root.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
     }
 	
     for (var i = 0; i < MAX_ITERATIONS; i++) {	
 		
+        //TODO: top level win-propagation
 		//Check to see if win has been propagated up in direct decendents of root (i.e. first level)		
 		var kids = root.kids;
 		for (var k in kids) {
 			if (kids[k].score == INFINITY) {
-				console.log("Win found!");
+				console.log('Win found!');
 				return kids[k];
 			}
 		}
@@ -63,14 +68,14 @@ MCTS.prototype.runMCTS = function(board) {
 		
 		//Expand - but make sure an adequate number of simulations have been run before expanding	
         var score;
-		if (node.visits >= VISITS_TO_ADD_NODE) {
-			score = -this.expandNode(node); //Negative because it's from the parent's point of view
-		}
-		//Simulate
-		else score = this.simulate(node);
+		if (node.visits >= VISITS_TO_ADD_NODE) this.expandNode(node); //Expand backpropagates for terminal nodes
+        else {
+            //Simulate
+            score = this.simulate(node);
 		
-		//Backpropagate
-        this.backpropagate(node, score);
+            //Backpropagate
+            this.backpropagate(node, score);
+        }
 		
 	}
 	
@@ -110,9 +115,11 @@ MCTS.prototype.selectNode = function(root) {
 MCTS.prototype.expandNode = function(node) {	
 	var board = node.board;	
     //Check for win - don't expand if we can win	
+    
     var winFound = board.findWin();
-	if (winFound) return INFINITY;
-    //Handle dual win Ties?
+	if (winFound) this.backpropagate(node, -INFINITY); //Negative because it's from the parent's point of view	
+
+    //TODO: Handle dual wins?
     
     //Else add all possible unique moves that don't lead to a loss
     var moves = board.getAllNonLossMoves();
@@ -123,9 +130,7 @@ MCTS.prototype.expandNode = function(node) {
     for (var m in moves) {
         node.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
     }
-    
-    //Simulate from first child
-    return -this.simulate(node.kid[0]);
+           
 }
 
 MCTS.prototype.simulate = function(node) {
@@ -143,7 +148,7 @@ MCTS.prototype.simulate = function(node) {
         
         //Make random moves
         board.makeRandomMove();   
-        board.print();
+        //board.print();
     }    
     return TIE_SCORE;
 }

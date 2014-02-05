@@ -221,7 +221,7 @@ Board.prototype.makeRandomMove = function() {
     var randQuad = Math.floor(Math.random() * BOARD_QUADS);
     var randDir = Math.floor(Math.random() * 2);
     this.rotate(randQuad, randDir);
-	this.printMove({ind:randInd, quad:randQuad, dir:randDir});
+	//this.printMove({ind:randInd, quad:randQuad, dir:randDir});
 }
 
 Board.prototype.getAllNonLossMoves = function() { 

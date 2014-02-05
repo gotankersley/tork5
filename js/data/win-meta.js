@@ -114,5 +114,5 @@ var WIN_META = { //Keyed by winMask. Each array position contains quad, and dir
 	0x608c00000:[3,1],
 	0x300700000:[2,0],
 	0x383000000:[2,1],
-	0x380300000:[2,0],
+	0x380300000:[2,0]
 };
