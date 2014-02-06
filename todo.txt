@@ -25,7 +25,6 @@ Cleanup / Refactor:
 - Change dir to rot (what about row as r collisions)?
 - generic dropdown menu
 - player select code in HTML
-- Ind to pos maybe?
 - some magic numbers like 8, and 12 in find wins
 - terminology - consistant use of board, or bitboard / boardObj, and also quadId
 

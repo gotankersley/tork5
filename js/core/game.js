@@ -73,8 +73,8 @@ function Game() {
 	this.board = new Board();    
     this.cursorR = 0;
     this.cursorC = 0;
-    this.arrowInd = INVALID;
-	this.quadInd = INVALID;
+    this.arrow = INVALID;
+	this.quad = INVALID;
 	this.quadRot = 0;
 	this.quadRotDir = 0;    
     this.rotateMode = false;
@@ -113,8 +113,8 @@ Game.prototype.onClick = function(e) {
         game.onPlacePin(r, c, e.ctrlKey);        
     }
 	else if (game.mode == MODE_ROTATE || e.altKey) {		
-		var dir = arrowToDir(game.quadInd, game.arrowInd);
-		game.onRotateStart(game.quadInd, dir, e.altKey);
+		var dir = arrowToDir(game.quad, game.arrow);
+		game.onRotateStart(game.quad, dir, e.altKey);
 	}
 	else if (game.mode == MODE_ANIM) {
 		game.quadRot = (89 * game.quadRotDir);
@@ -137,17 +137,17 @@ Game.prototype.onMouse = function(e) {
         game.status.text(game.cursorR + ', ' + game.cursorC);
     }
     else if (game.mode == MODE_ROTATE) {        
-        game.quadInd = toQuad(x, y);
-		game.arrowInd = toOctant(game.quadInd, x, y);	        
+        game.quad = toQuad(x, y);
+		game.arrow = toOctant(game.quad, x, y);	        
     }    
 }
 
 Game.prototype.onKeyPress = function(e) {	
 	if (e.keyCode == KEY_DELETE) {
         if (game.mode == MODE_PLACE) {
-            var ind = IND[game.cursorR][game.cursorC];
-            if (!game.board.isOpen(ind)) {
-                var mpos = not(IND_TO_MPOS[ind]);
+            var pos = POS[game.cursorR][game.cursorC];
+            if (!game.board.isOpen(pos)) {
+                var mpos = not(POS_TO_MPOS[pos]);
                 game.board.p1 = and(game.board.p1, mpos);
                 game.board.p2 = and(game.board.p2, mpos);                
             }
@@ -187,9 +187,9 @@ Game.prototype.onPlacePin = function(r, c, placeMode) {
     }
 }
 
-Game.prototype.onRotateStart = function(quadInd, dir, rotateMode) {       
+Game.prototype.onRotateStart = function(quad, dir, rotateMode) {       
     //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
-	this.quadInd = quadInd;
+	this.quad = quad;
 	this.quadRot = 0;
 	this.quadRotDir = (dir == ROT_CLOCKWISE)? 1 : -1;
 	this.rotateMode = rotateMode;	
@@ -204,7 +204,7 @@ Game.prototype.onRotating = function() {
 
 Game.prototype.onRotateEnd = function() {   
     var dir = (this.quadRotDir == 1)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
-    this.board.rotate(this.quadInd, dir); //this changes the turn  	
+    this.board.rotate(this.quad, dir); //this changes the turn  	
 	this.onTurnChanged(false);
 	this.onMoveOver();
 }
@@ -222,8 +222,8 @@ Game.prototype.onMoveOver = function() {
     if (gameState == IN_PLAY) {
 		if (SETTING_FIND_WINS) this.showFindWins();	
         this.quadRot = 0;
-        this.quadInd = INVALID;
-        this.arrowInd = INVALID;	
+        this.quad = INVALID;
+        this.arrow = INVALID;	
         this.cursorR = 0;
         this.cursorC = 0;	                        
 		if (!this.rotateMode) {
@@ -329,7 +329,7 @@ Game.prototype.draw = function() {
     }
 	
 	//Quad rotation animation
-	if (this.mode == MODE_ANIM) this.drawQuad(ctx, this.quadInd, this.quadRot, true);  
+	if (this.mode == MODE_ANIM) this.drawQuad(ctx, this.quad, this.quadRot, true);  
     
     //Win line(s)
     else if (this.mode == MODE_WIN) {       
@@ -359,8 +359,8 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 	ctx.fill();		
 }
 
-Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrowInd) {	    
-    ctx.fillStyle = (this.mode != MODE_PLACE && this.arrowInd == arrowInd)? COLOR_CURSOR : COLOR_ARROW;	        
+Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrow) {	    
+    ctx.fillStyle = (this.mode != MODE_PLACE && this.arrow == arrow)? COLOR_CURSOR : COLOR_ARROW;	        
 	ctx.save();		
 	var halfW = (w + h)/2;
 	var halfH = h/2;
@@ -379,11 +379,11 @@ Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrowInd) {
 	ctx.restore();
 }
 
-Game.prototype.drawQuad = function(ctx, quadInd, degrees, anim) { 
-	if (this.mode == MODE_ANIM && quadInd == this.quadInd && !anim) return;
+Game.prototype.drawQuad = function(ctx, quad, degrees, anim) { 
+	if (this.mode == MODE_ANIM && quad == this.quad && !anim) return;
 	var board = this.board;
-	var quadR = Math.floor(quadInd / QUAD_COUNT);
-	var quadC = quadInd % QUAD_COUNT;
+	var quadR = Math.floor(quad / QUAD_COUNT);
+	var quadC = quad % QUAD_COUNT;
 	var qR = quadR * QUAD_ROW_SPACES;
     var qC = quadC * QUAD_COL_SPACES;		
 	
@@ -461,7 +461,7 @@ Game.prototype.showFindWins = function() {
 		for (var winId in sideWins) {
 			var winInfo = sideWins[winId];
 						
-			var space = (winInfo.ind == INVALID)? '&lt;any&gt;' : (ROW[winInfo.ind] + ',' + COL[winInfo.ind]); 		
+			var space = (winInfo.pos == INVALID)? '&lt;any&gt;' : (ROW[winInfo.pos] + ',' + COL[winInfo.pos]); 		
 			
 			var quad = (winInfo.quad == INVALID)? '' : (' - Q' + winInfo.quad);
 			
@@ -497,45 +497,45 @@ function toQuad(x, y) {
     return (quadR * QUAD_COUNT) + quadC;
 }
 
-function toOctant(quadInd, x, y) {
+function toOctant(quad, x, y) {
     //Divide quadrant into triangles - think Union Jack flag    
-    var ax = (quadInd % QUAD_COUNT == 0)? 0 : CANVAS_SIZE;
-    var ay = (quadInd < QUAD_COUNT)? 0 : CANVAS_SIZE;
+    var ax = (quad % QUAD_COUNT == 0)? 0 : CANVAS_SIZE;
+    var ay = (quad < QUAD_COUNT)? 0 : CANVAS_SIZE;
     
     var bx = HALF_CANVAS;
     var by = HALF_CANVAS;    
     
     //Calculate if mouse point is above octant line
     var crossProd = ((bx - ax)*(y - ay)) - ((by - ay)*(x - ax));
-    if (quadInd % 3 == 0) { //Slopes down in quads 0, and 3
-        if (crossProd > 0) return quadInd + BOARD_QUADS;
-        else return quadInd;
+    if (quad % 3 == 0) { //Slopes down in quads 0, and 3
+        if (crossProd > 0) return quad + BOARD_QUADS;
+        else return quad;
     }
     else { //Slopes up in quads 1, and 2
-        if (crossProd < 0) return quadInd + BOARD_QUADS;
-        else return quadInd;
+        if (crossProd < 0) return quad + BOARD_QUADS;
+        else return quad;
     } 
 }
 
-function arrowToDir(quadInd, arrowInd) {
+function arrowToDir(quad, arrow) {
    //Get rot dir
-	if (quadInd % 3 == 0) { //Quads 0, and 3
-		if (arrowInd >= BOARD_QUADS) return ROT_ANTICLOCKWISE;
+	if (quad % 3 == 0) { //Quads 0, and 3
+		if (arrow >= BOARD_QUADS) return ROT_ANTICLOCKWISE;
 		else return ROT_CLOCKWISE;
 	}
 	else { //Quads 1, and 2
-		if (arrowInd >= BOARD_QUADS) return ROT_CLOCKWISE;
+		if (arrow >= BOARD_QUADS) return ROT_CLOCKWISE;
 		else return ROT_ANTICLOCKWISE;
 	}  
 }
 
-function dirToArrow(quadInd, dir) {
-	if (quadInd % 3 == 0) { //Quads 0, and 3
-		if (dir == ROT_ANTICLOCKWISE) return BOARD_QUADS + quadInd;
-		else return quadInd;
+function dirToArrow(quad, dir) {
+	if (quad % 3 == 0) { //Quads 0, and 3
+		if (dir == ROT_ANTICLOCKWISE) return BOARD_QUADS + quad;
+		else return quad;
 	}
 	else { //Quads 1, and 2
-		if (dir == ROT_CLOCKWISE) return BOARD_QUADS + quadInd;
-		else return quadInd;
+		if (dir == ROT_CLOCKWISE) return BOARD_QUADS + quad;
+		else return quad;
 	}  
 }

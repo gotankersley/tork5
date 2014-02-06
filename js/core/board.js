@@ -18,8 +18,8 @@ Quad: One of the 3x3 sub-boards
 Units: [start range - end range]
 - x,y: screen coordinates measured in pixels.  [0 ~ 1024px]
 - row,col: used with 2D board array, useful for display  [0 - 6]
-- ind: index of bitboard array [0 - 36]
-- mpos: a bitboard mask position. i.e mpos = (1 << ind). [0 - 2^36]
+- pos: position of bitboard array [0 - 36]
+- mpos: a bitboard mask position. i.e mpos = (1 << pos). [0 - 2^36]
 Pin: The player's piece
 Space: One of 36 spaces a player can place a pin 
 */
@@ -54,7 +54,7 @@ var WIN_DUAL = 4;
 //Index maps
 var ROW = [0,0,0,1,2,2,2,1,1,0,0,0,1,2,2,2,1,1,3,3,3,4,5,5,5,4,4,3,3,3,4,5,5,5,4,4];
 var COL = [0,1,2,2,2,1,0,0,1,3,4,5,5,5,4,3,3,4,0,1,2,2,2,1,0,0,1,3,4,5,5,5,4,3,3,4];
-var IND = [
+var POS = [
     [0,1,2,9,10,11],        //Row 0
     [7,8,3,16,17,12],       //Row 1
     [6,5,4,15,14,13],       //Row 2
@@ -84,33 +84,33 @@ function Board() {
     //this.winLine = [0,0,0,0];
 }
 
-Board.prototype.isOpen = function(ind) {    
+Board.prototype.isOpen = function(pos) {    
     var avail = not(or(this.p1,this.p2)); 
-    return and(avail, IND_TO_MPOS[ind]);
+    return and(avail, POS_TO_MPOS[pos]);
 }
 
 
 Board.prototype.set = function(row, col) {   
-    var ind = IND[row][col];	    
-    return this.setPin(ind);
+    var pos = POS[row][col];	    
+    return this.setPin(pos);
 }
-Board.prototype.setPin = function(ind) {        	
-    if (this.isOpen(ind)) {                
-        if (this.turn == PLAYER1) this.p1 = xor(this.p1, IND_TO_MPOS[ind]);        
-        else this.p2 = xor(this.p2, IND_TO_MPOS[ind]); //Player 2				
+Board.prototype.setPin = function(pos) {        	
+    if (this.isOpen(pos)) {                
+        if (this.turn == PLAYER1) this.p1 = xor(this.p1, POS_TO_MPOS[pos]);        
+        else this.p2 = xor(this.p2, POS_TO_MPOS[pos]); //Player 2				
 		return true;
     }
 	else return false;
 }
 
 Board.prototype.get = function(row, col) {
-    var ind = IND[row][col];
-    return this.getPin(ind);
+    var pos = POS[row][col];
+    return this.getPin(pos);
 }
-Board.prototype.getPin = function(ind) {	
-	var mpos = IND_TO_MPOS[ind];
-	if (and(this.p1,mpos)) return PLAYER1;	
-	else if (and(this.p2,mpos)) return PLAYER2;
+Board.prototype.getPin = function(pos) {	
+	var mpos = POS_TO_MPOS[pos];
+	if (and(this.p1, mpos)) return PLAYER1;	
+	else if (and(this.p2, mpos)) return PLAYER2;
 	else return EMPTY;
 }
 
@@ -124,23 +124,23 @@ Board.prototype.getOpen = function() {
     return open;
 }
 
-Board.prototype.rotate = function(quadInd, dir) {
-	this.p1 = this.rotateQuad(this.p1, quadInd, dir);
-	this.p2 = this.rotateQuad(this.p2, quadInd, dir);	
+Board.prototype.rotate = function(quad, dir) {
+	this.p1 = this.rotateQuad(this.p1, quad, dir);
+	this.p2 = this.rotateQuad(this.p2, quad, dir);	
 	this.turn = !this.turn;    
 }
-Board.prototype.rotateQuad = function(board, quadId, dir) {      
+Board.prototype.rotateQuad = function(board, quad, dir) {      
 	//Rot can be simplified - in situ
 	//Extract quad from board  
-	var quadUnshifted = (and(board, QUADS[quadId]));
-    var quad = shiftR(quadUnshifted, quadId * QUAD_SPACES); 
+	var quadUnshifted = (and(board, QUADS[quad]));
+    var quadBoard = shiftR(quadUnshifted, quad * QUAD_SPACES); 
     
     //Bitwise rotate, 3 places will rotate 90 degrees - note bitwise rot is opposite direction of visual
-    var rotQuad = (dir == ROT_CLOCKWISE)? rotL(quad,QUAD_COUNT) : rotR(quad,QUAD_COUNT);    
+    var rotQuad = (dir == ROT_CLOCKWISE)? rotL(quadBoard, QUAD_COUNT) : rotR(quadBoard, QUAD_COUNT);    
 	
     //Add the rotated quad back to the board
-	var quadShifted = shiftL(rotQuad, quadId * QUAD_SPACES);
-	board = and(board, not(QUADS[quadId])); //Empty quad    
+	var quadShifted = shiftL(rotQuad, quad * QUAD_SPACES);
+	board = and(board, not(QUADS[quad])); //Empty quad    
 	var rotBoard = xor(board, quadShifted);
     return rotBoard;    
 }
@@ -188,9 +188,9 @@ Board.prototype.getWinLine = function(win) {
     //Get min, and max points to figure out line dimensions
 	var winBits = bitScan(win);
 	for (var i in winBits) {
-		var ind = winBits[i];    
-		r = ROW[ind];
-		c = COL[ind];
+		var pos = winBits[i];    
+		r = ROW[pos];
+		c = COL[pos];
 		if (r < minR || (r == minR && c < minC)) {
 			minR = r;
 			minC = c;
@@ -214,14 +214,13 @@ Board.prototype.getWinLine = function(win) {
 Board.prototype.makeRandomMove = function() { 
     var avail = not(or(this.p1, this.p2));
     var availBits = bitScan(avail);
-    var randInd = availBits[Math.floor(Math.random() * availBits.length)];
-    if (this.turn == PLAYER1) this.p1 = xor(this.p1, IND_TO_MPOS[randInd]);
-    else this.p2 = xor(this.p2, IND_TO_MPOS[randInd]);
+    var randPos = availBits[Math.floor(Math.random() * availBits.length)];
+    if (this.turn == PLAYER1) this.p1 = xor(this.p1, POS_TO_MPOS[randPos]);
+    else this.p2 = xor(this.p2, POS_TO_MPOS[randPos]);
     
     var randQuad = Math.floor(Math.random() * BOARD_QUADS);
     var randDir = Math.floor(Math.random() * 2);
-    this.rotate(randQuad, randDir);
-	//this.printMove({ind:randInd, quad:randQuad, dir:randDir});
+    this.rotate(randQuad, randDir);	
 }
 
 Board.prototype.getAllNonLossMoves = function() { 
@@ -246,8 +245,8 @@ Board.prototype.getAllNonLossMoves = function() {
             var q = Math.floor(i/2);
             var d = i%2;
             var newBoard = this.clone();
-            if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, IND_TO_MPOS[availBits[a]]); 
-			else newBoard.p2 = xor(newBoard.p2, IND_TO_MPOS[availBits[a]]); 
+            if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); 
+			else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); 
             newBoard.rotate(q, d);
             moves[String(newBoard.p1) + '_' + String(newBoard.p2)] = newBoard;
         }
@@ -301,11 +300,11 @@ Board.prototype.findWin = function() {
 Board.prototype.getMoveFromMidWin = function(i) {
     var board = (this.turn == PLAYER1)? this.p1 : this.p2;
     var avail = not(or(this.p1, this.p2));
-    var ind = INVALID;
+    var pos = INVALID;
     var quad = INVALID;
     var dir = INVALID;
     //Short diag win without rotation        
-    if (i > 95) ind = MPOS_TO_IND[xor(SHORT_WINS[i - 71], board)];
+    if (i > 95) pos = MPOS_TO_POS[xor(SHORT_WINS[i - 71], board)];
     
     //Short diagonal win with rotation
     else if (i > 70) { 
@@ -315,9 +314,9 @@ Board.prototype.getMoveFromMidWin = function(i) {
         var win = SHORT_WINS[i];        
         if (and(board, win) == win) {
             var availBits = bitScan(avail);
-            ind = availBits[0]; //Any available
+            pos = availBits[0]; //Any available
         }
-        else ind = MPOS_TO_IND[xor(win, board)];               
+        else pos = MPOS_TO_POS[xor(win, board)];               
     }
     //Long wins
     else {
@@ -330,15 +329,15 @@ Board.prototype.getMoveFromMidWin = function(i) {
         var span = LONG_SPAN_WINS[i];
         if (and(board, mid) == mid) {   			
             var availBits = (and(span, avail))? bitScan(span) : bitScan(avail);            
-            ind = availBits[0];
+            pos = availBits[0];
         }
         else {
             var availBits = bitScan(and(avail, mid));            
-            ind = availBits[0];
+            pos = availBits[0];
         }
                         
     }
-    return {ind:ind, quad:quad, dir:dir};
+    return {pos:pos, quad:quad, dir:dir};
 }
 
 
@@ -371,30 +370,30 @@ Board.prototype.findAllWins = function() {
 		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
             var d = Math.floor(i / 10) % 2;
-            wins[side]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
+            wins[side]['x_' + q + d] = {pos:INVALID, quad:q, dir:d};
         }
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
             var d = Math.floor(i / 10) % 2;
-            wins[oppSide]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
+            wins[oppSide]['x_' + q + d] = {pos:INVALID, quad:q, dir:d};
         }
 	}    
 	
 	//Optimization to check contiguous wins for pins, when there are fewer pins than available spaces
 	if (bitCount(board) < 12) {	
 		//Check all of each player's pins to see if they have a line with 4 pins with an open space for a 5th pin to go		
-		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
-			var mpos = IND_TO_MPOS[ind];			
-			if (and(board, mpos)) testWinLineFromSpace(side, board, ind, avail, wins); //Wins passed by reference
-			if (and(opp, mpos)) testWinLineFromSpace(oppSide, opp, ind, avail, wins); //Wins passed by reference				
+		for (var pos = 0; pos < BOARD_SPACES; pos++) {        		
+			var mpos = POS_TO_MPOS[pos];			
+			if (and(board, mpos)) testWinLineFromSpace(side, board, pos, avail, wins); //Wins passed by reference
+			if (and(opp, mpos)) testWinLineFromSpace(oppSide, opp, pos, avail, wins); //Wins passed by reference				
 		}
 	}	//Else just check the available spaces when there are more pins than available
 	else {
-		for (var ind = 0; ind < BOARD_SPACES; ind++) {        		
-			var mpos = IND_TO_MPOS[ind];
+		for (var pos = 0; pos < BOARD_SPACES; pos++) {        		
+			var mpos = POS_TO_MPOS[pos];
 			if (and(avail, mpos)) {			
-				testWinLineFromSpace(side, board, ind, false, wins); //Wins passed by reference
-				testWinLineFromSpace(oppSide, opp, ind, false, wins); //Wins passed by reference	
+				testWinLineFromSpace(side, board, pos, false, wins); //Wins passed by reference
+				testWinLineFromSpace(oppSide, opp, pos, false, wins); //Wins passed by reference	
 			}
 		}
 	}
@@ -402,22 +401,22 @@ Board.prototype.findAllWins = function() {
 }
 
 
-function testWinLineFromSpace(side, board, ind, avail, winsRef) { //Wins passed by reference
-	for (var a in AVAIL_WINS[ind]) {
-		var win = AVAIL_WINS[ind][a];	
+function testWinLineFromSpace(side, board, pos, avail, winsRef) { //Wins passed by reference
+	for (var a in AVAIL_WINS[pos]) {
+		var win = AVAIL_WINS[pos][a];	
 		var boardLine = and(board, win);		
 		var count = bitCount(boardLine);
 		if (count >= 4) { //4 in a line, but need to make sure 5th space is avail to win							 			
 			var fifthMpos = xor(boardLine, win);					
 			if (!avail || and(avail, fifthMpos)) {
-				var fifthInd = MPOS_TO_IND[fifthMpos];					
+				var fifthPos = MPOS_TO_POS[fifthMpos];					
 				meta = WIN_META[String(win)];
 				if (meta == undefined) {
-					winsRef[side][fifthInd + '_xx'] = {ind:fifthInd, quad:INVALID, dir:INVALID}; //Win without rotation				
+					winsRef[side][fifthPos + '_xx'] = {pos:fifthPos, quad:INVALID, dir:INVALID}; //Win without rotation				
 				}
 				else {
 					var dirAbbrev = (meta[1] == ROT_CLOCKWISE)? 'c' : 'a';
-					winsRef[side][fifthInd + '_' + meta[0] + dirAbbrev] = {ind:fifthInd, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation				
+					winsRef[side][fifthPos + '_' + meta[0] + dirAbbrev] = {pos:fifthPos, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation				
 				}
 			}
 		}
@@ -458,18 +457,18 @@ Board.prototype.deriveMove = function(after) {
 		var combinedBoard = and(rotatedBoard, afterBoard);		
 		if (afterCount - bitCount(combinedBoard) == 1 && (rotatedOpp == afterOpp)) {
 			var reverseRotated = this.rotateQuad(afterBoard, q, !d); //Rotate after board in reverse to get position
-			var ind = MPOS_TO_IND[xor(beforeBoard, reverseRotated)];
-			return {ind:ind, quad:q, dir:d};
+			var pos = MPOS_TO_POS[xor(beforeBoard, reverseRotated)];
+			return {pos:pos, quad:q, dir:d};
 		}
 	}
 	
 	//See if there is a move with no rotation (win)
 	var combinedBoard = and(beforeBoard, afterBoard);    
 	if (afterCount - bitCount(combinedBoard) == 1 && (beforeOpp == afterOpp)) {
-		var ind = MPOS_TO_IND[xor(beforeBoard, afterBoard)];
-		return {ind:ind, quad:INVALID, dir:INVALID};
+		var pos = MPOS_TO_POS[xor(beforeBoard, afterBoard)];
+		return {pos:pos, quad:INVALID, dir:INVALID};
 	}
-	return {ind:INVALID, quad:INVALID, dir:INVALID};
+	return {pos:INVALID, quad:INVALID, dir:INVALID};
 }
 
 Board.prototype.clone = function() {
@@ -486,8 +485,8 @@ Board.prototype.print = function() {
         if (r == 3) str += '-------\n';
         for (var c = 0; c < COL_SPACES; c++) {            
             if (c == 3) str += '|';
-            var ind = IND[r][c];     
-            var mpos = IND_TO_MPOS[ind];            
+            var pos = POS[r][c];     
+            var mpos = POS_TO_MPOS[pos];            
             var space = ':';
             if (and(this.p1, mpos)) space = 'X';
             else if (and(this.p2, mpos)) space = 'O';
@@ -506,7 +505,7 @@ Board.prototype.printMove = function(move) {
 		quadRot = ' - Q' + move.quad + d;
 	}
 	
-	console.log('Move: ' + ROW[move.ind] + ',' + COL[move.ind] + quadRot);
+	console.log('Move: ' + ROW[move.pos] + ',' + COL[move.pos] + quadRot);
 }
 
 Board.prototype.toString = function() {

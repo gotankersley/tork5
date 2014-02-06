@@ -8,14 +8,11 @@ Random.prototype.getMove = function() {
     var open = board.getOpen();    
     
     //Pick random space
-    var ind = open[Math.floor(Math.random() * open.length)];
-    //board.setPin(ind);
+    var pos = open[Math.floor(Math.random() * open.length)];    
     
     //Pick random quad to rotate
-    var quadInd = Math.floor(Math.random() * BOARD_QUADS);
+    var quad = Math.floor(Math.random() * BOARD_QUADS);
     var rotDir = Math.floor(Math.random() * 2);
-	return {ind:ind, quad: quadInd, dir:rotDir};
-    //board.rotateQuad(quadInd, rotDir);
-    //return board;
+	return {pos:pos, quad:quad, dir:rotDir};
 }
 //End class Random

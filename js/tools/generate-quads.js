@@ -85,9 +85,9 @@ function getSpan(mask) {
     var maxR = 0;
     var maxC = 0;
     for (var i in bits) {
-        var ind = bits[i];
-        var r = ROW[ind];
-        var c = COL[ind];
+        var pos = bits[i];
+        var r = ROW[pos];
+        var c = COL[pos];
         
         if (r < minR || (r == minR && c < minC)) {
 			minR = r;
@@ -98,7 +98,7 @@ function getSpan(mask) {
 			maxC = c;
 		}        
     }
-    return or(IND_TO_MPOS[IND[minR][minC]], IND_TO_MPOS[IND[maxR][maxC]]);
+    return or(POS_TO_MPOS[POS[minR][minC]], POS_TO_MPOS[POS[maxR][maxC]]);
     
 }
 

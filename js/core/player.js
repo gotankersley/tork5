@@ -46,14 +46,14 @@ Player.prototype.play = function() {
 		var move = player.getMove();
 
 		//Make sure move validity		
-		if (this.board.isOpen(move.ind)) {	
-			this.game.cursorR = ROW[move.ind];
-			this.game.cursorC = COL[move.ind];
+		if (this.board.isOpen(move.pos)) {	
+			this.game.cursorR = ROW[move.pos];
+			this.game.cursorC = COL[move.pos];
 			setTimeout(function() { //Delay before placing pin
-				this.game.onPlacePin(ROW[move.ind], COL[move.ind], false);					
+				this.game.onPlacePin(ROW[move.pos], COL[move.pos], false);					
 				setTimeout(function () { //Delay before showing rotation arrow indicator
 					if (game.mode != MODE_WIN) {
-						this.game.arrowInd = dirToArrow(move.quad, move.dir);
+						this.game.arrow = dirToArrow(move.quad, move.dir);
 						setTimeout(function() { //Delay before rotating quad
 							this.game.onRotateStart(move.quad, move.dir, false);
 						}, SETTING_AI_ROTATE_DELAY/2);
@@ -62,9 +62,9 @@ Player.prototype.play = function() {
 			}, SETTING_AI_PLACE_DELAY);
 		}
 		else {
-			console.log(move.ind);
-			if (this.board.isOpen(move.ind)) {
-				alert('not open: ' + move.ind);
+			console.log(move.pos);
+			if (this.board.isOpen(move.pos)) {
+				alert('not open: ' + move.pos);
 			}
 			this.game.onInvalidMove(move);
 		}

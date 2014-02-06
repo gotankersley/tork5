@@ -1,16 +1,4 @@
-var BOARD_SPACES = 36;
 var BITS_PER_BYTE = 4;
-var ROW = [0,0,0,1,2,2,2,1,1,0,0,0,1,2,2,2,1,1,3,3,3,4,5,5,5,4,4,3,3,3,4,5,5,5,4,4];
-var COL = [0,1,2,2,2,1,0,0,1,3,4,5,5,5,4,3,3,4,0,1,2,2,2,1,0,0,1,3,4,5,5,5,4,3,3,4];
-var IND = [
-    [0,1,2,9,10,11],        //Row 0
-    [7,8,3,16,17,12],       //Row 1
-    [6,5,4,15,14,13],       //Row 2
-    [18,19,20,27,28,29],    //Row 3
-    [25,26,21,34,35,30],    //Row 4
-    [24,23,22,33,32,31],    //Row 5
-];
-
 
 //Init
 $(function() {    
@@ -22,8 +10,8 @@ $(function() {
 
 function addRowColTitleHover() {
     $('.quad td').each(function() {
-        var ind = $(this).html();
-        $(this).attr('title',ROW[ind] + ',' + COL[ind]);
+        var pos = $(this).html();
+        $(this).attr('title',ROW[pos] + ',' + COL[pos]);
     });
 }
 
@@ -46,8 +34,8 @@ function setBoard() {
     }
     
     $('.quad td').each(function(){ 
-        var ind = $(this).html();
-        if (bitStr.charAt(BOARD_SPACES - ind - 1) == '1') $(this).addClass('active');
+        var pos = $(this).html();
+        if (bitStr.charAt(BOARD_SPACES - pos - 1) == '1') $(this).addClass('active');
     });
     calculate();  
 }
@@ -69,8 +57,8 @@ function onToggleSpot(e) {
 function calculate() {    
     var bitStr = padStr('', BOARD_SPACES);
     $('.quad .active').each(function(){    
-        var ind = $(this).html();
-        bitStr = setChar(bitStr, (BOARD_SPACES - ind - 1), 1);
+        var pos = $(this).html();
+        bitStr = setChar(bitStr, (BOARD_SPACES - pos - 1), 1);
     });
     $('#outBin').html(bitStr);
     $('#outHex').html(toHex(bitStr, BOARD_SPACES));

@@ -9,7 +9,7 @@ var EOL = '\r';
 var statBoard;
 var masks = [];
 var winMeta = {};
-var ind;
+var pos;
 $(function() {
 	statBoard = new Board();
 	for (var i = 0; i < BOARD_SPACES; i++) {
@@ -17,7 +17,7 @@ $(function() {
 	}
 	for (var r = 0; r < ROW_SPACES; r++) {
 		for (var c = 0; c < COL_SPACES; c++) {			
-			ind = IND[r][c];
+			pos = POS[r][c];
 			printLine(r, c, HORIZONTAL);						
 			printLine(r, c, VERTICAL);
 			printLine(r, c, DIAG_TL_BR);
@@ -58,19 +58,19 @@ function getMask(r, c, offset, lineType) {
 	for (var i = 0; i < NUM_TO_WIN; i++) {
 		var off = i - offset;
 		if (lineType == HORIZONTAL) {
-			if (onBoard(r, c + off)) mask = or(mask, IND_TO_MPOS[IND[r][c + off]]);
+			if (onBoard(r, c + off)) mask = or(mask, POS_TO_MPOS[POS[r][c + off]]);
 			else return false;
 		}
 		else if (lineType == VERTICAL) {
-			if (onBoard(r + off, c)) mask = or(mask, IND_TO_MPOS[IND[r + off][c]]);
+			if (onBoard(r + off, c)) mask = or(mask, POS_TO_MPOS[POS[r + off][c]]);
 			else return false;
 		}
 		else if (lineType == DIAG_TL_BR) {
-			if (onBoard(r + off, c + off)) mask = or(mask, IND_TO_MPOS[IND[r + off][c + off]]);
+			if (onBoard(r + off, c + off)) mask = or(mask, POS_TO_MPOS[POS[r + off][c + off]]);
 			else return false;
 		}
 		else if (lineType == DIAG_TR_BL) {
-			if (onBoard(r + off, c - off)) mask = or(mask, IND_TO_MPOS[IND[r + off][c - off]]);
+			if (onBoard(r + off, c - off)) mask = or(mask, POS_TO_MPOS[POS[r + off][c - off]]);
 			else return false;
 		}		
 		else return false;
@@ -79,11 +79,11 @@ function getMask(r, c, offset, lineType) {
 }
 
 function printMask(mask, metaData) {	
-	var mpos = IND_TO_MPOS[ind];
+	var mpos = POS_TO_MPOS[pos];
 	if (and(mask, mpos)){
 		var bitStr = toBin(mask);
 		var hexStr = toHex(bitStr, bitStr.length);
-		masks[ind][hexStr] = true;	
+		masks[pos][hexStr] = true;	
 		if (metaData != undefined) {
             metaData['k'] = hexStr;
             winMeta[mask] = metaData;
