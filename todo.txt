@@ -22,7 +22,7 @@ Bugs / issues:
 - Player can hover / rotate when AI is turning board error
 
 Cleanup / Refactor:
-- Change dir to rot
+- Change dir to rot (what about row as r collisions)?
 - generic dropdown menu
 - player select code in HTML
 - Ind to pos maybe?
