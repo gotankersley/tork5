@@ -262,7 +262,7 @@ Board.prototype.findOppRotateWins = function(opp) {
 		var mid = QUAD_MID_WINS[i];
         if (and(opp, mid) == mid) {            
             var q = Math.floor(i / 20);
-            var d = !(Math.floor(i / 10) % 2);
+            var d = Math.floor(i / 10) % 2;
             wins[(d * BOARD_QUADS) + q] = true;
         }
     }
@@ -311,7 +311,7 @@ Board.prototype.getMoveFromMidWin = function(i) {
     else if (i > 70) { 
         i -= 71;
         quad = Math.floor(i/6);
-        dir = !(Math.floor(i/3)%2);
+        dir = Math.floor(i/3)%2;
         var win = SHORT_WINS[i];        
         if (and(board, win) == win) {
             var availBits = bitScan(avail);
@@ -324,12 +324,12 @@ Board.prototype.getMoveFromMidWin = function(i) {
         i--;    
         if (i < 56) { //With rotation
             quad = Math.floor(i/14);            
-            dir = !(Math.floor(i/7)%2);
+            dir = Math.floor(i/7)%2;
         }    
         var mid = LONG_MID_WINS[i];  
         var span = LONG_SPAN_WINS[i];
-        if (and(board, mid) == mid) {   
-            var availBits = (and(board,span) == span)? bitScan(and(avail, span)) : bitScan(avail);            
+        if (and(board, mid) == mid) {   			
+            var availBits = (and(span, avail))? bitScan(span) : bitScan(avail);            
             ind = availBits[0];
         }
         else {
@@ -341,61 +341,6 @@ Board.prototype.getMoveFromMidWin = function(i) {
     return {ind:ind, quad:quad, dir:dir};
 }
 
-/*
-Board.prototype.findWin3 = function() {
-	//Check if there are enough pins on the board for a win   
-	var board = (this.turn == PLAYER1)? this.p1 : this.p2;
-	var count = bitCount(board);
-	if (count < 4) return false;     
-	
-	var avail = not(or(this.p1, this.p2));
-	if (!avail) return false; 
-		
-	for (var i in ALL_MID_WINS) {
-		var mid = ALL_MID_WINS[i];
-        var combinedMid = and(board, mid);
-        if (combinedMid == mid) {
-            if (and(avail, ALL_SPAN_WINS[i])) {					
-				var aBits = bitScan(and(avail, ALL_SPAN_WINS[i]));
-				var ind;
-				if (aBits.length > 0) ind = aBits[0];
-				else {
-					aBits = bitScan(avail);
-					ind = aBits[0];
-				}
-				var q = INVALID;
-				var d = INVALID;
-				if (i < 80) {
-					q = Math.floor(i/20);
-					d = Math.floor(i/10)%2;
-				}
-				return {ind:ind, quad:q, dir:d};				
-			}
-        }
-        else if (bitCount(combinedMid) == 3) { 
-			var span = ALL_SPAN_WINS[i];
-            if (and(board, span) && and(avail, mid)) {				
-				var aBits = bitScan(and(avail, mid));
-				var ind;
-				if (aBits.length > 0) ind = aBits[0];
-				else {
-					aBits = bitScan(avail);
-					ind = aBits[0];
-				}
-				var q = INVALID;
-				var d = INVALID;
-				if (i < 80) {
-					q = Math.floor(i/20);
-					d = Math.floor(i/10)%2;
-				}
-				return {ind:ind, quad:q, dir:d};							
-			}
-        }
-    }    
-		
-	return false;
-}
-*/
 
 Board.prototype.findAllWins = function() {
     //Check if there are enough pins on the board for a win   	    	
@@ -425,12 +370,12 @@ Board.prototype.findAllWins = function() {
 		var mid = QUAD_MID_WINS[i];
 		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = !(Math.floor(i / 10) % 2);
+            var d = Math.floor(i / 10) % 2;
             wins[side]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
         }
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = !(Math.floor(i / 10) % 2);
+            var d = Math.floor(i / 10) % 2;
             wins[oppSide]['x_' + q + d] = {ind:INVALID, quad:q, dir:d};
         }
 	}    

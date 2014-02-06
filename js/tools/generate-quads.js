@@ -45,6 +45,16 @@ function outputMasks(quadMasks, arrayName) {
 	document.write('var ' + arrayName + ' = [' + EOL);			
     for (var q = 0; q < BOARD_QUADS; q++) {
         var line = '';
+		
+		//Anticlockwise
+        line = '';
+        for (var m in quadMasks[(q*2)+1]) {
+            var mask = quadMasks[(q*2)+1][m];
+            var bitStr = toBin(mask);
+            var hexStr = toHex(bitStr, bitStr.length);                
+            line += hexStr + ',';			
+        }        
+		
         //Clockwise
         for (var m in quadMasks[q*2]) {
             var mask = quadMasks[q*2][m];
@@ -53,15 +63,7 @@ function outputMasks(quadMasks, arrayName) {
             line += hexStr + ',';			
         }            
         document.write('\t' + line + ' //Q' + q + ' - c' + EOL); 
-        
-        //Anticlockwise
-        line = '';
-        for (var m in quadMasks[(q*2)+1]) {
-            var mask = quadMasks[(q*2)+1][m];
-            var bitStr = toBin(mask);
-            var hexStr = toHex(bitStr, bitStr.length);                
-            line += hexStr + ',';			
-        }            
+                    
         document.write('\t' + line + ' //Q' + q + ' - a' + EOL);
     }			
 
