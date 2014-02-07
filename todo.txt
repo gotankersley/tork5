@@ -6,6 +6,7 @@ Optimizations: (create branch for these)
 - different minification options (closure advanced)
 - pre-calc bitcount in findwin
 - add move children during expansion directly to node
+- use ~~ instead of Math.floor in bitlib
 
 
 Wins:
