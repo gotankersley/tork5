@@ -1,5 +1,5 @@
 //Class Sim
-function Sim(board) {    
+function Sim() {    
     this.board = board;	
 }
 

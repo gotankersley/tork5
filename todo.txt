@@ -27,8 +27,6 @@ Cleanup / Refactor:
 - some magic numbers like 8, and 12 in find wins
 - terminology - consistant use of board, or bitboard / boardObj, and also quadId
 
-AI:
-- web worker threads
 
 Multiplayer
 - websockets?

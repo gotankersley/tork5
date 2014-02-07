@@ -35,11 +35,12 @@ var QUAD_COUNT = 2;
 var QUAD_ROW_SPACES = 3;
 var QUAD_COL_SPACES = 3;
 var ALL_ROTATIONS = 8;
+var EMPTY = -1;
+var INVALID = -1;
 
 //Enums
 var PLAYER1 = 0;
 var PLAYER2 = 1;
-var EMPTY = -1;
 
 var ROT_CLOCKWISE = 0;
 var ROT_ANTICLOCKWISE = 1;
@@ -80,8 +81,7 @@ var WINS = [
 function Board() {
     this.p1 = INITIAL; //Player1 bitboard
     this.p2 = INITIAL; //Player2 bitboard
-    this.turn = PLAYER1;    
-    //this.winLine = [0,0,0,0];
+    this.turn = PLAYER1;        
 }
 
 Board.prototype.isOpen = function(pos) {    
@@ -243,11 +243,11 @@ Board.prototype.getAllNonLossMoves = function() {
         for (var i = 0; i < ALL_ROTATIONS; i++) {
             if (oppWins[i]) continue;
             var q = Math.floor(i/2);
-            var d = i%2;
+            var r = i%2;
             var newBoard = this.clone();
             if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); 
 			else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); 
-            newBoard.rotate(q, d);
+            newBoard.rotate(q, r);
             moves[String(newBoard.p1) + '_' + String(newBoard.p2)] = newBoard;
         }
     }
@@ -261,8 +261,8 @@ Board.prototype.findOppRotateWins = function(opp) {
 		var mid = QUAD_MID_WINS[i];
         if (and(opp, mid) == mid) {            
             var q = Math.floor(i / 20);
-            var d = Math.floor(i / 10) % 2;
-            wins[(d * BOARD_QUADS) + q] = true;
+            var r = Math.floor(i / 10) % 2;
+            wins[(r * BOARD_QUADS) + q] = true;
         }
     }
 	return wins;
@@ -370,7 +370,7 @@ Board.prototype.findAllWins = function() {
 		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
             var r = Math.floor(i / 10) % 2;
-            wins[side]['x_' + q + d] = {pos:INVALID, quad:q, rot:r};
+            wins[side]['x_' + q + r] = {pos:INVALID, quad:q, rot:r};
         }
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);

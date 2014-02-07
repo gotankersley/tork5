@@ -3,7 +3,7 @@ function Random(board) {
     this.board = board;
 }
 
-Random.prototype.getMove = function() {
+Random.prototype.getMove = function() {	
     var board = this.board;
     var open = board.getOpen();    
     

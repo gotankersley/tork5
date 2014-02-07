@@ -1,15 +1,4 @@
-//Settings
-var SETTING_FIND_WINS = true;
-var SETTING_ROW_NUMBERS = true;
-var SETTING_ROW_NOTATION = false;
-var SETTING_ROT_ANIM = true;
-var SETTING_ROT_SPEED = 3;
-var SETTING_AI_PLACE_DELAY = 300;
-var SETTING_AI_ROTATE_DELAY = 1000;
-
-
 //Constants
-var INVALID = -1;
 var UNIT_SIZE = 100;
 var QUAD_SIZE = UNIT_SIZE * 3;
 var BOARD_SIZE = UNIT_SIZE * 6;
@@ -80,8 +69,7 @@ function Game() {
     this.rotateMode = false;
     this.winLines = null;
          
-    this.status = $('#status');
-    this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);            
+    this.status = $('#status');    
     
     //Event callbacks
 	$(this.canvas).click(this.onClick);
@@ -89,7 +77,8 @@ function Game() {
 	$(document).keyup(this.onKeyPress);	 
     
 	//$('#rand-tool').click(this.onRandomize);
-    this.mode = (this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
+	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
+    this.mode = MODE_PLACE;//(this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
     this.player.play();
     
     this.onFrame();
