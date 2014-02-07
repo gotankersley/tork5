@@ -22,7 +22,6 @@ Bugs / issues:
 - Player can hover / rotate when AI is turning board error
 
 Cleanup / Refactor:
-- Change dir to rot (what about row as r collisions)?
 - generic dropdown menu
 - player select code in HTML
 - some magic numbers like 8, and 12 in find wins
