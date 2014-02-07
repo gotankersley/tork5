@@ -124,19 +124,19 @@ Board.prototype.getOpen = function() {
     return open;
 }
 
-Board.prototype.rotate = function(quad, dir) {
-	this.p1 = this.rotateQuad(this.p1, quad, dir);
-	this.p2 = this.rotateQuad(this.p2, quad, dir);	
+Board.prototype.rotate = function(quad, rot) {
+	this.p1 = this.rotateQuad(this.p1, quad, rot);
+	this.p2 = this.rotateQuad(this.p2, quad, rot);	
 	this.turn = !this.turn;    
 }
-Board.prototype.rotateQuad = function(board, quad, dir) {      
+Board.prototype.rotateQuad = function(board, quad, rot) {      
 	//Rot can be simplified - in situ
 	//Extract quad from board  
 	var quadUnshifted = (and(board, QUADS[quad]));
     var quadBoard = shiftR(quadUnshifted, quad * QUAD_SPACES); 
     
     //Bitwise rotate, 3 places will rotate 90 degrees - note bitwise rot is opposite direction of visual
-    var rotQuad = (dir == ROT_CLOCKWISE)? rotL(quadBoard, QUAD_COUNT) : rotR(quadBoard, QUAD_COUNT);    
+    var rotQuad = (rot == ROT_CLOCKWISE)? rotL(quadBoard, QUAD_COUNT) : rotR(quadBoard, QUAD_COUNT);    
 	
     //Add the rotated quad back to the board
 	var quadShifted = shiftL(rotQuad, quad * QUAD_SPACES);
@@ -219,8 +219,8 @@ Board.prototype.makeRandomMove = function() {
     else this.p2 = xor(this.p2, POS_TO_MPOS[randPos]);
     
     var randQuad = Math.floor(Math.random() * BOARD_QUADS);
-    var randDir = Math.floor(Math.random() * 2);
-    this.rotate(randQuad, randDir);	
+    var randRot = Math.floor(Math.random() * 2);
+    this.rotate(randQuad, randRot);	
 }
 
 Board.prototype.getAllNonLossMoves = function() { 
@@ -302,7 +302,7 @@ Board.prototype.getMoveFromMidWin = function(i) {
     var avail = not(or(this.p1, this.p2));
     var pos = INVALID;
     var quad = INVALID;
-    var dir = INVALID;
+    var rot = INVALID;
     //Short diag win without rotation        
     if (i > 95) pos = MPOS_TO_POS[xor(SHORT_WINS[i - 71], board)];
     
@@ -310,7 +310,7 @@ Board.prototype.getMoveFromMidWin = function(i) {
     else if (i > 70) { 
         i -= 71;
         quad = Math.floor(i/6);
-        dir = Math.floor(i/3)%2;
+        rot = Math.floor(i/3)%2;
         var win = SHORT_WINS[i];        
         if (and(board, win) == win) {
             var availBits = bitScan(avail);
@@ -323,7 +323,7 @@ Board.prototype.getMoveFromMidWin = function(i) {
         i--;    
         if (i < 56) { //With rotation
             quad = Math.floor(i/14);            
-            dir = Math.floor(i/7)%2;
+            rot = Math.floor(i/7)%2;
         }    
         var mid = LONG_MID_WINS[i];  
         var span = LONG_SPAN_WINS[i];
@@ -337,7 +337,7 @@ Board.prototype.getMoveFromMidWin = function(i) {
         }
                         
     }
-    return {pos:pos, quad:quad, dir:dir};
+    return {pos:pos, quad:quad, rot:rot};
 }
 
 
@@ -369,13 +369,13 @@ Board.prototype.findAllWins = function() {
 		var mid = QUAD_MID_WINS[i];
 		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = Math.floor(i / 10) % 2;
-            wins[side]['x_' + q + d] = {pos:INVALID, quad:q, dir:d};
+            var r = Math.floor(i / 10) % 2;
+            wins[side]['x_' + q + d] = {pos:INVALID, quad:q, rot:r};
         }
         if (and(opp, mid) == mid && and(opp, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
-            var d = Math.floor(i / 10) % 2;
-            wins[oppSide]['x_' + q + d] = {pos:INVALID, quad:q, dir:d};
+            var r = Math.floor(i / 10) % 2;
+            wins[oppSide]['x_' + q + r] = {pos:INVALID, quad:q, rot:r};
         }
 	}    
 	
@@ -412,11 +412,11 @@ function testWinLineFromSpace(side, board, pos, avail, winsRef) { //Wins passed 
 				var fifthPos = MPOS_TO_POS[fifthMpos];					
 				meta = WIN_META[String(win)];
 				if (meta == undefined) {
-					winsRef[side][fifthPos + '_xx'] = {pos:fifthPos, quad:INVALID, dir:INVALID}; //Win without rotation				
+					winsRef[side][fifthPos + '_xx'] = {pos:fifthPos, quad:INVALID, rot:INVALID}; //Win without rotation				
 				}
 				else {
-					var dirAbbrev = (meta[1] == ROT_CLOCKWISE)? 'c' : 'a';
-					winsRef[side][fifthPos + '_' + meta[0] + dirAbbrev] = {pos:fifthPos, quad:meta[0], dir:meta[1]}; //Win with specific pin placement and rotation				
+					var rotAbbrev = (meta[1] == ROT_CLOCKWISE)? 'c' : 'a';
+					winsRef[side][fifthPos + '_' + meta[0] + rotAbbrev] = {pos:fifthPos, quad:meta[0], rot:meta[1]}; //Win with specific pin placement and rotation				
 				}
 			}
 		}
@@ -451,14 +451,14 @@ Board.prototype.deriveMove = function(after) {
 	//Try all 8 possible quad rotations to look for one that is only one bit different after rotation
 	for (var i = 0; i < ALL_ROTATIONS; i++) {
 		var q = Math.floor(i/2);
-		var d = i % 2;
-		var rotatedBoard = this.rotateQuad(beforeBoard, q, d);
-        var rotatedOpp = this.rotateQuad(beforeOpp, q, d);
+		var r = i % 2;
+		var rotatedBoard = this.rotateQuad(beforeBoard, q, r);
+        var rotatedOpp = this.rotateQuad(beforeOpp, q, r);
 		var combinedBoard = and(rotatedBoard, afterBoard);		
 		if (afterCount - bitCount(combinedBoard) == 1 && (rotatedOpp == afterOpp)) {
-			var reverseRotated = this.rotateQuad(afterBoard, q, !d); //Rotate after board in reverse to get position
+			var reverseRotated = this.rotateQuad(afterBoard, q, !r); //Rotate after board in reverse to get position
 			var pos = MPOS_TO_POS[xor(beforeBoard, reverseRotated)];
-			return {pos:pos, quad:q, dir:d};
+			return {pos:pos, quad:q, rot:r};
 		}
 	}
 	
@@ -466,9 +466,9 @@ Board.prototype.deriveMove = function(after) {
 	var combinedBoard = and(beforeBoard, afterBoard);    
 	if (afterCount - bitCount(combinedBoard) == 1 && (beforeOpp == afterOpp)) {
 		var pos = MPOS_TO_POS[xor(beforeBoard, afterBoard)];
-		return {pos:pos, quad:INVALID, dir:INVALID};
+		return {pos:pos, quad:INVALID, rot:INVALID};
 	}
-	return {pos:INVALID, quad:INVALID, dir:INVALID};
+	return {pos:INVALID, quad:INVALID, rot:INVALID};
 }
 
 Board.prototype.clone = function() {
@@ -501,8 +501,8 @@ Board.prototype.print = function() {
 Board.prototype.printMove = function(move) {    	
 	var quadRot = '';
 	if (move.quad != INVALID) {
-		var d = (move.dir == ROT_CLOCKWISE)? 'c' : 'a';
-		quadRot = ' - Q' + move.quad + d;
+		var r = (move.rot == ROT_CLOCKWISE)? 'c' : 'a';
+		quadRot = ' - Q' + move.quad + r;
 	}
 	
 	console.log('Move: ' + ROW[move.pos] + ',' + COL[move.pos] + quadRot);

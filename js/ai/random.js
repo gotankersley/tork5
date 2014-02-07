@@ -11,8 +11,8 @@ Random.prototype.getMove = function() {
     var pos = open[Math.floor(Math.random() * open.length)];    
     
     //Pick random quad to rotate
-    var quad = Math.floor(Math.random() * BOARD_QUADS);
-    var rotDir = Math.floor(Math.random() * 2);
-	return {pos:pos, quad:quad, dir:rotDir};
+    var randQuad = Math.floor(Math.random() * BOARD_QUADS);
+    var randRot = Math.floor(Math.random() * 2);
+	return {pos:pos, quad:randQuad, rot:randRot};
 }
 //End class Random

@@ -75,7 +75,7 @@ function Game() {
     this.cursorC = 0;
     this.arrow = INVALID;
 	this.quad = INVALID;
-	this.quadRot = 0;
+	this.quadRotDegrees = 0;
 	this.quadRotDir = 0;    
     this.rotateMode = false;
     this.winLines = null;
@@ -113,11 +113,11 @@ Game.prototype.onClick = function(e) {
         game.onPlacePin(r, c, e.ctrlKey);        
     }
 	else if (game.mode == MODE_ROTATE || e.altKey) {		
-		var dir = arrowToDir(game.quad, game.arrow);
-		game.onRotateStart(game.quad, dir, e.altKey);
+		var rot = arrowToRot(game.quad, game.arrow);
+		game.onRotateStart(game.quad, rot, e.altKey);
 	}
 	else if (game.mode == MODE_ANIM) {
-		game.quadRot = (89 * game.quadRotDir);
+		game.quadRotDegrees = (89 * game.quadRotDir);
 	}	
     game.draw();
 }
@@ -187,24 +187,24 @@ Game.prototype.onPlacePin = function(r, c, placeMode) {
     }
 }
 
-Game.prototype.onRotateStart = function(quad, dir, rotateMode) {       
+Game.prototype.onRotateStart = function(quad, rot, rotateMode) {       
     //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
 	this.quad = quad;
-	this.quadRot = 0;
-	this.quadRotDir = (dir == ROT_CLOCKWISE)? 1 : -1;
+	this.quadRotDegrees = 0;
+	this.quadRotDir = (rot == ROT_CLOCKWISE)? 1 : -1;
 	this.rotateMode = rotateMode;	
     if (SETTING_ROT_ANIM) this.mode = MODE_ANIM;
     else this.onRotateEnd();
 }
 
 Game.prototype.onRotating = function() {
-    if (Math.abs(this.quadRot) >= 90) this.onRotateEnd();
-    else this.quadRot += (this.quadRotDir * SETTING_ROT_SPEED); 
+    if (Math.abs(this.quadRotDegrees) >= 90) this.onRotateEnd();
+    else this.quadRotDegrees += (this.quadRotDir * SETTING_ROT_SPEED); 
 }
 
 Game.prototype.onRotateEnd = function() {   
-    var dir = (this.quadRotDir == 1)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
-    this.board.rotate(this.quad, dir); //this changes the turn  	
+    var rot = (this.quadRotDir == 1)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
+    this.board.rotate(this.quad, rot); //this changes the turn  	
 	this.onTurnChanged(false);
 	this.onMoveOver();
 }
@@ -221,7 +221,7 @@ Game.prototype.onMoveOver = function() {
 	var gameState = this.board.isWin();
     if (gameState == IN_PLAY) {
 		if (SETTING_FIND_WINS) this.showFindWins();	
-        this.quadRot = 0;
+        this.quadRotDegrees = 0;
         this.quad = INVALID;
         this.arrow = INVALID;	
         this.cursorR = 0;
@@ -329,7 +329,7 @@ Game.prototype.draw = function() {
     }
 	
 	//Quad rotation animation
-	if (this.mode == MODE_ANIM) this.drawQuad(ctx, this.quad, this.quadRot, true);  
+	if (this.mode == MODE_ANIM) this.drawQuad(ctx, this.quad, this.quadRotDegrees, true);  
     
     //Win line(s)
     else if (this.mode == MODE_WIN) {       
@@ -465,12 +465,12 @@ Game.prototype.showFindWins = function() {
 			
 			var quad = (winInfo.quad == INVALID)? '' : (' - Q' + winInfo.quad);
 			
-			var dir;
-			if (winInfo.dir == INVALID) dir = '';
-			else if (winInfo.dir == ROT_CLOCKWISE) dir = ' Clockwise';
-			else if (winInfo.dir == ROT_ANTICLOCKWISE) dir = ' Anti-clockwise';		
+			var rot;
+			if (winInfo.rot == INVALID) rot = '';
+			else if (winInfo.rot == ROT_CLOCKWISE) rot = ' Clockwise';
+			else if (winInfo.rot == ROT_ANTICLOCKWISE) rot = ' Anti-clockwise';		
 			
-			winStr += '<div>' + space + quad + dir + '</div>';
+			winStr += '<div>' + space + quad + rot + '</div>';
 		}	
 		var color = (side == PLAYER1)? COLOR_P1 : COLOR_P2;			
 		$('#find-wins-text').append('<div style="color: ' + color + '">' + winStr + '</div>');
@@ -517,7 +517,7 @@ function toOctant(quad, x, y) {
     } 
 }
 
-function arrowToDir(quad, arrow) {
+function arrowToRot(quad, arrow) {
    //Get rot dir
 	if (quad % 3 == 0) { //Quads 0, and 3
 		if (arrow >= BOARD_QUADS) return ROT_ANTICLOCKWISE;
@@ -529,13 +529,13 @@ function arrowToDir(quad, arrow) {
 	}  
 }
 
-function dirToArrow(quad, dir) {
+function rotToArrow(quad, rot) {
 	if (quad % 3 == 0) { //Quads 0, and 3
-		if (dir == ROT_ANTICLOCKWISE) return BOARD_QUADS + quad;
+		if (rot == ROT_ANTICLOCKWISE) return BOARD_QUADS + quad;
 		else return quad;
 	}
 	else { //Quads 1, and 2
-		if (dir == ROT_CLOCKWISE) return BOARD_QUADS + quad;
+		if (rot == ROT_CLOCKWISE) return BOARD_QUADS + quad;
 		else return quad;
 	}  
 }

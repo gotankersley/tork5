@@ -53,9 +53,9 @@ Player.prototype.play = function() {
 				this.game.onPlacePin(ROW[move.pos], COL[move.pos], false);					
 				setTimeout(function () { //Delay before showing rotation arrow indicator
 					if (game.mode != MODE_WIN) {
-						this.game.arrow = dirToArrow(move.quad, move.dir);
+						this.game.arrow = rotToArrow(move.quad, move.rot);
 						setTimeout(function() { //Delay before rotating quad
-							this.game.onRotateStart(move.quad, move.dir, false);
+							this.game.onRotateStart(move.quad, move.rot, false);
 						}, SETTING_AI_ROTATE_DELAY/2);
 					}
 				}, SETTING_AI_ROTATE_DELAY/2);

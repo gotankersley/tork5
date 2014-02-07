@@ -44,7 +44,7 @@ function outputMasks() {
 	}
 	document.write('];' + EOL);
 	
-	document.write('var WIN_META = { //Keyed by winMask. Each array position contains quad, and dir' + EOL);
+	document.write('var WIN_META = { //Keyed by winMask. Each array position contains quad, and rot' + EOL);
 	for (var key in winMeta) {
         var w = winMeta[key];
 		document.write("\t" + w.k + ":[" + w.q + ',' + w.d + '],' + EOL);		
