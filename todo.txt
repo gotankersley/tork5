@@ -1,11 +1,11 @@
-Optimizations: (create branch for these)
+Optimizations: (create branch for these) - test with 10k results
 - asm.js for AI
-- change mcts node from assoc to indexed array?
+X change mcts node from assoc to indexed array? (~ 1/4 sec improvement?)
 - change bitboard object to p1, p2 vars to avoid overhead? (hi bit turn?)
 - inline functions / function vs prototype functions?
 - different minification options (closure advanced)
 - pre-calc bitcount in findwin
-- add move children during expansion directly to node
+X add move children during expansion directly to node
 - use ~~ instead of Math.floor in bitlib
 
 
@@ -36,6 +36,8 @@ Multiplayer
 Cool FX:
 - webgl
 - CSS3 animations
+- sounds
+- disable request frame when not animation
 
 Opening book: 
 - sqlite on localhost
