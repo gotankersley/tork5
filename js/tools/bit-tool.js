@@ -64,29 +64,8 @@ function calculate() {
     $('#outHex').html(toHex(bitStr, BOARD_SPACES));
 }
 
-function toHex(bitStr, length) {
-    //Convert to hex 4 bits at a time
-    var hex = '';
-    for (var i = 0; i < bitStr.length; i+= BITS_PER_BYTE) {
-        var bits = parseInt(bitStr.substr(i, BITS_PER_BYTE), 2);
-        hex += bits.toString(16);        
-    }    
-	var hexStr = '0x';	
-	for (var i = 0; i < hex.length; i++) {
-		if (hex.charAt(i) != 0) return '0x' + hex.substr(i);
-	}
-	
-	return '0x' + hex;
-}
 
 //String functions
 function setChar(str, index, val) {
     return str.substr(0, index) + val + str.substr(index + 1);
-}
-
-function padStr(str, length) {
-    while (str.length < length) {
-        str = '0' + str;
-    }
-    return str;
 }
