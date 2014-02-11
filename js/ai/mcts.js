@@ -52,7 +52,7 @@ MCTS.prototype.runMCTS = function(board) {
         return root;    
     }
     for (var m in moves) {
-        root.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
+        root.kids.push({visits:0, score:0, board:moves[m], parent:root, kids:[]});
     }
 	
     for (var i = 0; i < MAX_ITERATIONS; i++) {	
