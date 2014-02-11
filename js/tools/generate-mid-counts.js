@@ -28,7 +28,7 @@ function getCount(array, padSize, countsRef) {
 
 function outputCounts(arrayName, counts) {
 	document.write('<pre>');
-	document.write('var ' + arrayName + ' = [' + EOL);	
+	document.write('var ' + arrayName + ' = {' + EOL);	
 	var i = 0;
 	document.write('\t');
 	
@@ -39,7 +39,7 @@ function outputCounts(arrayName, counts) {
 		if (++i % 25 == 0) document.write(EOL + '\t');
 	}    
 
-	document.write('];' + EOL);
+	document.write('};' + EOL);
 	document.write(EOL);	
 	document.write('</pre>');	
 }
