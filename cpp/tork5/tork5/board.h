@@ -1,11 +1,13 @@
 #pragma once 
-#include <string>
 #include <intrin.h>
+#include <string>
+#include <vector>
+#include <map>
 #include "types.h"
-#include "constants.h"
-#include "macros.h"
-#include "wins.h"
-#include "masks.h"
+#include "board_constants.h"
+#include "board_macros.h"
+#include "board_wins.h"
+#include "board_masks.h"
 
 
 struct Board {
@@ -18,25 +20,8 @@ struct Board {
 		p2 = INITIAL;
 		turn = PLAYER1;
 	}
-
-	int isWin() {    
-		int moveCount = bitCount(Or(p1, p2));
-		if (moveCount >= BOARD_SPACES) return WIN_TIE;
-		else if (moveCount < NUM_TO_WIN) return IN_PLAY;
 	
-		bool p1Win = false;
-		bool p2Win = false;
-		for (int i = 0; i < 18; i++) { //MID_WINS
-			uint64 mid = MID_WINS[i];
-			if (And(p1, mid) == mid && And(p1, SPAN_WINS[i])) p1Win = true;
-			else if (And(p2, mid) == mid && And(p2, SPAN_WINS[i])) p2Win = true;
-		}
-		if (p1Win && p2Win) return WIN_DUAL;
-		else if (p1Win) return WIN_PLAYER1;
-		else if (p2Win) return WIN_PLAYER2;
-		else return IN_PLAY;    
-	}
-
+	//Action Methods
 	bool placePin(int pos) {  
 	    uint64 avail = Not(Or(p1, p2)); 		
 		if (And(avail, POS_TO_MPOS[pos])) {                
@@ -69,35 +54,103 @@ struct Board {
 		return rotBoard;    
 	}
 
-	int findWin() {
-		//Check if there are enough pins on the board for a win   
-		uint64 board = (turn == PLAYER1)? p1 : p2;
-		int count = bitCount(board);
-		if (count < 4) return false;     
-	
+	void makeRandomMove() {
 		uint64 avail = Not(Or(p1, p2));
-		if (!avail) return false; 
-		
-		for (int i = 0; i < 70; i++) { //LONG_MID_WINS {
-			uint64 mid = LONG_MID_WINS[i];
-			uint64 combinedMid = And(board, mid);
-			if (combinedMid == mid) { //4 in a row, need one available, or 5+ in a row that just needs to be turned
-				if (And(avail, LONG_SPAN_WINS[i]) || And(board, LONG_SPAN_WINS[i])) return i + 1;
-			}
-			else if (bitCount(combinedMid) == 3) { //3 out of 4 in mid, need 1 of the spans, and one availble 
-				if (And(board, LONG_SPAN_WINS[i]) && And(avail, mid)) return i + 1;  
-			}        
-		}    
-		for (int i = 0; i < 22; i++ ){ //SHORT_WINS
-			uint64 win = SHORT_WINS[i];
-			uint64 combined = And(board, win);
-			if (combined == win) return i + 71;  //Win just with rotation
-			else if (bitCount(combined) == 4 && And(avail, win)) return i + 71;
-		}
-		
-		return false;
+		list availBits = bitScan(avail);
+		int randPos = availBits[rand() % availBits.size()];
+		if (turn == PLAYER1) p1 = Xor(p1, POS_TO_MPOS[randPos]);
+		else p2 = Xor(p2, POS_TO_MPOS[randPos]);
+    
+		int randQuad = rand() % BOARD_QUADS;
+		int randRot = rand() % 2;
+		rotate(randQuad, randRot);	
 	}
 
+	//Move Methods
+	std::vector<Board> getAllNonLossMoves() {
+		uint64 board;
+		uint64 opp;
+		std::vector<Board> moves;
+		hashMap boardMoves;
+		if (turn == PLAYER1) {
+			board = p1;
+			opp = p2;
+		}
+		else {
+			board = p2;
+			opp = p1;
+		}
+    
+		bool oppWins[] = {0,0,0,0,0,0,0,0};
+		findOppRotateWins(opp, oppWins);
+		uint64 avail = Not(Or(board, opp));
+		list availBits = bitScan(avail);
+		for (int a = 0; a < availBits.size(); a++) {
+			for (int i = 0; i < ALL_ROTATIONS; i++) {
+				if (oppWins[i]) continue;
+				int q = i/2;
+				int r = i%2;
+				
+				Board newBoard = clone();
+				if (turn == PLAYER1) newBoard.p1 = Xor(p1, POS_TO_MPOS[availBits[a]]); 
+				else newBoard.p2 = Xor(p2, POS_TO_MPOS[availBits[a]]); 
+				newBoard.rotate(q, r);
+				char buffer[25];
+				sprintf(buffer, "%I64_%I64", newBoard.p1, newBoard.p2);
+				std::string key = buffer;
+				if (!boardMoves.count(key)) {				
+					moves.push_back(newBoard);
+					boardMoves[key] = true;
+				}
+			}
+		}
+		return moves;
+	}
+
+	void getMoveFromMidWin(int i, int& pos, int& quad, int& rot) {
+		pos = INVALID;
+		quad = INVALID;
+		rot = INVALID;
+
+		uint64 board = (turn == PLAYER1)? p1 : p2;
+		uint64 avail = Not(Or(p1, p2));
+
+		//Short diag win without rotation        
+		if (i > 95) pos = MPOS_TO_POS(Xor(SHORT_WINS[i - 71], board));
+    
+		//Short diagonal win with rotation
+		else if (i > 70) { 
+			i -= 71;
+			quad = i/6;
+			rot = (i/3)%2;
+			uint64 win = SHORT_WINS[i];        
+			if (And(board, win) == win) {
+				list availBits = bitScan(avail);
+				pos = availBits[0]; //Any available
+			}
+			else pos = MPOS_TO_POS(Xor(win, board));               
+		}
+		//Long wins
+		else {
+			i--;    
+			if (i < 56) { //With rotation
+				quad = i/14;            
+				rot = (i/7)%2;
+			}    
+			uint64 mid = LONG_MID_WINS[i];  
+			uint64 span = LONG_SPAN_WINS[i];
+			if (And(board, mid) == mid) {   			
+				list availBits = (And(span, avail))? bitScan(span) : bitScan(avail);            
+				pos = availBits[0];
+			}
+			else {
+				list availBits = bitScan(And(avail, mid));            
+				pos = availBits[0];
+			}
+                        
+		}		
+	}
+	
 	bool deriveMove(Board after, int& pos, int& quad, int& rot) {
 		//Derive the move (i.e. pin position and quad rotation) that was made by looking at the difference 
 		//between a board state before and after the move was made. 
@@ -151,6 +204,69 @@ struct Board {
 		return false;
 	}
 
+	//Win Methods
+	int isWin() {    
+		int moveCount = bitCount(Or(p1, p2));
+		if (moveCount >= BOARD_SPACES) return WIN_TIE;
+		else if (moveCount < NUM_TO_WIN) return IN_PLAY;
+	
+		bool p1Win = false;
+		bool p2Win = false;
+		for (int i = 0; i < 18; i++) { //MID_WINS
+			uint64 mid = MID_WINS[i];
+			if (And(p1, mid) == mid && And(p1, SPAN_WINS[i])) p1Win = true;
+			else if (And(p2, mid) == mid && And(p2, SPAN_WINS[i])) p2Win = true;
+		}
+		if (p1Win && p2Win) return WIN_DUAL;
+		else if (p1Win) return WIN_PLAYER1;
+		else if (p2Win) return WIN_PLAYER2;
+		else return IN_PLAY;    
+	}
+
+	int findWin() {
+		//Check if there are enough pins on the board for a win   
+		uint64 board = (turn == PLAYER1)? p1 : p2;
+		int count = bitCount(board);
+		if (count < 4) return false;     
+	
+		uint64 avail = Not(Or(p1, p2));
+		if (!avail) return false; 
+		
+		for (int i = 0; i < 70; i++) { //LONG_MID_WINS {
+			uint64 mid = LONG_MID_WINS[i];
+			uint64 combinedMid = And(board, mid);
+			if (combinedMid == mid) { //4 in a row, need one available, or 5+ in a row that just needs to be turned
+				if (And(avail, LONG_SPAN_WINS[i]) || And(board, LONG_SPAN_WINS[i])) return i + 1;
+			}
+			else if (bitCount(combinedMid) == 3) { //3 out of 4 in mid, need 1 of the spans, and one availble 
+				if (And(board, LONG_SPAN_WINS[i]) && And(avail, mid)) return i + 1;  
+			}        
+		}    
+		for (int i = 0; i < 22; i++ ){ //SHORT_WINS
+			uint64 win = SHORT_WINS[i];
+			uint64 combined = And(board, win);
+			if (combined == win) return i + 71;  //Win just with rotation
+			else if (bitCount(combined) == 4 && And(avail, win)) return i + 71;
+		}
+		
+		return false;
+	}
+	
+	
+	void findOppRotateWins(uint64 opp, bool* wins) {
+		//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 		
+		for (int i = 0; i < 80; i++ ) { //QUAD_MID_WINS
+			uint64 mid = QUAD_MID_WINS[i];
+			if (And(opp, mid) == mid) {            
+				int q = i/20;
+				int r = (i/10) % 2;
+				wins[(r * BOARD_QUADS) + q] = true;
+			}
+		}		
+	}
+	
+
+	//Utility Methods
 	Board clone() {
 		Board newBoard;
 		newBoard.p1 = p1;
@@ -175,6 +291,16 @@ struct Board {
 		}		
 	}
 
+	void printMove(int pos, int quad, int rot) {
+		int row = ROW[pos];
+		int col = COL[pos];		
+
+		if (quad != INVALID && rot != INVALID) {
+			char dir = (rot == ROT_CLOCKWISE)? 'c' : 'a';
+			printf("Move: %i, %i - Q%i%c", row, col, quad, dir);
+		}
+		else printf("Move: %i, %i", row, col);		
+	}
 
 	std::string toString() {		
 		char buffer[100];

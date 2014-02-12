@@ -124,7 +124,10 @@ MCTS.prototype.expandNode = function(node) {
     //Check for win - don't expand if we can win	
     
     var winFound = board.findWin();
-	if (winFound) this.backpropagate(node, -INFINITY); //Negative because it's from the parent's point of view	
+	if (winFound) {
+		this.backpropagate(node, -INFINITY); //Negative because it's from the parent's point of view	
+		return;
+	}
 
     //TODO: Handle dual wins?
     
