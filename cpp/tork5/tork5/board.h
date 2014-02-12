@@ -1,8 +1,10 @@
 #pragma once 
 #include <string>
+#include <intrin.h>
 #include "types.h"
 #include "constants.h"
 #include "macros.h"
+#include "wins.h"
 #include "masks.h"
 
 
@@ -15,6 +17,56 @@ struct Board {
 		p1 = INITIAL;
 		p2 = INITIAL;
 		turn = PLAYER1;
+	}
+
+	int isWin() {    
+		int moveCount = bitCount(Or(p1, p2));
+		if (moveCount >= BOARD_SPACES) return WIN_TIE;
+		else if (moveCount < NUM_TO_WIN) return IN_PLAY;
+	
+		bool p1Win = false;
+		bool p2Win = false;
+		for (int i = 0; i < 18; i++) { //MID_WINS
+			uint64 mid = MID_WINS[i];
+			if (And(p1, mid) == mid && And(p1, SPAN_WINS[i])) p1Win = true;
+			else if (And(p2, mid) == mid && And(p2, SPAN_WINS[i])) p2Win = true;
+		}
+		if (p1Win && p2Win) return WIN_DUAL;
+		else if (p1Win) return WIN_PLAYER1;
+		else if (p2Win) return WIN_PLAYER2;
+		else return IN_PLAY;    
+	}
+
+	bool placePin(int pos) {  
+	    uint64 avail = Not(Or(p1, p2)); 		
+		if (And(avail, POS_TO_MPOS[pos])) {                
+			if (turn == PLAYER1) p1 = Xor(p1, POS_TO_MPOS[pos]);        
+			else p2 = Xor(p2, POS_TO_MPOS[pos]); //Player 2				
+			return true;
+		}
+		else return false;
+	}
+
+	void rotate(int quad, int rot) {
+		p1 = rotateQuad(p1, quad, rot);
+		p2 = rotateQuad(p2, quad, rot);	
+		turn = !turn;    
+	}
+
+	uint64 rotateQuad(uint64 board, int quad, int rot) {      
+		//Rot can be simplified - in situ
+		//Extract quad from board  
+		uint64 quadUnshifted = (And(board, QUADS[quad]));
+		uint64 quadBoard = ShiftR(quadUnshifted, quad * QUAD_SPACES); 
+    
+		//Bitwise rotate, 3 places will rotate 90 degrees - note bitwise rot is opposite direction of visual
+		int rotQuad = (rot == ROT_CLOCKWISE)? RotL(quadBoard, QUAD_COUNT) : RotR(quadBoard, QUAD_COUNT);    
+	
+		//Add the rotated quad back to the board
+		uint64 quadShifted = ShiftL(rotQuad, quad * QUAD_SPACES);
+		board = And(board, Not(QUADS[quad])); //Empty quad    
+		uint64 rotBoard = Xor(board, quadShifted);
+		return rotBoard;    
 	}
 
 	int findWin() {
