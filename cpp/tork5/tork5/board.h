@@ -22,11 +22,13 @@ struct Board {
 	}
 	
 	//Action Methods
-	bool placePin(int pos) {  
-	    uint64 avail = Not(Or(p1, p2)); 		
-		if (And(avail, POS_TO_MPOS[pos])) {                
-			if (turn == PLAYER1) p1 = Xor(p1, POS_TO_MPOS[pos]);        
-			else p2 = Xor(p2, POS_TO_MPOS[pos]); //Player 2				
+	bool placePin(int pos) {
+		if (pos < 0 || pos >= BOARD_SPACES) return false;
+	    uint64 avail = Not(Or(p1, p2));
+		uint64 mpos = POS_TO_MPOS[pos];
+		if (And(avail, mpos)) {                
+			if (turn == PLAYER1) p1 = Xor(p1, mpos);        
+			else p2 = Xor(p2, mpos); //Player 2				
 			return true;
 		}
 		else return false;
@@ -277,7 +279,7 @@ struct Board {
 
 	void print() {  				
 		for (int r = 0; r < ROW_SPACES; r++) {
-			if (r == 3) printf("-------\n");
+			if (r == 3) printf("-------\t ------------------\n");
 			for (int c = 0; c < COL_SPACES; c++) {            
 				if (c == 3) printf("|");
 				int pos = POS[r][c];     
@@ -286,6 +288,11 @@ struct Board {
 				if (And(p1, mpos)) space = 'X';
 				else if (And(p2, mpos)) space = 'O';
                 printf("%c", space);				
+			}
+			printf("\t");
+			for (int c = 0; c < COL_SPACES; c++) {
+				if (c == 3) printf("|");
+				printf(" %02d", POS[r][c]);
 			}
 			printf("\n");       
 		}		
