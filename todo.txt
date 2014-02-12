@@ -7,6 +7,7 @@ X change bitboard object to p1, p2 vars to avoid overhead? (hi bit turn?)
 X pre-calc bitcount in findwin
 X add move children during expansion directly to node
 X use ~~ instead of Math.floor in bitlib
+- simulate 1/n children during selection step
 
 
 Wins:
@@ -27,6 +28,8 @@ Cleanup / Refactor:
 - player select code in HTML
 - some magic numbers like 8, and 12 in find wins
 - terminology - consistant use of board, or bitboard / boardObj, and also quadId
+- bitlib MPOS_TO_POS change to hex
+
 
 
 Multiplayer
