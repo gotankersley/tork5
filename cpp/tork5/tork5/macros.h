@@ -1,0 +1,5 @@
+#define And(x1, x2) (x1 & x2)
+#define Or(x1, x2) (x1 | x2)
+#define Xor(x1, x2) (x1 ^ x2)
+#define Not(x) (~x)
+#define MPOS_TO_POS(mpos) (int(log((float)mpos) * 1.44269504088896340736))
