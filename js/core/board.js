@@ -277,7 +277,7 @@ Board.prototype.findWin = function() {
 	var avail = not(or(this.p1, this.p2));
 	if (!avail) return false; 
 		
-	for (var i in LONG_MID_WINS) {
+	for (var i = 0; i < 70; i++) {
 		var mid = LONG_MID_WINS[i];
         var combinedMid = and(board, mid);
         if (combinedMid == mid) { //4 in a row, need one available, or 5+ in a row that just needs to be turned
@@ -287,7 +287,7 @@ Board.prototype.findWin = function() {
             if (and(board, LONG_SPAN_WINS[i]) && and(avail, mid)) return Number(i) + 1;  
         }        
     }    
-    for (var i in SHORT_WINS) {
+    for (var i = 0; i < 28; i++) {
         var win = SHORT_WINS[i];
         var combined = and(board, win);
         if (combined == win) return Number(i) + 71;  //Win just with rotation
