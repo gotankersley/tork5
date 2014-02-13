@@ -244,7 +244,7 @@ struct Board {
 				if (And(board, LONG_SPAN_WINS[i]) && And(avail, mid)) return i + 1;  
 			}        
 		}    
-		for (int i = 0; i < 22; i++ ){ //SHORT_WINS
+		for (int i = 0; i < 28; i++ ){ //SHORT_WINS
 			uint64 win = SHORT_WINS[i];
 			uint64 combined = And(board, win);
 			if (combined == win) return i + 71;  //Win just with rotation
