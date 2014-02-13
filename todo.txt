@@ -24,6 +24,7 @@ Bugs / issues:
 - Player can hover / rotate when AI is turning board error
 - MCTS - expandNode: if (moves.length == 0) return TIE_SCORE;
 - MCTS - propagate todo
+- MCTS (line 98) missing var in for(i
 
 Cleanup / Refactor:
 - generic dropdown menu

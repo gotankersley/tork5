@@ -94,7 +94,8 @@ MCTS.prototype.selectNode = function(root) {
 		var bestUCT = -INFINITY;
 		var bestNode = null;
 		var parentVisits = (node.parent == null || node.parent.visits == 0)? 1 : node.parent.visits;
-		for (i in node.kids) {		
+		var length = node.kids.length;
+		for (var i = 0; i < length; i++ ){ 
 			var kid = node.kids[i];		
 			//Make sure unvisited nodes get a chance
 			if (kid.visits <= MIN_FAIR_PLAY) {

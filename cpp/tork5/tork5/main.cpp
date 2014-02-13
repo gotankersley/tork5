@@ -3,6 +3,7 @@
 #include "board.h"
 using namespace std;
 
+void MCTS_getMove(Board board, int& pos, int& quad, int& rot);
 void getMove(Board board, int& pos, int& quad, int& rot) {	
 	pos = INVALID;
 	quad = INVALID;
@@ -34,19 +35,29 @@ void getMove(Board board, int& pos, int& quad, int& rot) {
 
 void main()
 {
+	int player1 = PLAYER_HUMAN;	
+	int player2 = PLAYER_MCTS;
+	
 	//srand((unsigned int) time(0));
-	//clock_t startTime = clock();
+	//clock_t startTime = clock();	
+
 	Board board;
 	board.print();
 	
 	//Game loop
 	int gameState = IN_PLAY;
+	int player;
 	for (int i = 0; gameState == IN_PLAY && i < BOARD_SPACES; i++) {
 		int pos, quad, rot;
-		getMove(board, pos, quad, rot);		
+		player = (board.turn == PLAYER1)? player1 : player2;
+
+		if (player == PLAYER_HUMAN) getMove(board, pos, quad, rot);
+		else if (player == PLAYER_MCTS) MCTS_getMove(board, pos, quad, rot);
+		else getMove(board, pos, quad, rot);
+
 		board.placePin(pos);		
 		board.rotate(quad, rot);		
-		gameState = board.isWin();
+		gameState = board.isWin();		
 	}
 
 	if (gameState == WIN_TIE || gameState == WIN_DUAL) cout << "Tie game!" << endl;

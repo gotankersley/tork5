@@ -97,8 +97,8 @@ struct Board {
 				if (turn == PLAYER1) newBoard.p1 = Xor(p1, POS_TO_MPOS[availBits[a]]); 
 				else newBoard.p2 = Xor(p2, POS_TO_MPOS[availBits[a]]); 
 				newBoard.rotate(q, r);
-				char buffer[25];
-				sprintf(buffer, "%I64_%I64", newBoard.p1, newBoard.p2);
+				char buffer[30];
+				sprintf(buffer, "%I64u_%I64u", newBoard.p1, newBoard.p2);
 				std::string key = buffer;
 				if (!boardMoves.count(key)) {				
 					moves.push_back(newBoard);

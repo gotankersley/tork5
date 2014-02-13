@@ -41,7 +41,7 @@ void MCTS_backpropagate(Node* node, float score) {
 	else node->score = ((node->score * (node->visits - 1)) + score) / node->visits; //Average    
 
     //Backpropagate from the leaf's parent up to the root, inverting the score each level due to minmax
-    while (node->parent != NULL) {
+    while (node->parent != NULL) {		
         score *= -1;
         node = node->parent;
         node->visits++;
@@ -119,12 +119,11 @@ void MCTS_expandNode(Node* node) {
 
 Node* MCTS_selectNode(Node* root) {
 	//Traverse the tree until a leaf is reached by selecting the best UCT	
-    Node* node = root;
-	float bestUCT;
-	Node* bestNode;
-    while (node->kids.size() > 0) {		
-		bestUCT = -INFINITY;
-		bestNode = NULL;
+    Node* node = root;	
+    while (node->kids.size() > 0) {	
+		
+		float bestUCT = -INFINITY;
+		Node* bestNode = NULL;
 		float uct;
 		int parentVisits = (node->parent == NULL || node->parent->visits == 0)? 1 : node->parent->visits;
 		for (int i = 0; i < node->kids.size(); i++) {
@@ -147,7 +146,7 @@ Node* MCTS_selectNode(Node* root) {
 			printf("No best kid found - broken select! UCT: %f, Board: %s", uct, root->board.toString());
 		}
     }	
-	return bestNode;
+	return node;
 }
 
 Board MCTS_engine(Board board) {
@@ -159,8 +158,13 @@ Board MCTS_engine(Board board) {
     //4. Back-propagation        
     //5. Pick final move
 
-	//Pre-expand root's children
 	Node root(NULL, board);	
+	//Pre-expand root's children	
+	vector<Board>moves = board.getAllNonLossMoves();    		
+	for (int i = 0; i < moves.size(); i++) {
+		root.kids.push_back(new Node(&root, moves[i]));
+	}
+	
 	for (int i = 0; i < MAX_ITERATIONS; i++) {
 		//TODO: top-level win propagation
 
