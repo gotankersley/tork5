@@ -8,8 +8,10 @@ void getMove(Board board, int& pos, int& quad, int& rot) {
 	quad = INVALID;
 	rot = INVALID;
 
-	system("cls");
+	system("cls");	
 	board.print();
+	if (board.turn == PLAYER1) cout << "X's turn" << endl;
+	else cout << "O's turn" << endl;
 	cout << "Pos: ";
 	cin >> pos;
 	while (!board.placePin(pos)) {
@@ -41,10 +43,9 @@ void main()
 	int gameState = IN_PLAY;
 	for (int i = 0; gameState == IN_PLAY && i < BOARD_SPACES; i++) {
 		int pos, quad, rot;
-		getMove(board, pos, quad, rot);
-		board.placePin(pos);
-		//board.rotate(quad, rot);
-		board.print();
+		getMove(board, pos, quad, rot);		
+		board.placePin(pos);		
+		board.rotate(quad, rot);		
 		gameState = board.isWin();
 	}
 

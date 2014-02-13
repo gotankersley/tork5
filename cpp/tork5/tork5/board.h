@@ -47,7 +47,7 @@ struct Board {
 		uint64 quadBoard = ShiftR(quadUnshifted, quad * QUAD_SPACES); 
     
 		//Bitwise rotate, 3 places will rotate 90 degrees - note bitwise rot is opposite direction of visual
-		int rotQuad = (rot == ROT_CLOCKWISE)? RotL(quadBoard, QUAD_COUNT) : RotR(quadBoard, QUAD_COUNT);    
+		uint64 rotQuad = (rot == ROT_CLOCKWISE)? RotL(quadBoard, QUAD_COUNT) : RotR(quadBoard, QUAD_COUNT);    
 	
 		//Add the rotated quad back to the board
 		uint64 quadShifted = ShiftL(rotQuad, quad * QUAD_SPACES);
