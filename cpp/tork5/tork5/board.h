@@ -25,7 +25,7 @@ struct Board {
 	bool placePin(int pos) {
 		if (pos < 0 || pos >= BOARD_SPACES) return false;
 	    uint64 avail = Not(Or(p1, p2));
-		uint64 mpos = POS_TO_MPOS[pos];
+		uint64 mpos = POS_TO_MPOS(pos);
 		if (And(avail, mpos)) {                
 			if (turn == PLAYER1) p1 = Xor(p1, mpos);        
 			else p2 = Xor(p2, mpos); //Player 2				
@@ -60,8 +60,8 @@ struct Board {
 		uint64 avail = Not(Or(p1, p2));
 		list availBits = bitScan(avail);
 		int randPos = availBits[rand() % availBits.size()];
-		if (turn == PLAYER1) p1 = Xor(p1, POS_TO_MPOS[randPos]);
-		else p2 = Xor(p2, POS_TO_MPOS[randPos]);
+		if (turn == PLAYER1) p1 = Xor(p1, POS_TO_MPOS(randPos));
+		else p2 = Xor(p2, POS_TO_MPOS(randPos));
     
 		int randQuad = rand() % BOARD_QUADS;
 		int randRot = rand() % 2;
@@ -94,8 +94,8 @@ struct Board {
 				int r = i%2;
 				
 				Board newBoard = clone();
-				if (turn == PLAYER1) newBoard.p1 = Xor(p1, POS_TO_MPOS[availBits[a]]); 
-				else newBoard.p2 = Xor(p2, POS_TO_MPOS[availBits[a]]); 
+				if (turn == PLAYER1) newBoard.p1 = Xor(p1, POS_TO_MPOS(availBits[a])); 
+				else newBoard.p2 = Xor(p2, POS_TO_MPOS(availBits[a])); 
 				newBoard.rotate(q, r);
 				char buffer[30];
 				sprintf(buffer, "%I64u_%I64u", newBoard.p1, newBoard.p2);
@@ -283,7 +283,7 @@ struct Board {
 			for (int c = 0; c < COL_SPACES; c++) {            
 				if (c == 3) printf("|");
 				int pos = POS[r][c];     
-				uint64 mpos = POS_TO_MPOS[pos];            
+				uint64 mpos = POS_TO_MPOS(pos);            
 				char space = ':';
 				if (And(p1, mpos)) space = 'X';
 				else if (And(p2, mpos)) space = 'O';
@@ -304,9 +304,9 @@ struct Board {
 
 		if (quad != INVALID && rot != INVALID) {
 			char dir = (rot == ROT_CLOCKWISE)? 'c' : 'a';
-			printf("Move: %i, %i - Q%i%c", row, col, quad, dir);
+			printf("Move: %i, %i - Q%i%c\n", row, col, quad, dir);
 		}
-		else printf("Move: %i, %i", row, col);		
+		else printf("Move: %i, %i\n", row, col);		
 	}
 
 	std::string toString() {		

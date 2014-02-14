@@ -1,9 +1,10 @@
 #include <vector>
+#include <ctime>
 #include "Node.h"
 using namespace std;
 
 //Constants
-const int MAX_ITERATIONS = 10;
+const int MAX_ITERATIONS = 10000;
 const float UCT_TUNING = 0.9f;
 const int VISITS_TO_ADD_NODE = 1;
 const int MIN_FAIR_PLAY = 0;
@@ -157,7 +158,7 @@ Board MCTS_engine(Board board) {
     //3. Simulation
     //4. Back-propagation        
     //5. Pick final move
-
+	clock_t startTime = clock();	
 	Node root(NULL, board);	
 	//Pre-expand root's children	
 	vector<Board>moves = board.getAllNonLossMoves();    		
@@ -185,22 +186,23 @@ Board MCTS_engine(Board board) {
 	//Final move
 	Node* finalNode = MCTS_pickFinalMove(&root);
 	Board moveBoard = finalNode->board;
-
-	//Log stats
-	printf("Visits: %i, Score: %f", finalNode->visits, finalNode->score);
-
+	int visits = finalNode->visits;
+	float score = finalNode->score;
 	root.Cleanup();
+
+	//Log stats			
+	double duration = (clock() - startTime) / (double) CLOCKS_PER_SEC;
+	printf("Computer: Visits: %i, Score: %f, Time: %f\n", visits, score, duration);
+	
 	return moveBoard;
 }
 
-void MCTS_getMove(Board board, int& pos, int& quad, int& rot) {
+void MCTS_getMove(Board board, int& pos, int& quad, int& rot) {		
 	int winFound = board.findWin();
 	if (winFound) board.getMoveFromMidWin(winFound, pos, quad, rot);
-	else {
-		printf("Initial board\n");
+	else {		
 		Board moveBoard = MCTS_engine(board);		
 		moveBoard.print();
-		board.deriveMove(moveBoard, pos, quad, rot);		
-		board.printMove(pos, quad, rot);
-	}
+		board.deriveMove(moveBoard, pos, quad, rot);				
+	}	
 }

@@ -25,6 +25,7 @@ Player.prototype.create = function(playerType) {
         case PLAYER_RANDOM: return new Random(this.board);
 		case PLAYER_SIM: return new Sim(this.board);
         case PLAYER_MCTS: return new MCTS(this.board);
+		case PLAYER_CPP: return new CPP(this.board);
     }    
     return null;
 }
