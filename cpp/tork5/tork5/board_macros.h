@@ -24,7 +24,7 @@ inline uint64 Xor(uint64 x1, uint64 x2) {
 	return x1 ^ x2;
 }
 inline uint64 Not(uint64 x) {
-	return (~x) & 0xFFFFFFFFF;
+	return (~x) & 0xFFFFFFFFF;	                
 }
 inline uint64 ShiftR(uint64 x, uint64 n) {
 	return x >> n;

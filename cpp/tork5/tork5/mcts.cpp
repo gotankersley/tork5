@@ -197,9 +197,9 @@ Board MCTS_engine(Board board) {
 	return moveBoard;
 }
 
-void MCTS_getMove(Board board, int& pos, int& quad, int& rot) {		
+void MCTS_getMove(Board board, int& pos, int& quad, int& rot) {	
 	int winFound = board.findWin();
-	if (winFound) board.getMoveFromMidWin(winFound, pos, quad, rot);
+	if (winFound) board.getMoveFromMidWin(winFound, pos, quad, rot); 
 	else {		
 		Board moveBoard = MCTS_engine(board);		
 		moveBoard.print();

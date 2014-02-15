@@ -98,7 +98,7 @@ struct Board {
 				else newBoard.p2 = Xor(p2, POS_TO_MPOS(availBits[a])); 
 				newBoard.rotate(q, r);
 				char buffer[30];
-				sprintf(buffer, "%I64u_%I64u", newBoard.p1, newBoard.p2);
+				sprintf(buffer, "%I64X_%I64X", newBoard.p1, newBoard.p2);
 				std::string key = buffer;
 				if (!boardMoves.count(key)) {				
 					moves.push_back(newBoard);
@@ -232,13 +232,17 @@ struct Board {
 		if (count < 4) return false;     
 	
 		uint64 avail = Not(Or(p1, p2));
+		
 		if (!avail) return false; 
 		
 		for (int i = 0; i < 70; i++) { //LONG_MID_WINS {
 			uint64 mid = LONG_MID_WINS[i];
 			uint64 combinedMid = And(board, mid);
 			if (combinedMid == mid) { //4 in a row, need one available, or 5+ in a row that just needs to be turned
-				if (And(avail, LONG_SPAN_WINS[i]) || And(board, LONG_SPAN_WINS[i])) return i + 1;
+				if (And(avail, LONG_SPAN_WINS[i]) || And(board, LONG_SPAN_WINS[i])) {
+					printf("avail: 0x%I64X\n span: 0x%I64X\n board: 0x%I64X\n mid: 0x%I64X\n combined: 0x%I64X\n", avail, LONG_SPAN_WINS[i], board, mid, combinedMid);
+					return i + 1; 
+				}
 			}
 			else if (bitCount(combinedMid) == 3) { //3 out of 4 in mid, need 1 of the spans, and one availble 
 				if (And(board, LONG_SPAN_WINS[i]) && And(avail, mid)) return i + 1;  
@@ -311,7 +315,7 @@ struct Board {
 
 	std::string toString() {		
 		char buffer[100];
-		sprintf(buffer, "0x%I64u, 0x%I64u, %i", p1, p2, turn);
+		sprintf(buffer, "0x%I64X, 0x%I64X, %i", p1, p2, turn);
 		return buffer;
 	}
 };
