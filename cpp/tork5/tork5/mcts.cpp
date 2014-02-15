@@ -29,7 +29,7 @@ Node* MCTS_pickFinalMove(Node* root) {
 	}
 	
 	if (bestNode == NULL) {
-		printf("All moves lead to loss: %s\n", root->board.toString());		
+		printf("All moves lead to loss: %s\n", root->board.toString().c_str());		
 		return root->kids[rand() % root->kids.size()]; //All moves lead to loss
 	}
 	else return bestNode;
@@ -144,7 +144,7 @@ Node* MCTS_selectNode(Node* root) {
 
 		node = bestNode;
 		if (bestNode == NULL) {
-			printf("No best kid found - broken select! UCT: %f, Board: %s", uct, root->board.toString());
+			printf("No best kid found - broken select! UCT: %f, Board: %s", uct, root->board.toString().c_str());
 		}
     }	
 	return node;
@@ -202,7 +202,7 @@ void MCTS_getMove(Board board, int& pos, int& quad, int& rot) {
 	if (winFound) board.getMoveFromMidWin(winFound, pos, quad, rot); 
 	else {		
 		Board moveBoard = MCTS_engine(board);		
-		moveBoard.print();
-		board.deriveMove(moveBoard, pos, quad, rot);				
+		moveBoard.print();				
+		board.deriveMove(moveBoard, pos, quad, rot);						
 	}	
 }

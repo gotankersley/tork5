@@ -22,16 +22,15 @@ Features to add:
 
 Bugs / issues:
 - Player can hover / rotate when AI is turning board error
-- MCTS - expandNode: if (moves.length == 0) return TIE_SCORE;
+X MCTS - expandNode: if (moves.length == 0) return TIE_SCORE;
 - MCTS - propagate todo
-- MCTS (line 98) missing var in for(i
+X MCTS (line 98) missing var in for(i
 
 Cleanup / Refactor:
 - generic dropdown menu
 - player select code in HTML
 - some magic numbers like 8, and 12 in find wins
 - terminology - consistant use of board, or bitboard / boardObj, and also quadId
-- bitlib MPOS_TO_POS change to hex
 
 
 

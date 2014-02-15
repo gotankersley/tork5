@@ -327,8 +327,9 @@ Board.prototype.getMoveFromMidWin = function(i) {
         }    
         var mid = LONG_MID_WINS[i];  
         var span = LONG_SPAN_WINS[i];
-        if (and(board, mid) == mid) {   			
-            var availBits = (and(span, avail))? bitScan(span) : bitScan(avail);            
+        if (and(board, mid) == mid) {
+            var spanAvail = and(span, avail);
+            var availBits = (spanAvail)? bitScan(spanAvail) : bitScan(avail);            
             pos = availBits[0];
         }
         else {

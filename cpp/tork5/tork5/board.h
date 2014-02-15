@@ -141,8 +141,9 @@ struct Board {
 			}    
 			uint64 mid = LONG_MID_WINS[i];  
 			uint64 span = LONG_SPAN_WINS[i];
-			if (And(board, mid) == mid) {   			
-				list availBits = (And(span, avail))? bitScan(span) : bitScan(avail);            
+			if (And(board, mid) == mid) { 
+				uint64 availSpan = And(span, avail);
+				list availBits = (availSpan)? bitScan(availSpan) : bitScan(avail);            
 				pos = availBits[0];
 			}
 			else {
@@ -239,10 +240,7 @@ struct Board {
 			uint64 mid = LONG_MID_WINS[i];
 			uint64 combinedMid = And(board, mid);
 			if (combinedMid == mid) { //4 in a row, need one available, or 5+ in a row that just needs to be turned
-				if (And(avail, LONG_SPAN_WINS[i]) || And(board, LONG_SPAN_WINS[i])) {
-					printf("avail: 0x%I64X\n span: 0x%I64X\n board: 0x%I64X\n mid: 0x%I64X\n combined: 0x%I64X\n", avail, LONG_SPAN_WINS[i], board, mid, combinedMid);
-					return i + 1; 
-				}
+				if (And(avail, LONG_SPAN_WINS[i]) || And(board, LONG_SPAN_WINS[i])) return i + 1; 														
 			}
 			else if (bitCount(combinedMid) == 3) { //3 out of 4 in mid, need 1 of the spans, and one availble 
 				if (And(board, LONG_SPAN_WINS[i]) && And(avail, mid)) return i + 1;  

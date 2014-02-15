@@ -12,7 +12,7 @@ inline uint64 POS_TO_MPOS(int pos) {
 	return 1I64 << pos;
 }
 inline int MPOS_TO_POS(uint64 mpos) {
-	return log((float)mpos) * 1.44269504088896340736;
+	return floor((log((float)mpos) * 1.44269504088896340736) + 0.5);
 }
 inline uint64 And(uint64 x1, uint64 x2) {
 	return x1 & x2;

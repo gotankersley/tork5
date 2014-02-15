@@ -136,12 +136,12 @@ MCTS.prototype.expandNode = function(node) {
     var moves = board.getAllNonLossMoves();
     
     //Tie
-    if (moves.length == 0) return TIE_SCORE;
-    
-    for (var m in moves) {
-        node.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
+    if (moves.length == 0) this.backpropagate(node, TIE_SCORE);
+    else {
+        for (var m in moves) {
+            node.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
+        }
     }
-           
 }
 
 MCTS.prototype.simulate = function(node) {

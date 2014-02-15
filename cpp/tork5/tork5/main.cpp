@@ -72,7 +72,7 @@ void main(int argc, char* argv[])
 		printf("\n\n");
 
 		if (pos == INVALID || quad == INVALID || rot == INVALID) {
-			printf("INVALID MOVE! %s\n", board.toString());
+			printf("INVALID MOVE! %s\n", board.toString().c_str());
 			break;
 		}
 		else {

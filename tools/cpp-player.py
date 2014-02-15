@@ -23,7 +23,7 @@ appPath = os.path.join(appDir, app)
 cmd = [app, p1, p2, turn]
 
 output = sub.Popen(cmd, executable=appPath, stdout=sub.PIPE).stdout.read()
-print output
+#print output
 #Extract output from executable - output as json
 startPos = output.index('{')
 endPos = output.index('}', startPos);
