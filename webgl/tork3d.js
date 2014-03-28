@@ -1,3 +1,6 @@
+var UNIT_SIZE = 30;
+var HALF_UNIT = UNIT_SIZE / 2;
+var QUAD_SIZE = UNIT_SIZE * 3;
 
 //standard global variables
 var container, scene, camera, renderer, controls, stats;
@@ -8,7 +11,8 @@ var clock = new THREE.Clock();
 var gears = [];
 var centerGear;
 var quads = [];
-var mesh;
+var origin;
+var pin;
 
 init();
 
@@ -66,7 +70,7 @@ function init()  {
 	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 	var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
 	var floor = new THREE.Mesh(floorGeometry, floorMaterial);
-	floor.position.y = -10;
+	//floor.position.y = 0;
 	floor.rotation.x = Math.PI / 2;
 	scene.add(floor);
     
@@ -77,36 +81,43 @@ function init()  {
 	scene.add(skyBox);
 		
 	// Models	
-	var geometry = new THREE.SphereGeometry( 30, 32, 16 );
-	var material = new THREE.MeshLambertMaterial( { color: 0x000088 } );
-	mesh = new THREE.Mesh( geometry, material );
-	mesh.position.set(0,40,0);
-	scene.add(mesh);
+	var geometry = new THREE.SphereGeometry( 10, 12, 12 );
+	var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
+	origin = new THREE.Mesh( geometry, material );
+	origin.position.set(0,20,0);
+	scene.add(origin);
     
     var jsonLoader = new THREE.JSONLoader();	
-	jsonLoader.load('models/gear.js', addGears);   
-	jsonLoader.load('models/quad.js', addQuads);   
-	jsonLoader.load('models/spacer.js', addModelToScene);   
+	jsonLoader.load('models/gear2.js', addGears);   
+	jsonLoader.load('models/quad2.js', addQuads);   
+	jsonLoader.load('models/spacer2.js', addSpacer);   
+	jsonLoader.load('models/pin2.js', addPin);   
 	
 	animate();
 }
 
-function addModelToScene( geometry, materials ) {
-	var material = new THREE.MeshFaceMaterial( materials );
-	//var material = new THREE.MeshLambertMaterial( { color: 0x000088 } );
+function addSpacer( geometry, materials ) {
+	var material = new THREE.MeshFaceMaterial( materials );	
 	var model = new THREE.Mesh( geometry, material );
-    model.position.y = 10;
-	model.scale.set(30,30,30);
+	var SPACER_SIZE = 3;
+	model.position.set((UNIT_SIZE * 2) + HALF_UNIT - SPACER_SIZE, 0, (UNIT_SIZE * 2) + HALF_UNIT - SPACER_SIZE);
 	scene.add( model );
+}
+
+function addPin( geometry, materials ) {
+	var material = new THREE.MeshFaceMaterial( materials );	
+	pin = new THREE.Mesh( geometry, material );	
+	scene.add( pin );
 }
 
 function addQuads( geometry, materials ) {	
 	var material = new THREE.MeshFaceMaterial( materials );		
-	var QUAD_SIZE = 100;
 	for (var i = 0; i < BOARD_QUADS; i++) {
-		var quad = new THREE.Mesh( geometry, material );
-		quad.scale.set(30,30,30);		
-		quad.position.set((i % 2) * QUAD_SIZE, 10, Math.floor(i / 2) * QUAD_SIZE);
+		var r = Math.floor(i / 2);
+		var c = i % 2;
+		var quad = new THREE.Mesh( geometry, material );		
+		quad.position.x = (c * QUAD_SIZE) + UNIT_SIZE;
+		quad.position.z = (r * QUAD_SIZE) + UNIT_SIZE;
 				
 		quads.push(quad);
 		scene.add( quad );
@@ -117,13 +128,16 @@ function addQuads( geometry, materials ) {
 
 function addGears( geometry, materials ) {	
 	//var material = new THREE.MeshFaceMaterial( materials );
-	var material = new THREE.MeshLambertMaterial( { color: 0x880000 } );
-	var GEAR_SIZE = 150;
+	var material = new THREE.MeshLambertMaterial( { color: 0x880000 } );	
+	var offsetsX = [-1, 1, -1, 1];
+	var offsetsZ = [-1, -1, 1, 1];
 	for (var i = 0; i < BOARD_QUADS; i++) {
-		var gear = new THREE.Mesh( geometry, material );
-		gear.scale.set(30,30,30);		
-		gear.position.set((i % 2) * GEAR_SIZE, 10, Math.floor(i / 2) * GEAR_SIZE);
-				
+		var r = Math.floor(i / 2);
+		var c = i % 2;
+		var gear = new THREE.Mesh( geometry, material );			
+		gear.position.x = (c * QUAD_SIZE) + UNIT_SIZE + (offsetsX[i] * UNIT_SIZE);
+		gear.position.z = (r * QUAD_SIZE) + UNIT_SIZE + (offsetsZ[i] * UNIT_SIZE);
+		
 		gears.push(gear);
 		scene.add( gear );
 	}
@@ -135,7 +149,7 @@ function addGears( geometry, materials ) {
 }
 
 function animate() {
-
+	//if (gears.length) gears[0].rotateY(0.01);
     requestAnimationFrame( animate );
 	renderer.render(scene,camera );
 	update();
