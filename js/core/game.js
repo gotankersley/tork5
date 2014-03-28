@@ -20,14 +20,14 @@ var MODE_WAIT = 3;
 var MODE_WIN = 4;
 
 //Colors
-var COLOR_P1 = '#C00';
-var COLOR_P2 = '#06c';
+var COLOR_P1 = '#000';//#C00';
+var COLOR_P2 = '#c0c0c0'; //'#06c';
 var COLOR_CURSOR = '#cfc';
 var COLOR_QUAD = '#000';
 var COLOR_GRID = '#c0c0c0';
 var COLOR_ARROW = '#e0e0e0';
 var COLOR_P1_WIN = '#a00';
-var COLOR_P2_WIN = '#0cc';
+var COLOR_P2_WIN = '#a00';//'#0cc';
 var COLOR_TIE = '#000';
 var COLOR_ROW_NUMBERS = '#c0c0c0';
 
