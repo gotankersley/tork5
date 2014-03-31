@@ -1,0 +1,25 @@
+//Sizes
+var UNIT_SIZE = 100;
+var QUAD_SIZE = UNIT_SIZE * 3;
+var BOARD_SIZE = UNIT_SIZE * 6;
+var CANVAS_SIZE = 800;
+var CANVAS_OFFSET = (CANVAS_SIZE - BOARD_SIZE) / 2;
+
+var HALF_UNIT = UNIT_SIZE/2;
+var HALF_QUAD = QUAD_SIZE/2;
+var HALF_CANVAS = CANVAS_SIZE/2;
+
+var ARROW_WIDTH = 50;
+var ARROW_HEIGHT = 20;
+
+//Colors
+var COLOR_P1 = '#000';
+var COLOR_P2 = '#c0c0c0';
+var COLOR_CURSOR = '#cfc';
+var COLOR_QUAD = '#000';
+var COLOR_GRID = '#c0c0c0';
+var COLOR_ARROW = '#e0e0e0';
+var COLOR_P1_WIN = '#a00';
+var COLOR_P2_WIN = '#a00';
+var COLOR_TIE = '#000';
+var COLOR_ROW_NUMBERS = '#c0c0c0';

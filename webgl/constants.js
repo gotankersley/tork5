@@ -1,0 +1,4 @@
+var UNIT_SIZE = 30;
+var HALF_UNIT = UNIT_SIZE / 2;
+var QUAD_SIZE = UNIT_SIZE * 3;
+var BOARD_SIZE = UNIT_SIZE * 6;

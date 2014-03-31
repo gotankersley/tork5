@@ -31,7 +31,7 @@ Cleanup / Refactor:
 - player select code in HTML
 - some magic numbers like 8, and 12 in find wins
 - terminology - consistant use of board, or bitboard / boardObj, and also quadId
-
+- move canvas to /canvas?
 
 
 Multiplayer
