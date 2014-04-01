@@ -34,10 +34,10 @@ function onMouseDown(e) {
         //Get selected quad
         var qr = Math.floor(selPos.r / QUAD_ROW_SPACES);
         var qc = Math.floor(selPos.c / QUAD_COL_SPACES);
-        selQuad = (qr * QUAD_COUNT) + qc;
-        quads[selQuad].rotateY(100);
+        selQuad = (qr * QUAD_COUNT) + qc;        
         var p = pin.clone();
         pins.push(p);
-        quads[0].add(p);        
+        //quads[selQuad].add(p);    
+		animRotateQuad();
     }
 }

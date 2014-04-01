@@ -14,10 +14,10 @@ var pin;
 var pins = [];
 init();
 
+var quadDirX = [-1, 1, -1, 1];
+var quadDirZ = [-1, -1, 1, 1];
 
-
-function init()  {
-    game = new Game();	
+function init()  {    
     
 	//Scene
 	scene = new THREE.Scene();
@@ -129,14 +129,13 @@ function addQuads( geometry, materials ) {
 function addGears( geometry, materials ) {	
 	//var material = new THREE.MeshFaceMaterial( materials );
 	var material = new THREE.MeshLambertMaterial( { color: 0x880000 } );	
-	var offsetsX = [-1, 1, -1, 1];
-	var offsetsZ = [-1, -1, 1, 1];
+
 	for (var i = 0; i < BOARD_QUADS; i++) {
 		var r = Math.floor(i / 2);
 		var c = i % 2;
 		var gear = new THREE.Mesh( geometry, material );			
-		gear.position.x = (c * QUAD_SIZE) + UNIT_SIZE + (offsetsX[i] * UNIT_SIZE);
-		gear.position.z = (r * QUAD_SIZE) + UNIT_SIZE + (offsetsZ[i] * UNIT_SIZE);
+		gear.position.x = (c * QUAD_SIZE) + UNIT_SIZE + (quadDirX[i] * UNIT_SIZE);
+		gear.position.z = (r * QUAD_SIZE) + UNIT_SIZE + (quadDirZ[i] * UNIT_SIZE);
 		
 		gears.push(gear);
 		scene.add( gear );
