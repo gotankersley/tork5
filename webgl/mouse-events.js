@@ -37,7 +37,9 @@ function onMouseDown(e) {
         selQuad = (qr * QUAD_COUNT) + qc;        
         var p = pin.clone();
         pins.push(p);
-        //quads[selQuad].add(p);    
+        //scene.add(p);
+        p.position = posToQuadPoint(selPos);
+        quads[selQuad].add(p);    
 		animRotateQuad();
     }
 }

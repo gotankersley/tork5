@@ -142,9 +142,12 @@ function addGears( geometry, materials ) {
 	}
 
 	//Add center gear
-	//var centerGear = new THREE.Mesh( geometry, material );
-	//centerGear.position.set(0,0,0);
-	//scene.add( centerGear );
+	centerGear = new THREE.Mesh( geometry, material );
+	centerGear.position.set(HALF_BOARD - HALF_UNIT,0,HALF_BOARD - HALF_UNIT);
+    centerGear.scale.set(0.8,1,0.8);
+    centerGear.position.y += HALF_UNIT;
+    centerGear.rotateX(180 * (Math.PI/180));
+	scene.add( centerGear );
 }
 
 
