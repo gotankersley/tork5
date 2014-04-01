@@ -1,45 +1,46 @@
 var projector = new THREE.Projector();
 var mouseVector = new THREE.Vector3();
-var selPos = new Pos(0, 0);
+var cursorPos = new Pos(0, 0);
 var selQuad;
 var mouseOnBoard = false;
 
 function onMouseMove(e) {
     mouseVector.x = 2 * (e.clientX / containerWidth) - 1;
     mouseVector.y = 1 - 2 * ( e.clientY / containerHeight );
-    var raycaster = projector.pickingRay( mouseVector.clone(), camera );
-    var intersects = raycaster.intersectObjects( quads);
+    var raycaster = projector.pickingRay( mouseVector.clone(), camera );    
+    var intersects = raycaster.intersectObject( boardTarget);
     //Find intersections
     if (intersects.length) {
-        mouseOnBoard = true;
-        var index = 0;
-        //Loop through intersections if there is more than one to find the closest
-        if (intersects.length > 1) {
-            var minDist = 100000;            
-            for (var i = 0; i < intersects.length; i++) {
-                if (intersects[i].distance < minDist) {
-                    minDist = intersects[i].distance;
-                    index = i;
-                }
-            }
-        }   
-        selPos = pointToPos(intersects[index].point);
-        pin.position = posToPoint(selPos);        
+        mouseOnBoard = true;     					
+        cursor = pointToPos(intersects[0].point);
+        spaceTarget.position = posToPoint(cursorPos, 22);        
     }
     else mouseOnBoard = false;
 }
 
-function onMouseDown(e) {    
+function onMouseDown(e) { 
+	if (game.mode == MODE_PLACE) { 
+		if (mouseOnBoard) {
+			var r = toRC(y);
+			var c = toRC(x);
+			game.onPlacePin(r, c, e.ctrlKey);	
+		}
+    }
+	//else if (game.mode == MODE_ROTATE || e.altKey) {		
+//	}
+	//else if (game.mode == MODE_ANIM) {  
+/*	
     if (mouseOnBoard) {  
         //Get selected quad
-        var qr = Math.floor(selPos.r / QUAD_ROW_SPACES);
-        var qc = Math.floor(selPos.c / QUAD_COL_SPACES);
+        var qr = Math.floor(cursorPos.r / QUAD_ROW_SPACES);
+        var qc = Math.floor(cursorPos.c / QUAD_COL_SPACES);
         selQuad = (qr * QUAD_COUNT) + qc;        
+		var quad = quads[selQuad];
         var p = pin.clone();
         pins.push(p);
-        //scene.add(p);
-        p.position = posToQuadPoint(selPos);
-        quads[selQuad].add(p);    
+        
+        p.position = posToQuadPoint(cursorPos, 0, selQuad);		
+        quad.add(p);    					
 		animRotateQuad();
-    }
+    }*/
 }

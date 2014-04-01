@@ -22,17 +22,18 @@ function animRotateQuad() {
 	var z = quad.position.z;
 	
 	//Move out
-	var tween = new TWEEN.Tween({d:0}).to({d:UNIT_SIZE}, 2000);
+	var tween = new TWEEN.Tween({d:0}).to({d:UNIT_SIZE}, ROTATE_SPEED);
 	tween.onUpdate(function() {		
 		quad.position.x = x + (this.d * quadDirX[selQuad]);
 		quad.position.z = z + (this.d * quadDirZ[selQuad]);				
 	});
 	
 	//Rotate - quad and gears
-	var tween2 = new TWEEN.Tween({r:0}).to({r:90}, 2000);
+	var tween2 = new TWEEN.Tween({r:0}).to({r:90}, ROTATE_SPEED);
+	var initRad = quad.rotation.y;
 	tween2.onUpdate(function() {
         var rad = -this.r*(Math.PI/180);
-		quad.rotation.y = rad;
+		quad.rotation.y = initRad + rad;
         gears[0].rotation.y = rad;
         gears[1].rotation.y = rad;
         gears[2].rotation.y = rad;
@@ -41,13 +42,12 @@ function animRotateQuad() {
 	});
 	
 	//Move back in
-	var tween3 = new TWEEN.Tween({d:UNIT_SIZE}).to({d:0}, 2000);
+	var tween3 = new TWEEN.Tween({d:UNIT_SIZE}).to({d:0}, ROTATE_SPEED);
 	tween3.onUpdate(function() {		
 		quad.position.x = x + this.d * quadDirX[selQuad];
 		quad.position.z = z + this.d * quadDirZ[selQuad];				
 	});
-	//tween.onComplete(function() {
-		
+	//tween3.onComplete(function() {		
 	//});
 	tween.chain(tween2);
 	tween2.chain(tween3);

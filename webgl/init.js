@@ -4,6 +4,7 @@ var containerWidth, containerHeight;
 var keyboard = new KeyboardState();
 var clock = new THREE.Clock();
 var game;
+var mode;
 
 //Global variables
 var gears = [];
@@ -12,13 +13,19 @@ var quads = [];
 var origin;
 var pin;
 var pins = [];
+var boardTarget;
+var spaceTarget;
 init();
 
 var quadDirX = [-1, 1, -1, 1];
 var quadDirZ = [-1, -1, 1, 1];
+var quadRot90 = [6,3,0,7,4,1,8,5,2];
+var quadRot180 = [8,7,6,5,4,3,2,1,0];
+var quadRot270 = [2,5,8,1,5,7,0,3,6];
 
 function init()  {    
-    
+    game = new Game();
+		
 	//Scene
 	scene = new THREE.Scene();
     
@@ -92,6 +99,7 @@ function init()  {
 	jsonLoader.load('models/quad2.js', addQuads);   
 	jsonLoader.load('models/spacer2.js', addSpacer);   
 	jsonLoader.load('models/pin2.js', addPin);   
+	AddTargets();
 	
 	onFrame();
 }
@@ -108,7 +116,7 @@ function addSpacer( geometry, materials ) {
 function addPin( geometry, materials ) {
 	var material = new THREE.MeshFaceMaterial( materials );	
 	pin = new THREE.Mesh( geometry, material );	
-	scene.add( pin );
+	//scene.add( pin );
 }
 
 function addQuads( geometry, materials ) {	
@@ -123,7 +131,26 @@ function addQuads( geometry, materials ) {
 		quads.push(quad);
 		scene.add( quad );
 	}
+}
 
+function AddTargets() {
+	//Add board mouse target - invisible	
+	var boardGeo = new THREE.PlaneGeometry(BOARD_SIZE, BOARD_SIZE);
+	var boardMat = new THREE.MeshLambertMaterial( { color: 0x888800 } );	
+	boardTarget = new THREE.Mesh(boardGeo, boardMat);
+	boardTarget.rotation.x = -Math.PI / 2;
+	boardTarget.position.set(HALF_BOARD - HALF_UNIT,21.5, HALF_BOARD - HALF_UNIT);
+	boardTarget.visible = false;
+	scene.add(boardTarget);	
+	
+	//Space selector
+	var spaceGeo = new THREE.PlaneGeometry(UNIT_SIZE, UNIT_SIZE);
+	var spaceMat = new THREE.MeshLambertMaterial( { color: 0x008800, transparent: true, opacity: 0.5  } );	
+	spaceTarget = new THREE.Mesh(spaceGeo, spaceMat);
+	spaceTarget.rotation.x = -Math.PI / 2;
+	spaceTarget.position.set(posToPoint(new Pos(0, 0), 22));	
+	scene.add(spaceTarget);	
+	
 }
 
 function addGears( geometry, materials ) {	
@@ -143,7 +170,7 @@ function addGears( geometry, materials ) {
 
 	//Add center gear
 	centerGear = new THREE.Mesh( geometry, material );
-	centerGear.position.set(HALF_BOARD - HALF_UNIT,0,HALF_BOARD - HALF_UNIT);
+	centerGear.position.set(HALF_BOARD - HALF_UNIT,-4,HALF_BOARD - HALF_UNIT);
     centerGear.scale.set(0.8,1,0.8);
     centerGear.position.y += HALF_UNIT;
     centerGear.rotateX(180 * (Math.PI/180));

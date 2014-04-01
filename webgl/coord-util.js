@@ -16,15 +16,25 @@ function pointToPos(point) {
     return new Pos(r, c);    
 }
 
-function posToPoint(pos) {
-    return new THREE.Vector3(pos.c * UNIT_SIZE, 0, pos.r * UNIT_SIZE);
+function posToPoint(pos, y) {
+	if (typeof(y) == 'undefined') y = 0;
+    return new THREE.Vector3(pos.c * UNIT_SIZE, y, pos.r * UNIT_SIZE);
 }
 
-function posToQuadPoint(pos) {
+function posToQuadPoint(pos, y, q) {	
+	
+	var quadRot = (quads[q].rotation.y	/ Math.PI) * 180;	
+	if (quadRot < 0) quadRot = Math.abs(quadRot) % 360;
     var quadPos = new Pos(pos.r % QUAD_ROW_SPACES, pos.c % QUAD_COL_SPACES);
-    var point = posToPoint(quadPos);
+	var posI = (quadPos.r * QUAD_ROW_SPACES) + quadPos.c;
+	
+	if (quadRot == 90) posI = quadRot90[posI];
+	else if (quadRot == 180) posI = quadRot180[posI];
+	else if (quadRot == 270) posI = quadRot270[posI];
+	quadPos = new Pos(Math.floor(posI / QUAD_ROW_SPACES), posI % QUAD_ROW_SPACES);	
+    var point = posToPoint(quadPos, y);
     point.x -= UNIT_SIZE;
-    point.z -= UNIT_SIZE;
+    point.z -= UNIT_SIZE;	
     return point;
 }
 
