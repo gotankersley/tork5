@@ -15,38 +15,37 @@ function Game() {
     this.message = 'Player1 - place marble';
     this.winLines = null;
 	
-    //this.cursorR = 0;
-    //this.cursorC = 0;
+    this.cursor = new Pos(0,0);
     this.arrow = INVALID;
 	this.quad = INVALID;
 	this.quadRotDegrees = 0;
 	this.quadRotDir = 0;    
-    this.rotateMode = false;
+    //this.rotateMode = false;
              
 }
 
 
 //Game events
-Game.prototype.onPlacePin = function(r, c, placeMode) {    
+Game.prototype.onPlacePin = function(r, c, keepPlacing) {    
     var board = this.board;
     //Set returns false if space is not open	
     if (board.set(r,c)) {
 		this.gameState = board.isWin();
         if (this.gameState == IN_PLAY) {
             this.message = 'Player' + (this.board.turn + 1) + ' - turn quad';
-            if (!placeMode) this.mode = MODE_ROTATE;
+            if (!keepPlacing) this.mode = MODE_ROTATE;
         }
         else this.onGameOver();    
     }
 	else this.message = 'Unable to play there';
 }
 
-Game.prototype.onRotateStart = function(quad, rot, rotateMode) {       
+Game.prototype.onRotateStart = function(quad, rot) {       
     //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
 	this.quad = quad;
 	this.quadRotDegrees = 0;
 	this.quadRotDir = (rot == ROT_CLOCKWISE)? 1 : -1;
-	this.rotateMode = rotateMode;	
+	//this.rotateMode = rotateMode;	
     if (SETTING_ROT_ANIM) this.mode = MODE_ANIM;
     else this.onRotateEnd();
 }
@@ -72,23 +71,23 @@ Game.prototype.onTurnChanged = function(changeTurn) {
 }
 
 Game.prototype.onMoveOver = function() {			
-	var gameState = this.board.isWin();
-    if (gameState == IN_PLAY) {
-		if (SETTING_FIND_WINS) this.showFindWins();	
+	this.gameState = this.board.isWin();
+    if (this.gameState == IN_PLAY) {
+		//if (SETTING_FIND_WINS) this.showFindWins();	
         this.quadRotDegrees = 0;
         this.quad = INVALID;
         this.arrow = INVALID;	
-        this.cursorR = 0;
-        this.cursorC = 0;	                        
-		if (!this.rotateMode) {
+        this.cursor = new Pos(0, 0);
+                       
+		//if (!this.rotateMode) {
 			this.mode = (this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
 			this.player.play();			
-		}
+		//}
     }
     else this.onGameOver(gameState);
 }
 
-Game.prototype.onGameOver = function(gameState) {    
+Game.prototype.onGameOver = function() {    
     //Convert win lines from row/col to x/y    
     var winRCs = this.board.getWinLines(); 
     this.winLines = [[],[]];
@@ -103,18 +102,13 @@ Game.prototype.onGameOver = function(gameState) {
         }
     }    
     
-    if (this.gameState == WIN_TIE || gameState == WIN_DUAL) {        
-        this.message = 'TIE GAME!';		
-    }
+    //Tie game (and dual win)
+    if (this.gameState == WIN_TIE || gameState == WIN_DUAL) this.message = 'TIE GAME!';		       
     else {        
-        if (this.gameState == WIN_PLAYER1) { //Player 1            
-            this.message = 'Player1 WINS!';            
-        }
-        else { //Player 2
-            this.winColor = COLOR_P2_WIN;
-            this.messageColor = COLOR_P2;
-            this.message = 'Player2 WINS!';            
-        }                       
+        //Player 1
+        if (this.gameState == WIN_PLAYER1) this.message = 'Player1 WINS!';                     
+        //Player 2            
+        else this.message = 'Player2 WINS!';                              
         if (winRCs[PLAYER1].length > 1 || winRCs[PLAYER2].length > 1) this.message += ' Multi-win!';
     }
            

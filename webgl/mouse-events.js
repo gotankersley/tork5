@@ -12,19 +12,17 @@ function onMouseMove(e) {
     //Find intersections
     if (intersects.length) {
         mouseOnBoard = true;     					
-        cursor = pointToPos(intersects[0].point);
-        spaceTarget.position = posToPoint(cursorPos, 22);        
+        game.cursor = pointToPos(intersects[0].point);
+        spaceTarget.position = posToPoint(game.cursor, 22);        
     }
     else mouseOnBoard = false;
 }
 
 function onMouseDown(e) { 
 	if (game.mode == MODE_PLACE) { 
-		if (mouseOnBoard) {
-			var r = toRC(y);
-			var c = toRC(x);
-			game.onPlacePin(r, c, e.ctrlKey);	
-		}
+		if (mouseOnBoard) placePin();//{			
+			//game.onPlacePin(r, c, e.ctrlKey);	//Can move / invalid / show place anim            
+		//}
     }
 	//else if (game.mode == MODE_ROTATE || e.altKey) {		
 //	}
