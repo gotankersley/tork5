@@ -1,30 +1,60 @@
+//standard global variables
+var container, sceneRoot, camera, renderer, controls;
+var containerWidth, containerHeight;
+var clock = new THREE.Clock();
+
+//Global variables
+var gears = [];
+var centerGear;
+var quads = [];
+var origin;
+var pin;
+var pins = [];
+var boardTarget;
+var spaceTarget;
+
 //Class Scene
 function Scene() {
-	
-   
-	//Floor
-	var floorTexture = new THREE.ImageUtils.loadTexture( 'textures/checkerboard.jpg' );
-	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
-	floorTexture.repeat.set( 10, 10 );
-	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
-	var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
-	var floor = new THREE.Mesh(floorGeometry, floorMaterial);
-	
-	floor.rotation.x = Math.PI / 2;
-	sceneRoot.add(floor);
+	//sceneRoot
+	sceneRoot = new THREE.Scene();
     
-	//Skybox
-	var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
-	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
-	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
-	sceneRoot.add(skyBox);
+	//Camera
+	var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
+	var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 0.1, FAR = 20000;
+	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+	sceneRoot.add(camera);
+	camera.position.set(80,150,400);
+	camera.lookAt(sceneRoot.position);
+	
+	//Renderer
+	if (Detector.webgl) renderer = new THREE.WebGLRenderer( {antialias:true} );
+	else renderer = new THREE.CanvasRenderer(); 
+    
+	renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+	container = document.getElementById( 'container' );
+	container.appendChild( renderer.domElement );
+    containerWidth = container.clientWidth;
+    containerHeight = container.clientHeight;
+    
+	//Controls
+	controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.center = new THREE.Vector3(QUAD_SIZE, 10, QUAD_SIZE);
+
+	//Events
+	THREEx.WindowResize(renderer, camera);
+	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
+    
+	//Light
+	var light = new THREE.PointLight(0xffffff);
+	light.position.set(100,250,100);
+	scene.add(light);
 		
-	//Models	
-	var geometry = new THREE.SphereGeometry( 10, 12, 12 );
-	var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
-	origin = new THREE.Mesh( geometry, material );
-	origin.position.set(0,20,0);
-	sceneRoot.add(origin);
+	//var light2 = new THREE.PointLight( 0xff0000, 10, 100 ); 
+	//light2.position.set( 50, 50, 50 ); 
+	//scene.add( light2 );	
+		
+    var ambientLight = new THREE.AmbientLight(0x111111);
+	sceneRoot.add(ambientLight);	
     
     var jsonLoader = new THREE.JSONLoader();	
 	jsonLoader.load('models/gear.js', addGears);   
@@ -37,6 +67,33 @@ function Scene() {
 }
 
 //Load functions
+function loadOrigin() {
+	var geometry = new THREE.SphereGeometry( 10, 12, 12 );
+	var material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
+	origin = new THREE.Mesh( geometry, material );
+	origin.position.set(0,20,0);
+	sceneRoot.add(origin);
+}
+
+function loadSky() {
+	var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
+	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
+	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+	sceneRoot.add(skyBox);
+}
+
+function loadFloor() {	
+	var floorTexture = new THREE.ImageUtils.loadTexture( 'textures/checkerboard.jpg' );
+	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+	floorTexture.repeat.set( 10, 10 );
+	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+	var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
+	var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+	
+	floor.rotation.x = Math.PI / 2;
+	sceneRoot.add(floor);
+}
+
 function loadSpacer( geometry, materials ) {
 	var material = new THREE.MeshFaceMaterial( materials );	
 	var model = new THREE.Mesh( geometry, material );
