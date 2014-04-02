@@ -27,10 +27,10 @@ function Scene() {
 	sceneRoot.add(origin);
     
     var jsonLoader = new THREE.JSONLoader();	
-	jsonLoader.load('models/gear2.js', addGears);   
-	jsonLoader.load('models/quad2.js', addQuads);   
-	jsonLoader.load('models/spacer2.js', addSpacer);   
-	jsonLoader.load('models/pin2.js', addPin);   
+	jsonLoader.load('models/gear.js', addGears);   
+	jsonLoader.load('models/quad.js', addQuads);   
+	jsonLoader.load('models/spacer.js', addSpacer);   
+	jsonLoader.load('models/pin.js', addPin);   
 	AddTargets();
 	
 	onFrame();
