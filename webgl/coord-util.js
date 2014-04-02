@@ -41,3 +41,26 @@ function posToQuadPoint(pos, y, q) {
 function snapPoint(point) {
     return posToPoint(pointToPos(point));    
 }
+
+function arrowToRot(quad, arrow) {
+   //Get rot dir
+	if (quad % 3 == 0) { //Quads 0, and 3
+		if (arrow >= BOARD_QUADS) return ROT_ANTICLOCKWISE;
+		else return ROT_CLOCKWISE;
+	}
+	else { //Quads 1, and 2
+		if (arrow >= BOARD_QUADS) return ROT_CLOCKWISE;
+		else return ROT_ANTICLOCKWISE;
+	}  
+}
+
+function rotToArrow(quad, rot) {
+	if (quad % 3 == 0) { //Quads 0, and 3
+		if (rot == ROT_ANTICLOCKWISE) return BOARD_QUADS + quad;
+		else return quad;
+	}
+	else { //Quads 1, and 2
+		if (rot == ROT_CLOCKWISE) return BOARD_QUADS + quad;
+		else return quad;
+	}  
+}

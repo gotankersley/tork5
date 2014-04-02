@@ -20,25 +20,10 @@ function onMouseMove(e) {
 
 function onMouseDown(e) { 
 	if (game.mode == MODE_PLACE) { 
-		if (mouseOnBoard) placePin();//{			
-			//game.onPlacePin(r, c, e.ctrlKey);	//Can move / invalid / show place anim            
-		//}
+		if (mouseOnBoard) game.onPlacePin(game.cursor, e.ctrlKey);					
     }
-	//else if (game.mode == MODE_ROTATE || e.altKey) {		
-//	}
+	else if (game.mode == MODE_ROTATE || e.altKey) {		
+		
+	}
 	//else if (game.mode == MODE_ANIM) {  
-/*	
-    if (mouseOnBoard) {  
-        //Get selected quad
-        var qr = Math.floor(cursorPos.r / QUAD_ROW_SPACES);
-        var qc = Math.floor(cursorPos.c / QUAD_COL_SPACES);
-        selQuad = (qr * QUAD_COUNT) + qc;        
-		var quad = quads[selQuad];
-        var p = pin.clone();
-        pins.push(p);
-        
-        p.position = posToQuadPoint(cursorPos, 0, selQuad);		
-        quad.add(p);    					
-		animRotateQuad();
-    }*/
 }
