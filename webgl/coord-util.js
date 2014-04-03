@@ -49,14 +49,18 @@ function snapPoint(point) {
     return posToPoint(pointToPos(point));    
 }
 
-function arrowToRot(quad, arrow) {
+function octantToQuad(octant) {
+	return octant % BOARD_QUADS;
+}
+
+function octantToRot(quad, octant) {
    //Get rot dir
 	if (quad % 3 == 0) { //Quads 0, and 3
-		if (arrow >= BOARD_QUADS) return ROT_ANTICLOCKWISE;
+		if (octant >= BOARD_QUADS) return ROT_ANTICLOCKWISE;
 		else return ROT_CLOCKWISE;
 	}
 	else { //Quads 1, and 2
-		if (arrow >= BOARD_QUADS) return ROT_CLOCKWISE;
+		if (octant >= BOARD_QUADS) return ROT_CLOCKWISE;
 		else return ROT_ANTICLOCKWISE;
 	}  
 }

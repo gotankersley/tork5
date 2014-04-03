@@ -21,36 +21,24 @@ function Game(stage) {
 	this.quad = INVALID;
 	this.quadRotDegrees = 0;
 	this.quadRotDir = 0;        
-             
+    this.modeLock = true;         
 }
 
-function onPlacePin(pos) {    
-    //Get selected quad
-    var qr = Math.floor(cursorPos.r / QUAD_ROW_SPACES);
-    var qc = Math.floor(cursorPos.c / QUAD_COL_SPACES);
-    selQuad = (qr * QUAD_COUNT) + qc;        
-	
-	    
-    var p = pin.clone();
-    pins.push(p);    
-    p.position = posToQuadPoint(cursorPos, 0, selQuad);		
-    quads[selQuad].add(p);    
-}
-
-Game.prototype.onPlacePin = function(pos, keepPlacing) {    
-    
+Game.prototype.onPlacePin = function(pos, keepPlacing) {
+	this.modeLock = !keepPlacing;
     //Board set returns false if space is not open	
     if (this.board.set(pos.r,pos.c)) {
-		this.scene.placePin(pos, this.onPlacedPin);		
+		this.stage.placePin(pos, this.onPlacedPin);		
     }
 	else this.message = 'Unable to play there';
 }
 
-Game.prototype.onPlacedPin = function() {
+Game.prototype.onPlacedPin = function() {	
 	this.gameState = this.board.isWin();
 	if (this.gameState == IN_PLAY) {
 		this.message = 'Player' + (this.board.turn + 1) + ' - turn quad';
-		if (!keepPlacing) this.mode = MODE_ROTATE;
+		if (this.modeLock) this.changeMode(MODE_ROTATE);
+		this.stage.rotateQuad();
 	}
 	else this.onGameOver();    
 }
@@ -133,5 +121,13 @@ Game.prototype.onGameOver = function() {
 Game.prototype.onInvalidMove = function(move) {
 	alert('invalid move');
 	this.board.printMove(move);
+}
+
+Game.prototype.changeMode = function(mode) {
+	if (!this.modeLock) {
+		this.mode = mode;
+		this.stage.onModeChanged(mode);
+	}
+	
 }
 //End class Game

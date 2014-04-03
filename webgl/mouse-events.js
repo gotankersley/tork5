@@ -13,7 +13,7 @@ function onMouseMove(e) {
     if (intersects.length) {
         mouseOnBoard = true;     					
         game.cursor = pointToPos(intersects[0].point);
-        spaceTarget.position = posToPoint(game.cursor, 22);        
+        cursorObj.position = posToPoint(game.cursor, 22);        
     }
     else mouseOnBoard = false;
 }
