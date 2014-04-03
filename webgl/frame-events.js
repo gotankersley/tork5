@@ -1,16 +1,14 @@
-
-
+/*
 function onFrame() {	
     requestAnimationFrame( onFrame );
     
     //update
-	renderer.render(sceneRoot, camera );
+	renderer.render(scene, camera );
 
 	
 	controls.update();	
 	TWEEN.update();
 }
-
 function animRotateQuad() {
 	
 	var quad = quads[selQuad];
@@ -50,4 +48,4 @@ function animRotateQuad() {
 	tween.start();
 	
 }
-
+*/

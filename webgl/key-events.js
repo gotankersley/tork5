@@ -4,7 +4,8 @@ var KEY_F = 70;
 var KEY_R = 82;
 var KEY_SPACE = 32;
 
-function onKeyDown = function(e) {	
+function onKeyDown(e) {
+     
 	/*if (e.keyCode == KEY_DELETE) {
         if (game.mode == MODE_PLACE) {
             var pos = POS[game.cursorR][game.cursorC];

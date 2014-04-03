@@ -7,14 +7,14 @@ var MODE_WIN = 4;
 
 
 //Class Game
-function Game(scene) {
+function Game(stage) {
 	this.board = new Board();    
 	this.mode = MODE_PLACE;
 	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
     this.gameState;
     this.message = 'Player1 - place marble';
     this.winLines = null;
-	this.scene = scene;
+	this.stage = stage;
 	
     this.cursor = new Pos(0,0);
     this.arrow = INVALID;
