@@ -293,17 +293,24 @@ Stage.prototype.rotateQuad = function(q, r, completeFn) {
 	
 }
 
+var liney;
 Stage.prototype.showWinLines = function(winRCs) {
-	//Convert win lines from row/col to points   	
+	//Convert win lines from row/col to points  
+	var offset = 1;
     for (var side in winRCs) {
         for (var i in winRCs[side]) {
 			var line = winRCs[side][i];		   
 			var lineGeo = new THREE.Geometry();
-			lineGeo.vertices.push(posToPoint(new Pos(line[0], line[1]), UNIT_SIZE * 2));
-			lineGeo.vertices.push(posToPoint(new Pos(line[2], line[3]), UNIT_SIZE * 2));
-			lineGeo.computeLineDistances();
-			var lineObj = new THREE.Line(lineGeo, materialWinLine, THREE.LinePieces);
-			scene.add(lineObj);
+			var p1 = posToPoint(new Pos(line[0], line[1]), UNIT_SIZE * 2);
+			var p2 = posToPoint(new Pos(line[2], line[3]), UNIT_SIZE * 2);		
+			lineGeo.vertices.push(new THREE.Vector3(p1.x - offset, p1.y, p1.z - offset));
+			lineGeo.vertices.push(new THREE.Vector3(p1.x + offset, p1.y, p1.z - offset));
+			lineGeo.vertices.push(new THREE.Vector3(p2.x - offset, p2.y, p2.z + offset));
+			lineGeo.vertices.push(new THREE.Vector3(p2.x + offset, p2.y, p2.z + offset));
+						
+			//var lineObj = new THREE.Mesh(lineGeo, materialWinLine);
+			liney = new THREE.Mesh(lineGeo, materialWinLine);
+			scene.add(liney);
 		}
     } 
 }
