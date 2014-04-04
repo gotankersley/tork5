@@ -2,12 +2,13 @@
 var container, scene, camera, renderer, controls;
 var containerWidth, containerHeight;
 
-//Global variables
+//Objects
 var gears = [];
 var centerGear;
 var quads = [];
 var origin;
-var pin;
+var pin1;
+var pin2;
 var pins = [];
 var boardTarget;
 var cursorObj;
@@ -18,6 +19,8 @@ var arrowParent;
 //Materials
 var materialCursor;
 var materialArrow;
+var materialArrowHover;
+var materialPin2;
 
 //Class Stage
 function Stage(containerId) {	
@@ -46,23 +49,22 @@ function Stage(containerId) {
 
 	//Events
 	THREEx.WindowResize(renderer, camera);
-	THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
+	//THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
     
 	//Materials
 	materialCursor = new THREE.MeshLambertMaterial( { color: 0x008800, transparent: true, opacity: 0.5  } );	
-    materialArrow = new THREE.MeshLambertMaterial( { color: 0xaaaaaa, transparent: true, opacity: 0.5  } );	
+    materialArrow = new THREE.MeshLambertMaterial( { color: 0xaaaaaa, transparent: true, opacity: 0.8  } );
+    materialArrowHover = new THREE.MeshLambertMaterial( { color: 0x008800 });
+	materialPin2 = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
 	
 	//Light
 	var light = new THREE.PointLight(0xffffff);
 	light.position.set(100,250,100);
-	scene.add(light);
-		
-	//var light2 = new THREE.PointLight( 0xff0000, 10, 100 ); 
-	//light2.position.set( 50, 50, 50 ); 
-	//scene.add( light2 );	
-		
+	scene.add(light);				
     var ambientLight = new THREE.AmbientLight(0x111111);
 	scene.add(ambientLight);	
+	
+	//Load models
     this.loadOrigin();
     this.loadFloor();
     this.loadSky();
@@ -79,8 +81,7 @@ function Stage(containerId) {
 Stage.prototype.loadArrows = function(geometry) {	        
     arrows = [0,0,0,0,0,0,0,0];
     var iToOctant = [4,0,1,5,7,3,2,6];
-	arrowParent = new THREE.Object3D();
-    arrowParent.visible = false;
+	arrowParent = new THREE.Object3D();    
 	arrowParent.position.set(-HALF_UNIT,0,-HALF_UNIT);
 	var qs = [0,1,3,2]; //Rotate around board clockwise
 	var arrowDirX = [-1,1,-1,1,1,-1,1,-1];
@@ -101,7 +102,7 @@ Stage.prototype.loadArrows = function(geometry) {
 			arrowMesh.rotateX(Math.PI);			
 		}
 		else arrowMesh.rotateY(i * -Math.PI/4);
-
+		arrowMesh.visible = false;
 		arrowParent.add(arrowMesh);
 		arrows[iToOctant[i]] = arrowMesh;
 	}
@@ -109,8 +110,7 @@ Stage.prototype.loadArrows = function(geometry) {
 	
 }
 
-Stage.prototype.loadGears = function( geometry, materials ) {	
-	//var material = new THREE.MeshFaceMaterial( materials );
+Stage.prototype.loadGears = function( geometry, materials ) {		
 	var material = new THREE.MeshLambertMaterial( { color: 0x880000 } );	
 
 	for (var i = 0; i < BOARD_QUADS; i++) {
@@ -163,8 +163,11 @@ Stage.prototype.loadSpacer = function( geometry, materials ) {
 
 Stage.prototype.loadPin = function( geometry, materials ) {
 	var material = new THREE.MeshFaceMaterial( materials );	
-	pin = new THREE.Mesh( geometry, material );	
-	//scene.add( pin );
+	pin1 = new THREE.Mesh( geometry, material );	
+	
+	pin2Geo = new THREE.SphereGeometry( 10, 12, 12 );	
+	pin2 = new THREE.Mesh( pin2Geo, materialPin2 );	
+	pin2.position.y = UNIT_SIZE;
 }
 
 Stage.prototype.loadQuads = function( geometry, materials ) {	
@@ -203,7 +206,7 @@ Stage.prototype.loadTargets = function() {
 	var arrowMat = new THREE.MeshLambertMaterial( { color: 0x888800 } );	
 	arrowTarget = new THREE.Mesh(arrowGeo, arrowMat);
 	arrowTarget.rotation.x = -Math.PI / 2;
-	arrowTarget.position.set(HALF_BOARD - HALF_UNIT,UNIT_SIZE, HALF_BOARD - HALF_UNIT);
+	arrowTarget.position.set(HALF_BOARD - HALF_UNIT, UNIT_SIZE, HALF_BOARD - HALF_UNIT);
 	arrowTarget.visible = false;
 	scene.add(arrowTarget);		
 	
@@ -222,45 +225,46 @@ Stage.prototype.loadTargets = function() {
 
 //Animation
 Stage.prototype.onModeChanged = function(mode) {
+	var showArrows;	
 	if (mode == MODE_PLACE) {
         cursorObj.visible = true;
-        arrowParent.visible = false;
+		showArrows = false;
     }
 	else if (mode == MODE_ROTATE) {
         cursorObj.visible = false;
-        arrowParent.visible = true;
+        showArrows = true;
     }
+	
+	//Toggle arrow visibility
+	for (var i = 0; i < ALL_ROTATIONS; i++ ) {
+		arrows[i].visible = showArrows;
+	}
 }
 
-Stage.prototype.placePin = function(pos, completeFn) {
-    //Get selected quad
-    var qr = Math.floor(pos.r / QUAD_ROW_SPACES);
-    var qc = Math.floor(pos.c / QUAD_COL_SPACES);
-    selQuad = (qr * QUAD_COUNT) + qc;        
-	
-	    
-    var p = pin.clone();
-    pins.push(p);    
-    p.position = posToQuadPoint(pos, 0, selQuad);		
-    quads[selQuad].add(p);   	
+Stage.prototype.placePin = function(pos, q, turn, completeFn) {
+    var pin = (turn != PLAYER1)? pin1.clone() : pin2.clone();
+    pin.position = posToQuadPoint(pos, pin.position.y, q);		
+    pins.push(pin);    
+    quads[q].add(pin);   	
 	completeFn.call(game);
 }
 
-Stage.prototype.rotateQuad = function(q) {
+Stage.prototype.rotateQuad = function(q, r, completeFn) {
 	cursorObj.visible = false;
 	var quad = quads[q];
 	var x = quad.position.x;
 	var z = quad.position.z;
 	
 	//Move out
-	var tween = new TWEEN.Tween({d:0}).to({d:UNIT_SIZE}, ROTATE_SPEED);
+	var tween = new TWEEN.Tween({d:0}).to({d:UNIT_SIZE}, ROTATION_DURATION);
 	tween.onUpdate(function() {		
 		quad.position.x = x + (this.d * quadDirX[q]);
 		quad.position.z = z + (this.d * quadDirZ[q]);				
 	});
 	
 	//Rotate - quad and gears
-	var tween2 = new TWEEN.Tween({r:0}).to({r:90}, ROTATE_SPEED);
+	var rotDir = (r == ROT_CLOCKWISE)? 1 : -1;
+	var tween2 = new TWEEN.Tween({r:0}).to({r:90 * rotDir}, ROTATION_DURATION);
 	var initRad = quad.rotation.y;
 	tween2.onUpdate(function() {
         var rad = -this.r*(Math.PI/180);
@@ -273,13 +277,14 @@ Stage.prototype.rotateQuad = function(q) {
 	});
 	
 	//Move back in
-	var tween3 = new TWEEN.Tween({d:UNIT_SIZE}).to({d:0}, ROTATE_SPEED);
+	var tween3 = new TWEEN.Tween({d:UNIT_SIZE}).to({d:0}, ROTATION_DURATION);
 	tween3.onUpdate(function() {		
-		quad.position.x = x + this.d * quadDirX[selQuad];
-		quad.position.z = z + this.d * quadDirZ[selQuad];				
+		quad.position.x = x + this.d * quadDirX[q];
+		quad.position.z = z + this.d * quadDirZ[q];				
 	});
-	//tween3.onComplete(function() {		
-	//});
+	tween3.onComplete(function() {		
+		completeFn.call(game);
+	});	
 	tween.chain(tween2);
 	tween2.chain(tween3);
 	tween.start();

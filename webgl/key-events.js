@@ -8,7 +8,7 @@ function onKeyDown(e) {
      
 	/*if (e.keyCode == KEY_DELETE) {
         if (game.mode == MODE_PLACE) {
-            var pos = POS[game.cursorR][game.cursorC];
+            var pos = POS[game.cursorPosR][game.cursorPosC];
             if (!game.board.isOpen(pos)) {
                 var mpos = not(POS_TO_MPOS[pos]);
                 game.board.p1 = and(game.board.p1, mpos);

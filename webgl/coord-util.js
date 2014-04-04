@@ -12,16 +12,6 @@ function Pos(r, c) {
 }
 //end class Pos
 
-function pointToPos(point) {
-    var r = Math.floor((point.z + HALF_UNIT) / UNIT_SIZE);
-    if (r < 0) r = 0;
-    else if (r >= ROW_SPACES) r = ROW_SPACES - 1;
-    
-    var c = Math.floor((point.x + HALF_UNIT) / UNIT_SIZE);
-    if (c < 0) c = 0;
-    else if (c >= COL_SPACES) c = COL_SPACES - 1;
-    return new Pos(r, c);    
-}
 
 function posToPoint(pos, y) {
 	if (typeof(y) == 'undefined') y = 0;
@@ -45,21 +35,14 @@ function posToQuadPoint(pos, y, q) {
     return point;
 }
 
-function pointToQuad(point) {    
-    var quadR = Math.floor(point.z / HALF_ARROW_TARGET);
-    var quadC = Math.floor(point.x / HALF_ARROW_TARGET);
-    return (quadR * QUAD_COUNT) + quadC;
-}
-
-function snapPoint(point) {
-    return posToPoint(pointToPos(point));    
-}
-
-function octantToQuad(octant) {
-	return octant % BOARD_QUADS;
+function posToQuad(pos) {
+	var qr = Math.floor(pos.r / QUAD_ROW_SPACES);
+	var qc = Math.floor(pos.c / QUAD_COL_SPACES);
+	return (qr * QUAD_COUNT) + qc;
 }
 
 function octantToRot(quad, octant) {
+		
    //Get rot dir
 	if (quad % 3 == 0) { //Quads 0, and 3
 		if (octant >= BOARD_QUADS) return ROT_ANTICLOCKWISE;
@@ -69,6 +52,23 @@ function octantToRot(quad, octant) {
 		if (octant >= BOARD_QUADS) return ROT_CLOCKWISE;
 		else return ROT_ANTICLOCKWISE;
 	}  
+}
+
+function pointToPos(point) {
+    var r = Math.floor((point.z + HALF_UNIT) / UNIT_SIZE);
+    if (r < 0) r = 0;
+    else if (r >= ROW_SPACES) r = ROW_SPACES - 1;
+    
+    var c = Math.floor((point.x + HALF_UNIT) / UNIT_SIZE);
+    if (c < 0) c = 0;
+    else if (c >= COL_SPACES) c = COL_SPACES - 1;
+    return new Pos(r, c);    
+}
+
+function pointToQuad(point) {    
+    var quadR = Math.floor(point.z / HALF_ARROW_TARGET);
+    var quadC = Math.floor(point.x / HALF_ARROW_TARGET);
+    return (quadR * QUAD_COUNT) + quadC;
 }
 
 function pointToOctant(point, quad) {
@@ -92,13 +92,23 @@ function pointToOctant(point, quad) {
 }
 
 
-function rotToArrow(quad, rot) {
-	if (quad % 3 == 0) { //Quads 0, and 3
-		if (rot == ROT_ANTICLOCKWISE) return BOARD_QUADS + quad;
-		else return quad;
-	}
-	else { //Quads 1, and 2
-		if (rot == ROT_CLOCKWISE) return BOARD_QUADS + quad;
-		else return quad;
-	}  
-}
+//?
+// function rotToArrow(quad, rot) {
+	// if (quad % 3 == 0) { //Quads 0, and 3
+		// if (rot == ROT_ANTICLOCKWISE) return BOARD_QUADS + quad;
+		// else return quad;
+	// }
+	// else { //Quads 1, and 2
+		// if (rot == ROT_CLOCKWISE) return BOARD_QUADS + quad;
+		// else return quad;
+	// }  
+// }
+
+
+//function snapPoint(point) {
+    //return posToPoint(pointToPos(point));    
+//}
+
+//function octantToQuad(octant) {
+//	return octant % BOARD_QUADS;
+//}

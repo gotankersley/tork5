@@ -10,30 +10,30 @@ var MODE_WIN = 4;
 function Game(stage) {
 	this.board = new Board();    
 	this.mode = MODE_PLACE;
+    this.modeLock = false; //Used to lock mode for multiple pin places, or rotations
 	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
     this.gameState;
     this.message = 'Player1 - place marble';
     this.winLines = null;
-	this.stage = stage;
+	this.stage = stage; //Graphical display
 	
-    this.cursor = new Pos(0,0);
-    this.arrow = INVALID;
-	this.quad = INVALID;
-	this.quadRotDegrees = 0;
-	this.quadRotDir = 0;        
-    this.modeLock = false;         
+	//Cursor variables
+    this.cursorPos = new Pos(0,0);
+    this.cursorOct = INVALID;
+	this.cursorQuad = INVALID;	
+	this.cursorRot = INVALID;        
 }
 
-Game.prototype.onPlacePin = function(pos, keepPlacing) {
+Game.prototype.onPlaceStart = function(keepPlacing) {
 	this.modeLock = keepPlacing;
     //Board set returns false if space is not open	
-    if (this.board.set(pos.r,pos.c)) {
-		this.stage.placePin(pos, this.onPlacedPin);		
+    if (this.board.set(this.cursorPos.r, this.cursorPos.c)) {
+		this.stage.placePin(this.cursorPos, this.cursorQuad, this.board.turn, this.onPlaceEnd);		
     }
 	else this.message = 'Unable to play there';
 }
 
-Game.prototype.onPlacedPin = function() {	
+Game.prototype.onPlaceEnd = function() {	
 	this.gameState = this.board.isWin();
 	if (this.gameState == IN_PLAY) {
 		this.message = 'Player' + (this.board.turn + 1) + ' - turn quad';
@@ -42,52 +42,37 @@ Game.prototype.onPlacedPin = function() {
 	else this.onGameOver();    
 }
 
-Game.prototype.onRotateStart = function(quad, rot, keepRotating) {     
+Game.prototype.onRotateStart = function(keepRotating) {     
+    //Don't actually rotate the bitboard until rotateEnd
     this.modeLock = keepRotating;  
-    this.stage.rotateQuad(this.quad, rot); 
-    //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
-	//this.quad = quad;
-	//this.quadRotDegrees = 0;
-	//this.quadRotDir = (rot == ROT_CLOCKWISE)? 1 : -1;	
+	this.mode = MODE_ANIM;
+    this.stage.rotateQuad(this.cursorQuad, this.cursorRot, this.onRotateEnd); 	
     //if (SETTING_ROT_ANIM) this.mode = MODE_ANIM;
     //else this.onRotateEnd();
 }
 
-Game.prototype.onRotating = function() {
-    if (Math.abs(this.quadRotDegrees) >= 90) this.onRotateEnd();
-    else this.quadRotDegrees += (this.quadRotDir * SETTING_ROT_SPEED); 
+
+Game.prototype.onRotateEnd = function() {       	
+    this.board.rotate(this.cursorQuad, this.cursorRot); //this changes board's turn  	
+	if (!this.modeLock) this.onMoveOver();
 }
 
-Game.prototype.onRotateEnd = function() {   
-    var rot = (this.quadRotDir == 1)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
-    this.board.rotate(this.quad, rot); //this changes the turn  	
-	this.onTurnChanged(false);
-	this.onMoveOver();
-}
-
-Game.prototype.onTurnChanged = function(changeTurn) {
-	//Force the turn change
-	if (changeTurn) this.board.turn = !this.board.turn;
-	
-	this.messageColor = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;	
-	this.message = 'Player' + (this.board.turn + 1) + ' - place marble';	
-}
-
-Game.prototype.onMoveOver = function() {			
+Game.prototype.onMoveOver = function() {	
 	this.gameState = this.board.isWin();
     if (this.gameState == IN_PLAY) {
-		//if (SETTING_FIND_WINS) this.showFindWins();	
-        this.quadRotDegrees = 0;
-        this.quad = INVALID;
-        this.arrow = INVALID;	
-        this.cursor = new Pos(0, 0);
-                       
-		//if (!this.rotateMode) {
-			this.mode = (this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
-			this.player.play();			
-		//}
+
+		//Change turn
+		this.message = 'Player' + (this.board.turn + 1) + ' - place marble';	
+		
+		//if (SETTING_FIND_WINS) this.showFindWins();	        
+		//Reset cursor
+		this.resetCursor();
+		this.changeMode(MODE_PLACE);	
+                       		
+		//this.mode = (this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
+		//this.player.play();					
     }
-    else this.onGameOver(gameState);
+    else this.onGameOver();
 }
 
 Game.prototype.onGameOver = function() {    
@@ -124,10 +109,15 @@ Game.prototype.onInvalidMove = function(move) {
 }
 
 Game.prototype.changeMode = function(mode) {
-	if (!this.modeLock) {
-		this.mode = mode;
-		this.stage.onModeChanged(mode);
-	}
-	
+	this.mode = mode;
+	this.stage.onModeChanged(mode);		
+}
+
+//Helper
+Game.prototype.resetCursor = function() {
+	this.cursorOct = INVALID;
+	this.cursorQuad = INVALID;
+	this.cursorRot = INVALID;
+	this.cursorPos = new Pos(0, 0);
 }
 //End class Game
