@@ -21,6 +21,7 @@ var materialCursor;
 var materialArrow;
 var materialArrowHover;
 var materialPin2;
+var materialWinLine;
 
 //Class Stage
 function Stage(containerId) {	
@@ -56,6 +57,7 @@ function Stage(containerId) {
     materialArrow = new THREE.MeshLambertMaterial( { color: 0xaaaaaa, transparent: true, opacity: 0.8  } );
     materialArrowHover = new THREE.MeshLambertMaterial( { color: 0x008800 });
 	materialPin2 = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+	materialWinLine = new THREE.MeshNormalMaterial();
 	
 	//Light
 	var light = new THREE.PointLight(0xffffff);
@@ -249,8 +251,8 @@ Stage.prototype.placePin = function(pos, q, turn, completeFn) {
 	completeFn.call(game);
 }
 
-Stage.prototype.rotateQuad = function(q, r, completeFn) {
-	cursorObj.visible = false;
+Stage.prototype.rotateQuad = function(q, r, completeFn) {	
+	//SETTING_ROT_ANIM
 	var quad = quads[q];
 	var x = quad.position.x;
 	var z = quad.position.z;
@@ -289,6 +291,21 @@ Stage.prototype.rotateQuad = function(q, r, completeFn) {
 	tween2.chain(tween3);
 	tween.start();
 	
+}
+
+Stage.prototype.showWinLines = function(winRCs) {
+	//Convert win lines from row/col to points   	
+    for (var side in winRCs) {
+        for (var i in winRCs[side]) {
+			var line = winRCs[side][i];		   
+			var lineGeo = new THREE.Geometry();
+			lineGeo.vertices.push(posToPoint(new Pos(line[0], line[1]), UNIT_SIZE * 2));
+			lineGeo.vertices.push(posToPoint(new Pos(line[2], line[3]), UNIT_SIZE * 2));
+			lineGeo.computeLineDistances();
+			var lineObj = new THREE.Line(lineGeo, materialWinLine, THREE.LinePieces);
+			scene.add(lineObj);
+		}
+    } 
 }
 
 //Render

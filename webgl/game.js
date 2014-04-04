@@ -13,8 +13,7 @@ function Game(stage) {
     this.modeLock = false; //Used to lock mode for multiple pin places, or rotations
 	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
     this.gameState;
-    this.message = 'Player1 - place marble';
-    this.winLines = null;
+    this.message = 'Player1 - place marble';    
 	this.stage = stage; //Graphical display
 	
 	//Cursor variables
@@ -46,19 +45,19 @@ Game.prototype.onRotateStart = function(keepRotating) {
     //Don't actually rotate the bitboard until rotateEnd
     this.modeLock = keepRotating;  
 	this.mode = MODE_ANIM;
-    this.stage.rotateQuad(this.cursorQuad, this.cursorRot, this.onRotateEnd); 	
-    //if (SETTING_ROT_ANIM) this.mode = MODE_ANIM;
-    //else this.onRotateEnd();
+    this.stage.rotateQuad(this.cursorQuad, this.cursorRot, this.onRotateEnd); 	        
 }
 
 
-Game.prototype.onRotateEnd = function() {       	
+Game.prototype.onRotateEnd = function() {       
+	
     this.board.rotate(this.cursorQuad, this.cursorRot); //this changes board's turn  	
 	if (!this.modeLock) this.onMoveOver();
 }
 
 Game.prototype.onMoveOver = function() {	
 	this.gameState = this.board.isWin();
+	
     if (this.gameState == IN_PLAY) {
 
 		//Change turn
@@ -75,32 +74,19 @@ Game.prototype.onMoveOver = function() {
     else this.onGameOver();
 }
 
-Game.prototype.onGameOver = function() {    
-    //Convert win lines from row/col to x/y    
-    var winRCs = this.board.getWinLines(); 
-    this.winLines = [[],[]];
-    for (var side in winRCs) {
-        for (var i in winRCs[side]) {
-            var line = winRCs[side][i];
-            var x1 = toXY(line[1]) + HALF_UNIT;
-            var y1 = toXY(line[0]) + HALF_UNIT;
-            var x2 = toXY(line[3]) + HALF_UNIT;
-            var y2 = toXY(line[2]) + HALF_UNIT;
-            this.winLines[side].push([x1, y1, x2, y2]);
-        }
-    }    
-    
+Game.prototype.onGameOver = function() {           
     //Tie game (and dual win)
-    if (this.gameState == WIN_TIE || gameState == WIN_DUAL) this.message = 'TIE GAME!';		       
+    if (this.gameState == WIN_TIE || this.gameState == WIN_DUAL) this.message = 'TIE GAME!';		       
     else {        
         //Player 1
         if (this.gameState == WIN_PLAYER1) this.message = 'Player1 WINS!';                     
         //Player 2            
         else this.message = 'Player2 WINS!';                              
-        if (winRCs[PLAYER1].length > 1 || winRCs[PLAYER2].length > 1) this.message += ' Multi-win!';
+        //if (winRCs[PLAYER1].length > 1 || winRCs[PLAYER2].length > 1) this.message += ' Multi-win!';
     }
-           
+           		   
     this.mode = MODE_WIN;
+	this.stage.showWinLines(this.board.getWinLines());
 }
 
 Game.prototype.onInvalidMove = function(move) {
