@@ -21,11 +21,11 @@ function Game(stage) {
 	this.quad = INVALID;
 	this.quadRotDegrees = 0;
 	this.quadRotDir = 0;        
-    this.modeLock = true;         
+    this.modeLock = false;         
 }
 
 Game.prototype.onPlacePin = function(pos, keepPlacing) {
-	this.modeLock = !keepPlacing;
+	this.modeLock = keepPlacing;
     //Board set returns false if space is not open	
     if (this.board.set(pos.r,pos.c)) {
 		this.stage.placePin(pos, this.onPlacedPin);		
@@ -37,20 +37,20 @@ Game.prototype.onPlacedPin = function() {
 	this.gameState = this.board.isWin();
 	if (this.gameState == IN_PLAY) {
 		this.message = 'Player' + (this.board.turn + 1) + ' - turn quad';
-		if (this.modeLock) this.changeMode(MODE_ROTATE);
-		this.stage.rotateQuad();
+		if (!this.modeLock) this.changeMode(MODE_ROTATE);		
 	}
 	else this.onGameOver();    
 }
 
-Game.prototype.onRotateStart = function(quad, rot) {       
+Game.prototype.onRotateStart = function(quad, rot, keepRotating) {     
+    this.modeLock = keepRotating;  
+    this.stage.rotateQuad(this.quad, rot); 
     //Don't actually rotate the bitboard until rotateEnd so we can draw the animation
-	this.quad = quad;
-	this.quadRotDegrees = 0;
-	this.quadRotDir = (rot == ROT_CLOCKWISE)? 1 : -1;
-	//this.rotateMode = rotateMode;	
-    if (SETTING_ROT_ANIM) this.mode = MODE_ANIM;
-    else this.onRotateEnd();
+	//this.quad = quad;
+	//this.quadRotDegrees = 0;
+	//this.quadRotDir = (rot == ROT_CLOCKWISE)? 1 : -1;	
+    //if (SETTING_ROT_ANIM) this.mode = MODE_ANIM;
+    //else this.onRotateEnd();
 }
 
 Game.prototype.onRotating = function() {

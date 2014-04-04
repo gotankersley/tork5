@@ -45,6 +45,12 @@ function posToQuadPoint(pos, y, q) {
     return point;
 }
 
+function pointToQuad(point) {    
+    var quadR = Math.floor(point.z / HALF_ARROW_TARGET);
+    var quadC = Math.floor(point.x / HALF_ARROW_TARGET);
+    return (quadR * QUAD_COUNT) + quadC;
+}
+
 function snapPoint(point) {
     return posToPoint(pointToPos(point));    
 }
@@ -64,6 +70,27 @@ function octantToRot(quad, octant) {
 		else return ROT_ANTICLOCKWISE;
 	}  
 }
+
+function pointToOctant(point, quad) {
+    //Divide quadrant into triangles - think Union Jack flag    
+    var ax = (quad % QUAD_COUNT == 0)? 0 : ARROW_TARGET_SIZE;
+    var ay = (quad < QUAD_COUNT)? 0 : ARROW_TARGET_SIZE;
+    
+    var bx = HALF_ARROW_TARGET;
+    var by = HALF_ARROW_TARGET;    
+    
+    //Calculate if mouse point is above octant line
+    var crossProd = ((bx - ax)*(point.z - ay)) - ((by - ay)*(point.x - ax));
+    if (quad % 3 == 0) { //Slopes down in quads 0, and 3
+        if (crossProd > 0) return quad + BOARD_QUADS;
+        else return quad;
+    }
+    else { //Slopes up in quads 1, and 2
+        if (crossProd < 0) return quad + BOARD_QUADS;
+        else return quad;
+    } 
+}
+
 
 function rotToArrow(quad, rot) {
 	if (quad % 3 == 0) { //Quads 0, and 3

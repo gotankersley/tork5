@@ -13,9 +13,11 @@ var boardTarget;
 var cursorObj;
 var arrows = [];
 var arrowTarget;
+var arrowParent;
 
 //Materials
 var materialCursor;
+var materialArrow;
 
 //Class Stage
 function Stage(containerId) {	
@@ -48,6 +50,7 @@ function Stage(containerId) {
     
 	//Materials
 	materialCursor = new THREE.MeshLambertMaterial( { color: 0x008800, transparent: true, opacity: 0.5  } );	
+    materialArrow = new THREE.MeshLambertMaterial( { color: 0xaaaaaa, transparent: true, opacity: 0.5  } );	
 	
 	//Light
 	var light = new THREE.PointLight(0xffffff);
@@ -73,9 +76,11 @@ function Stage(containerId) {
 }
 
 //Load functions
-Stage.prototype.loadArrows = function(geometry) {
-	var material = new THREE.MeshLambertMaterial( { color: 0xaaaaaa } );
-	var arrowParent = new THREE.Object3D();
+Stage.prototype.loadArrows = function(geometry) {	        
+    arrows = [0,0,0,0,0,0,0,0];
+    var iToOctant = [4,0,1,5,7,3,2,6];
+	arrowParent = new THREE.Object3D();
+    arrowParent.visible = false;
 	arrowParent.position.set(-HALF_UNIT,0,-HALF_UNIT);
 	var qs = [0,1,3,2]; //Rotate around board clockwise
 	var arrowDirX = [-1,1,-1,1,1,-1,1,-1];
@@ -85,7 +90,7 @@ Stage.prototype.loadArrows = function(geometry) {
 		var qr = Math.floor(q / QUAD_COUNT);
 		var qc = q % QUAD_COUNT;
 		var rot = (i % 2 != 0)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
-		var arrowMesh = new THREE.Mesh(geometry, material);		
+		var arrowMesh = new THREE.Mesh(geometry, materialArrow);		
 		arrowMesh.position.set(
 			(BOARD_SIZE * qc) + (arrowDirX[i] * (UNIT_SIZE/4) * 3), //X
 			UNIT_SIZE,  //Y    
@@ -98,7 +103,7 @@ Stage.prototype.loadArrows = function(geometry) {
 		else arrowMesh.rotateY(i * -Math.PI/4);
 
 		arrowParent.add(arrowMesh);
-		arrows.push(arrowMesh);
+		arrows[iToOctant[i]] = arrowMesh;
 	}
 	scene.add(arrowParent);
 	
@@ -194,7 +199,7 @@ Stage.prototype.loadTargets = function() {
 	scene.add(boardTarget);	
 	
 	//Arrow targets for rotation
-	var arrowGeo = new THREE.PlaneGeometry(BOARD_SIZE + (UNIT_SIZE * 3), BOARD_SIZE + (UNIT_SIZE * 3));
+	var arrowGeo = new THREE.PlaneGeometry(ARROW_TARGET_SIZE, ARROW_TARGET_SIZE);
 	var arrowMat = new THREE.MeshLambertMaterial( { color: 0x888800 } );	
 	arrowTarget = new THREE.Mesh(arrowGeo, arrowMat);
 	arrowTarget.rotation.x = -Math.PI / 2;
@@ -217,8 +222,14 @@ Stage.prototype.loadTargets = function() {
 
 //Animation
 Stage.prototype.onModeChanged = function(mode) {
-	if (mode == MODE_PLACE) cursorObj.visible = true;
-	else if (mode == MODE_ROTATE) cursorObj.visible = false;
+	if (mode == MODE_PLACE) {
+        cursorObj.visible = true;
+        arrowParent.visible = false;
+    }
+	else if (mode == MODE_ROTATE) {
+        cursorObj.visible = false;
+        arrowParent.visible = true;
+    }
 }
 
 Stage.prototype.placePin = function(pos, completeFn) {
@@ -235,17 +246,17 @@ Stage.prototype.placePin = function(pos, completeFn) {
 	completeFn.call(game);
 }
 
-Stage.prototype.rotateQuad = function() {
+Stage.prototype.rotateQuad = function(q) {
 	cursorObj.visible = false;
-	var quad = quads[selQuad];
+	var quad = quads[q];
 	var x = quad.position.x;
 	var z = quad.position.z;
 	
 	//Move out
 	var tween = new TWEEN.Tween({d:0}).to({d:UNIT_SIZE}, ROTATE_SPEED);
 	tween.onUpdate(function() {		
-		quad.position.x = x + (this.d * quadDirX[selQuad]);
-		quad.position.z = z + (this.d * quadDirZ[selQuad]);				
+		quad.position.x = x + (this.d * quadDirX[q]);
+		quad.position.z = z + (this.d * quadDirZ[q]);				
 	});
 	
 	//Rotate - quad and gears
