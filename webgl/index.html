@@ -13,7 +13,7 @@
 <script src="lib/THREEx.FullScreen.js"></script>
 <script src="lib/THREEx.WindowResize.js"></script>
 <script src="lib/tween.min.js"></script>
-<!--<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>-->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 
 <!-- Board library includes -->
 <script src="../js/lib/bitlib.js"></script>
@@ -26,8 +26,21 @@
 <script src="../js/core/player.js"></script>
 <script src="../js/constants/settings.js"></script>
 
+<!-- UI -->
+<style>
+#game-text {
+    color: white;
+    font-size: 18pt;
+    left:0;
+    position: absolute;
+    top:0;
+    z-index:2;
+}
+</style>
+<div id="container" style="position: absolute; left:0px; top:0px; z-index:1"></div>
+<div id="game-text"></div>
+
 <!-- Tork3D includes -->
-<div id="container" style="position: absolute; left:0px; top:0px"></div>
 <script src="coord-util.js"></script>
 <script src="constants.js"></script>
 <script src="mouse-events.js"></script>

@@ -100,6 +100,9 @@ Game.prototype.changeMode = function(mode) {
 }
 
 //Helper
+Game.prototype.out = function(text) {
+    $('#game-text').text(this.message);
+}
 Game.prototype.resetCursor = function() {
 	this.cursorOct = INVALID;
 	this.cursorQuad = INVALID;

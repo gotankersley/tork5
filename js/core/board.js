@@ -203,14 +203,6 @@ Board.prototype.getWinLine = function(win) {
     return [minR, minC, maxR, maxC];
 }
 
-// Board.prototype.randomize = function() {   
-	// var pinsToAdd = Math.random() * (BOARD_SPACES - 2);
-	// for (var i = 0; i < pinsToAdd; i++) {		
-		// this.setPin(Math.random(i) * BOARD_SPACES);
-		// this.rotate(Math.random() * BOARD_QUADS, (Math.random() * 2) - 1);
-	// }
-// }
-
 Board.prototype.makeRandomMove = function() { 
     var avail = not(or(this.p1, this.p2));
     var availBits = bitScan(avail);

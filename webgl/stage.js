@@ -57,7 +57,7 @@ function Stage(containerId) {
     materialArrow = new THREE.MeshLambertMaterial( { color: 0xaaaaaa, transparent: true, opacity: 0.8  } );
     materialArrowHover = new THREE.MeshLambertMaterial( { color: 0x008800 });
 	materialPin2 = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
-	materialWinLine = new THREE.MeshNormalMaterial();
+	materialWinLine = new THREE.MeshLambertMaterial( { color: 0xff0000, transparent: true, opacity: 0.8  } );	
 	
 	//Light
 	var light = new THREE.PointLight(0xffffff);
@@ -243,11 +243,15 @@ Stage.prototype.onModeChanged = function(mode) {
 	}
 }
 
-Stage.prototype.placePin = function(pos, q, turn, completeFn) {
+Stage.prototype.placePin = function(pos, q, turn, completeFn) {    		   
+    var quadPos = new Pos(pos.r % 3, pos.c % 3);
     var pin = (turn != PLAYER1)? pin1.clone() : pin2.clone();
-    pin.position = posToQuadPoint(pos, pin.position.y, q);		
+    pin.rotation.y = -quads[q].rotation.y; //Negate parent rotation so we can translate aligned with world axis
+    var point = posToPoint(quadPos);
+    pin.translateX(-UNIT_SIZE + point.x);
+    pin.translateZ(-UNIT_SIZE + point.z);
+    quads[q].add(pin);   	    
     pins.push(pin);    
-    quads[q].add(pin);   	
 	completeFn.call(game);
 }
 
@@ -292,28 +296,42 @@ Stage.prototype.rotateQuad = function(q, r, completeFn) {
 	tween.start();
 	
 }
-
-var liney;
 Stage.prototype.showWinLines = function(winRCs) {
 	//Convert win lines from row/col to points  
 	var offset = 1;
     for (var side in winRCs) {
         for (var i in winRCs[side]) {
-			var line = winRCs[side][i];		   
-			var lineGeo = new THREE.Geometry();
+			var line = winRCs[side][i];		   			
 			var p1 = posToPoint(new Pos(line[0], line[1]), UNIT_SIZE * 2);
-			var p2 = posToPoint(new Pos(line[2], line[3]), UNIT_SIZE * 2);		
-			lineGeo.vertices.push(new THREE.Vector3(p1.x - offset, p1.y, p1.z - offset));
-			lineGeo.vertices.push(new THREE.Vector3(p1.x + offset, p1.y, p1.z - offset));
-			lineGeo.vertices.push(new THREE.Vector3(p2.x - offset, p2.y, p2.z + offset));
-			lineGeo.vertices.push(new THREE.Vector3(p2.x + offset, p2.y, p2.z + offset));
-						
-			//var lineObj = new THREE.Mesh(lineGeo, materialWinLine);
-			liney = new THREE.Mesh(lineGeo, materialWinLine);
-			scene.add(liney);
+			var p2 = posToPoint(new Pos(line[2], line[3]), UNIT_SIZE * 2);					            
+            var lineObj = createLine(p1, p2);
+			scene.add(lineObj);
 		}
     } 
 }
+
+function createLine(p1, p2) {        
+    //Points p1, and p2 should be pre-sorted    
+    var lenX = Math.abs(p1.x - p2.x);
+    var lenZ = Math.abs(p1.z - p2.z);
+    var length = Math.sqrt((lenX * lenX) + (lenZ * lenZ)); 
+    var angle;
+      
+    if (p1.z == p2.z) angle = 0;   //Horizontal    
+    else if (p1.x == p2.x) angle = Math.PI/2; //Vertical           
+    else if (p2.x > p1.x) angle = -Math.PI/4; //Diagonal TR->BL   
+    else angle = Math.PI/4; //Diagonal TL->BR    
+    
+    var lineGeo = new THREE.CylinderGeometry(LINE_SIZE, LINE_SIZE, length, 8, 8, true);    
+    var line = new THREE.Mesh(lineGeo, materialWinLine);     
+    //plane.rotation.x = -Math.PI / 2;
+    line.rotation.z = -Math.PI / 2;
+    line.rotation.y = angle;
+    line.position.set((p1.x + p2.x) / 2, UNIT_SIZE, (p1.z + p2.z) / 2);
+    return line;
+}
+
+
 
 //Render
 Stage.prototype.render = function() {
