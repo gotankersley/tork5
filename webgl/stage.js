@@ -56,7 +56,7 @@ function Stage(containerId) {
 	materialCursor = new THREE.MeshLambertMaterial( { color: 0x008800, transparent: true, opacity: 0.5  } );	
     materialArrow = new THREE.MeshLambertMaterial( { color: 0xaaaaaa, transparent: true, opacity: 0.8  } );
     materialArrowHover = new THREE.MeshLambertMaterial( { color: 0x008800 });
-	materialPin2 = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+	materialPin2 = new THREE.MeshLambertMaterial( { color: 0x202020 } );
 	materialWinLine = new THREE.MeshLambertMaterial( { color: 0xff0000, transparent: true, opacity: 0.8  } );	
 	
 	//Light
@@ -167,7 +167,8 @@ Stage.prototype.loadPin = function( geometry, materials ) {
 	var material = new THREE.MeshFaceMaterial( materials );	
 	pin1 = new THREE.Mesh( geometry, material );	
 	
-	pin2Geo = new THREE.SphereGeometry( 10, 12, 12 );	
+	//pin2Geo = new THREE.SphereGeometry( 10, 12, 12 );	
+	pin2Geo = new THREE.CubeGeometry( (UNIT_SIZE*2)/3, (UNIT_SIZE*3)/2, (UNIT_SIZE*2)/3);	
 	pin2 = new THREE.Mesh( pin2Geo, materialPin2 );	
 	pin2.position.y = UNIT_SIZE;
 }

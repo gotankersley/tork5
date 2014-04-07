@@ -13,7 +13,7 @@ function Game(stage) {
     this.modeLock = false; //Used to lock mode for multiple pin places, or rotations
 	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
     this.gameState;
-    this.message = 'Player1 - place marble';    
+    this.out('Player1 - place marble');    
 	this.stage = stage; //Graphical display
 	
 	//Cursor variables
@@ -29,13 +29,13 @@ Game.prototype.onPlaceStart = function(keepPlacing) {
     if (this.board.set(this.cursorPos.r, this.cursorPos.c)) {
 		this.stage.placePin(this.cursorPos, this.cursorQuad, this.board.turn, this.onPlaceEnd);		
     }
-	else this.message = 'Unable to play there';
+	else this.out('Unable to play there');
 }
 
 Game.prototype.onPlaceEnd = function() {	
 	this.gameState = this.board.isWin();
 	if (this.gameState == IN_PLAY) {
-		this.message = 'Player' + (this.board.turn + 1) + ' - turn quad';
+		this.out('Player' + (this.board.turn + 1) + ' - turn quad');
 		if (!this.modeLock) this.changeMode(MODE_ROTATE);		
 	}
 	else this.onGameOver();    
@@ -61,7 +61,7 @@ Game.prototype.onMoveOver = function() {
     if (this.gameState == IN_PLAY) {
 
 		//Change turn
-		this.message = 'Player' + (this.board.turn + 1) + ' - place marble';	
+		this.out('Player' + (this.board.turn + 1) + ' - place marble');	
 		
 		//if (SETTING_FIND_WINS) this.showFindWins();	        
 		//Reset cursor
@@ -76,12 +76,12 @@ Game.prototype.onMoveOver = function() {
 
 Game.prototype.onGameOver = function() {           
     //Tie game (and dual win)
-    if (this.gameState == WIN_TIE || this.gameState == WIN_DUAL) this.message = 'TIE GAME!';		       
+    if (this.gameState == WIN_TIE || this.gameState == WIN_DUAL) this.out('TIE GAME!');		       
     else {        
         //Player 1
-        if (this.gameState == WIN_PLAYER1) this.message = 'Player1 WINS!';                     
+        if (this.gameState == WIN_PLAYER1) this.out('Player1 WINS!');  
         //Player 2            
-        else this.message = 'Player2 WINS!';                              
+        else this.out('Player2 WINS!');                              
         //if (winRCs[PLAYER1].length > 1 || winRCs[PLAYER2].length > 1) this.message += ' Multi-win!';
     }
            		   
@@ -101,7 +101,7 @@ Game.prototype.changeMode = function(mode) {
 
 //Helper
 Game.prototype.out = function(text) {
-    $('#game-text').text(this.message);
+    $('#game-text').text(text);
 }
 Game.prototype.resetCursor = function() {
 	this.cursorOct = INVALID;
