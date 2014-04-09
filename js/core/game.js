@@ -20,8 +20,8 @@ var MODE_WAIT = 3;
 var MODE_WIN = 4;
 
 //Colors
-var COLOR_P1 = '#000';//#C00';
-var COLOR_P2 = '#c0c0c0'; //'#06c';
+var COLOR_P1 = '#c0c0c0'; //'#06c';
+var COLOR_P2 = '#000';//#C00';
 var COLOR_CURSOR = '#cfc';
 var COLOR_QUAD = '#000';
 var COLOR_GRID = '#c0c0c0';
