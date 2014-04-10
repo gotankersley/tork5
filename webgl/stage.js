@@ -56,7 +56,7 @@ function Stage(containerId) {
 	materialCursor = new THREE.MeshLambertMaterial( { color: 0x008800, transparent: true, opacity: 0.5  } );	
     materialArrow = new THREE.MeshLambertMaterial( { color: 0xaaaaaa, transparent: true, opacity: 0.8  } );
     materialArrowHover = new THREE.MeshLambertMaterial( { color: 0x008800 });
-	materialPin2 = new THREE.MeshLambertMaterial( { color: 0x202020 } );
+	materialPin2 = new THREE.MeshLambertMaterial( { color: 0xaa0000 } );
 	materialWinLine = new THREE.MeshLambertMaterial( { color: 0xff0000, transparent: true, opacity: 0.8  } );	
 	
 	//Light

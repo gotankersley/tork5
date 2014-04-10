@@ -305,7 +305,7 @@ Board.prototype.getMoveFromMidWin = function(i) {
         rot = Math.floor(i/3)%2;
         var win = SHORT_WINS[i];        
         if (and(board, win) == win) {
-            var availBits = bitScan(avail);
+            var availBits = bitScan(avail); 
             pos = availBits[0]; //Any available
         }
         else pos = MPOS_TO_POS[xor(win, board)];               
@@ -416,6 +416,39 @@ function testWinLineFromSpace(side, board, pos, avail, winsRef) { //Wins passed 
 	}
 }
 
+Board.prototype.score = function() {
+    var board;
+    var opp;
+    var winLines = {};
+    if (this.turn == PLAYER1) {
+        board = this.p1;
+        opp = this.p2;
+    }
+    else {
+        board = this.p2;
+        opp = this.p1;
+    }
+    
+   // var avail = not(or(this.p1, this.p2));
+    var boardBits = bitScan(board); 
+    //Loop through player's pins
+    for (var i = 0; i < boardBits.length; i++) {
+        var pos = boardBits[i];
+        //Get all win lines from pin
+        var winsFromPos = AVAIL_WINS[pos];
+        for (var k = 0; k < winsFromPos.length; k++) {
+            winLines[winsFromPos[k]] = true; //Set to avoid checking multiple times 
+        }
+    }
+    
+    //Loop through possible win lines
+    var score = 0;
+    var winKeys = Object.keys(winLines);
+    for (var i = 0; i < winKeys.length; i++) {
+        if (!and(opp, winKeys[i])) score += 10 << bitCount(and(board, winKeys[i]));
+    }
+    return score;
+}
 
 Board.prototype.deriveMove = function(after) {
 	//Derive the move (i.e. pin position and quad rotation) that was made by looking at the difference 

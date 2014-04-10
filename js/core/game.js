@@ -146,6 +146,7 @@ Game.prototype.onKeyPress = function(e) {
 	else if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;
 	else if (e.keyCode == KEY_ENTER) game.onTurnChanged(true);
     else if (e.keyCode == KEY_F) game.showFindWins();
+    else if (e.keyCode == 83) console.log(game.board.score());
     
     game.draw();
 }
