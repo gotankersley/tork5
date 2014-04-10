@@ -1,3 +1,6 @@
+body {
+	-webkit-user-select: none;
+}
 #find-wins{    
     bottom: 0px;
     color: gray;    

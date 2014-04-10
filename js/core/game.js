@@ -101,9 +101,21 @@ Game.prototype.onClick = function(e) {
         var c = toRC(x);
         game.onPlacePin(r, c, e.ctrlKey);        
     }
-	else if (game.mode == MODE_ROTATE || e.altKey) {		
-		var rot = arrowToRot(game.quad, game.arrow);
-		game.onRotateStart(game.quad, rot, e.altKey);
+	else if (game.mode == MODE_ROTATE || e.altKey) {
+        var r = toRC(y);
+        var c = toRC(x);
+		//Skip rotation if there is an empty quad
+		if (SETTING_SKIP_ROTATION && game.cursorR == r && game.cursorC == c) {
+			if (game.board.canSkipRotation()) {
+				game.onTurnChanged(true);
+				game.onMoveOver();
+			}
+			else game.message = 'Rotation required';
+		}
+		else {
+			var rot = arrowToRot(game.quad, game.arrow);
+			game.onRotateStart(game.quad, rot, e.altKey);
+		}
 	}
 	else if (game.mode == MODE_ANIM) {
 		game.quadRotDegrees = (89 * game.quadRotDir);
@@ -146,7 +158,7 @@ Game.prototype.onKeyPress = function(e) {
 	else if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;
 	else if (e.keyCode == KEY_ENTER) game.onTurnChanged(true);
     else if (e.keyCode == KEY_F) game.showFindWins();
-    else if (e.keyCode == 83) console.log(game.board.score());
+    else if (e.keyCode == 83) game.board.score();
     
     game.draw();
 }

@@ -215,6 +215,29 @@ Board.prototype.makeRandomMove = function() {
     this.rotate(randQuad, randRot);	
 }
 
+Board.prototype.getAllMoves = function() {
+    var avail = not(or(this.p1, this.p2));
+    var availBits = bitScan(avail);
+	var moves = [];
+	var moveSet = {};
+	for (var a = 0; a < availBits.length; a++) {
+		for (var i = 0; i < ALL_ROTATIONS; i++) {
+			var q = Math.floor(i/2);
+            var r = i%2;
+            var newBoard = this.clone();
+            if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); //Place pin
+			else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); //Place pin
+            newBoard.rotate(q, r); //Rotate
+			var boardIdStr = String(newBoard.p1) + '_' + String(newBoard.p2);
+            if (typeof(moveSet[boardIdStr]) == 'undefined') {
+				moveSet[boardIdStr] = true;
+				moves.push(newBoard);
+			}
+		}
+	}
+	return moves;
+}
+
 Board.prototype.getAllNonLossMoves = function() { 
     var board;
     var opp;
@@ -418,9 +441,11 @@ function testWinLineFromSpace(side, board, pos, avail, winsRef) { //Wins passed 
 
 Board.prototype.score = function() {
     var board;
-    var opp;
-    var winLines = {};
-    if (this.turn == PLAYER1) {
+    var opp;    
+	var curScore;
+	var oppScore;
+	//Turn inverted because move has already been made before evaluating board state
+    if (this.turn == PLAYER2) {
         board = this.p1;
         opp = this.p2;
     }
@@ -428,28 +453,50 @@ Board.prototype.score = function() {
         board = this.p2;
         opp = this.p1;
     }
-    
-   // var avail = not(or(this.p1, this.p2));
-    var boardBits = bitScan(board); 
-    //Loop through player's pins
-    for (var i = 0; i < boardBits.length; i++) {
-        var pos = boardBits[i];
-        //Get all win lines from pin
-        var winsFromPos = AVAIL_WINS[pos];
-        for (var k = 0; k < winsFromPos.length; k++) {
-            winLines[winsFromPos[k]] = true; //Set to avoid checking multiple times 
-        }
-    }
-    
-    //Loop through possible win lines
-    var score = 0;
-    var winKeys = Object.keys(winLines);
-    for (var i = 0; i < winKeys.length; i++) {
-        if (!and(opp, winKeys[i])) score += 10 << bitCount(and(board, winKeys[i]));
-    }
-    return score;
+	
+	//Board less than half full, so check pins
+	var count = bitCount(or(board, opp));
+	if (count <= 12) { 		
+		curScore = scoreWinLines(board, opp, bitScan(board));
+		oppScore = scoreWinLines(opp, board, bitScan(opp));
+	}
+	//Board more than half full, so check empty spaces
+    else {
+		var avail = not(or(this.p1,this.p2));
+		curScore = scoreWinLines(board, opp, bitScan(avail));
+		oppScore = scoreWinLines(opp, board, bitScan(avail));
+	}	
+//	console.log("Score: " + curScore + '/' + oppScore + ' = ' + (curScore - oppScore) + ' ' + String(this.p1) + '_' + String(this.p2));
+	console.log("Score: " + curScore + '/' + oppScore + ' = ' + (curScore - oppScore));
+    return curScore - oppScore;
 }
 
+function scoreWinLines(board, opp, positions) {	
+	var winLines = {};
+	var score = 0;
+	
+	//Loop through positions
+	for (var i = 0; i < positions.length; i++) {
+		var pos = positions[i];
+		//Get all win lines from board space
+		var winsFromPos = AVAIL_WINS[pos];
+		for (var k = 0; k < winsFromPos.length; k++) {
+			winLines[winsFromPos[k]] = true; //Set to avoid checking multiple times 
+		}
+	}
+	
+	//Loop through possible win lines
+	var winKeys = Object.keys(winLines);		
+	for (var i = 0; i < winKeys.length; i++) {
+		if (!and(opp, winKeys[i])) {//score += Math.pow(5, bitCount(and(board, winKeys[i])) - 1);		
+			var bc = Math.max(0, bitCount(and(board, winKeys[i])) - 1);
+			var exp = Math.pow(5, bc);			
+			score += exp;
+		}
+		
+	}
+	return score;
+}
 Board.prototype.deriveMove = function(after) {
 	//Derive the move (i.e. pin position and quad rotation) that was made by looking at the difference 
 	//between a board state before and after the move was made. 
@@ -497,6 +544,11 @@ Board.prototype.deriveMove = function(after) {
 	return {pos:INVALID, quad:INVALID, rot:INVALID};
 }
 
+Board.prototype.canSkipRotation = function() {
+	var board = or(this.p1, this.p2);
+	if (!and(board, QUADS[0]) || !and(board, QUADS[1]) || !and(board, QUADS[2]) || !and(board, QUADS[3])) return true;
+	else return false;
+}
 Board.prototype.clone = function() {
     var newBoard = new Board();
     newBoard.p1 = this.p1;
