@@ -20,8 +20,10 @@ var arrowParent;
 var materialCursor;
 var materialArrow;
 var materialArrowHover;
+var materialPin1;
 var materialPin2;
 var materialWinLine;
+var materialQuad;
 
 //Class Stage
 function Stage(containerId) {	
@@ -56,19 +58,25 @@ function Stage(containerId) {
 	materialCursor = new THREE.MeshLambertMaterial( { color: 0x008800, transparent: true, opacity: 0.5  } );	
     materialArrow = new THREE.MeshLambertMaterial( { color: 0xaaaaaa, transparent: true, opacity: 0.8  } );
     materialArrowHover = new THREE.MeshLambertMaterial( { color: 0x008800 });
-	materialPin2 = new THREE.MeshLambertMaterial( { color: 0xaa0000 } );
+	materialPin2 = new THREE.MeshLambertMaterial( { color: 0x9999ff } );
 	materialWinLine = new THREE.MeshLambertMaterial( { color: 0xff0000, transparent: true, opacity: 0.8  } );	
 	
 	//Light
 	var light = new THREE.PointLight(0xffffff);
-	light.position.set(100,250,100);
-	scene.add(light);				
+	light.position.set(100,-250,100);
+	light.position
+	scene.add(light);	
+
+	var light2 = new THREE.PointLight(0xffffff);
+	light2.position.set(100,250,100);	
+	scene.add(light2);	
+	
     var ambientLight = new THREE.AmbientLight(0x111111);
 	scene.add(ambientLight);	
 	
 	//Load models
-    this.loadOrigin();
-    this.loadFloor();
+    //this.loadOrigin();
+    //this.loadFloor();
     this.loadSky();
 	this.loadTargets();	
     var jsonLoader = new THREE.JSONLoader();	
@@ -113,7 +121,7 @@ Stage.prototype.loadArrows = function(geometry) {
 }
 
 Stage.prototype.loadGears = function( geometry, materials ) {		
-	var material = new THREE.MeshLambertMaterial( { color: 0x880000 } );	
+	var material = new THREE.MeshLambertMaterial( { color: 0xbb3333 } );	
 
 	for (var i = 0; i < BOARD_QUADS; i++) {
 		var r = Math.floor(i / 2);
@@ -126,12 +134,16 @@ Stage.prototype.loadGears = function( geometry, materials ) {
 		scene.add( gear );
 	}
 
+	gears[0].material = materialPin2;
+	gears[3].material = materialPin2; 
+	
 	//Add center gear
 	centerGear = new THREE.Mesh( geometry, material );
 	centerGear.position.set(HALF_BOARD - HALF_UNIT,-4,HALF_BOARD - HALF_UNIT);
     centerGear.scale.set(0.8,1,0.8);
     centerGear.position.y += HALF_UNIT + 1.5;
     centerGear.rotateX(180 * (Math.PI/180));
+	centerGear.material = materialPin2;
 	scene.add( centerGear );
 }
 
@@ -157,6 +169,7 @@ Stage.prototype.loadFloor = function() {
 
 Stage.prototype.loadSpacer = function( geometry, materials ) {
 	var material = new THREE.MeshFaceMaterial( materials );	
+	material.materials[0].emissive = new THREE.Color(0.5, 0.5, 0.5);
 	var model = new THREE.Mesh( geometry, material );
 	var SPACER_SIZE = 3;
 	model.position.set((UNIT_SIZE * 2) + HALF_UNIT - SPACER_SIZE, 0, (UNIT_SIZE * 2) + HALF_UNIT - SPACER_SIZE);
@@ -165,20 +178,22 @@ Stage.prototype.loadSpacer = function( geometry, materials ) {
 
 Stage.prototype.loadPin = function( geometry, materials ) {
 	var material = new THREE.MeshFaceMaterial( materials );	
+	materialPin1 = material.materials[0];
 	pin1 = new THREE.Mesh( geometry, material );	
 	
 	//pin2Geo = new THREE.SphereGeometry( 10, 12, 12 );	
-	pin2Geo = new THREE.CubeGeometry( (UNIT_SIZE*2)/3, (UNIT_SIZE*3)/2, (UNIT_SIZE*2)/3);	
-	pin2 = new THREE.Mesh( pin2Geo, materialPin2 );	
-	pin2.position.y = UNIT_SIZE;
+	//pin2Geo = new THREE.CubeGeometry( (UNIT_SIZE*2)/3, (UNIT_SIZE*3)/2, (UNIT_SIZE*2)/3);	
+	//pin2 = new THREE.Mesh( pin2Geo, materialPin2 );	
+	//pin2.position.y = UNIT_SIZE;
 }
 
 Stage.prototype.loadQuads = function( geometry, materials ) {	
-	var material = new THREE.MeshFaceMaterial( materials );		
+	materialQuad = new THREE.MeshFaceMaterial( materials );	
+	materialQuad.materials[0].emissive = new THREE.Color(0.8, 0.8, 0.8);
 	for (var i = 0; i < BOARD_QUADS; i++) {
 		var r = Math.floor(i / 2);
 		var c = i % 2;
-		var quad = new THREE.Mesh( geometry, material );		
+		var quad = new THREE.Mesh( geometry, materialQuad );		
 		quad.position.x = (c * QUAD_SIZE) + UNIT_SIZE;
 		quad.position.z = (r * QUAD_SIZE) + UNIT_SIZE;
 				
@@ -189,7 +204,8 @@ Stage.prototype.loadQuads = function( geometry, materials ) {
 
 Stage.prototype.loadSky = function() {
 	var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
-	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
+	//var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0x9999ff, side: THREE.BackSide } );
+	var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.BackSide } );
 	var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
 	scene.add(skyBox);
 }
@@ -246,7 +262,9 @@ Stage.prototype.onModeChanged = function(mode) {
 
 Stage.prototype.placePin = function(pos, q, turn, completeFn) {    		   
     var quadPos = new Pos(pos.r % 3, pos.c % 3);
-    var pin = (turn != PLAYER1)? pin1.clone() : pin2.clone();
+    //var pin = (turn != PLAYER1)? pin1.clone() : pin2.clone();
+	var pin = pin1.clone();
+	if (turn == PLAYER2) pin.material = materialPin2;
     pin.rotation.y = -quads[q].rotation.y; //Negate parent rotation so we can translate aligned with world axis
     var point = posToPoint(quadPos);
     pin.translateX(-UNIT_SIZE + point.x);
@@ -315,7 +333,7 @@ function createLine(p1, p2) {
     //Points p1, and p2 should be pre-sorted    
     var lenX = Math.abs(p1.x - p2.x);
     var lenZ = Math.abs(p1.z - p2.z);
-    var length = Math.sqrt((lenX * lenX) + (lenZ * lenZ)); 
+    var length = Math.sqrt((lenX * lenX) + (lenZ * lenZ)) + UNIT_SIZE; 
     var angle;
       
     if (p1.z == p2.z) angle = 0;   //Horizontal    
@@ -323,12 +341,12 @@ function createLine(p1, p2) {
     else if (p2.x > p1.x) angle = -Math.PI/4; //Diagonal TR->BL   
     else angle = Math.PI/4; //Diagonal TL->BR    
     
-    var lineGeo = new THREE.CylinderGeometry(LINE_SIZE, LINE_SIZE, length, 8, 8, true);    
+    var lineGeo = new THREE.CylinderGeometry(LINE_SIZE, LINE_SIZE, length, 8, 8);    
     var line = new THREE.Mesh(lineGeo, materialWinLine);     
     //plane.rotation.x = -Math.PI / 2;
     line.rotation.z = -Math.PI / 2;
     line.rotation.y = angle;
-    line.position.set((p1.x + p2.x) / 2, UNIT_SIZE, (p1.z + p2.z) / 2);
+    line.position.set((p1.x + p2.x) / 2, UNIT_SIZE + HALF_UNIT, (p1.z + p2.z) / 2);
     return line;
 }
 

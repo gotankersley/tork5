@@ -9,8 +9,7 @@ function AlphaBeta(board) {
 AlphaBeta.prototype.getMove = function() {	
 	//Check for available wins before trying to build the search tree
 	var winFound = this.board.findWin();
-	if (winFound) {
-		alert('win found');
+	if (winFound) {		
 		return this.board.getMoveFromMidWin(winFound);
 	}
 	

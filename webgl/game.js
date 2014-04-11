@@ -13,7 +13,7 @@ function Game(stage) {
     this.modeLock = false; //Used to lock mode for multiple pin places, or rotations
 	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
     this.gameState;
-    this.out('Player1 - place marble');    
+    this.out('Player1 - place pin');    
 	this.stage = stage; //Graphical display
 	
 	//Cursor variables
@@ -61,7 +61,7 @@ Game.prototype.onMoveOver = function() {
     if (this.gameState == IN_PLAY) {
 
 		//Change turn
-		this.out('Player' + (this.board.turn + 1) + ' - place marble');	
+		this.out('Player' + (this.board.turn + 1) + ' - place pin');	
 		
 		//if (SETTING_FIND_WINS) this.showFindWins();	        
 		//Reset cursor

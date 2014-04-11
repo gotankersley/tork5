@@ -57,7 +57,7 @@ function Game() {
 	this.ctx = this.canvas.getContext('2d');    
     this.ctx.font = '14pt sans-serif';
     this.messageColor = COLOR_P1;
-    this.message = 'Player1 - place marble';
+    this.message = 'Player1 - place pin';
     
 	this.board = new Board();    
     this.cursorR = 0;
@@ -169,12 +169,6 @@ Game.prototype.onFrame = function() {
     requestAnimationFrame(this.onFrame.bind(this));	
 }
 
-// Game.prototype.onRandomize = function(e) {    
-	// game.board.randomize();
-	// e.preventDefault();
-	// return false;
-// }
-
 //Game events
 Game.prototype.onPlacePin = function(r, c, placeMode) {    
     var board = this.board;
@@ -207,8 +201,11 @@ Game.prototype.onRotating = function() {
 Game.prototype.onRotateEnd = function() {   
     var rot = (this.quadRotDir == 1)? ROT_CLOCKWISE : ROT_ANTICLOCKWISE;
     this.board.rotate(this.quad, rot); //this changes the turn  	
-	this.onTurnChanged(false);
-	this.onMoveOver();
+	if (this.rotateMode) this.mode = MODE_ROTATE;
+	else {
+		this.onTurnChanged(false);
+		this.onMoveOver();
+	}
 }
 
 Game.prototype.onTurnChanged = function(changeTurn) {
@@ -216,7 +213,7 @@ Game.prototype.onTurnChanged = function(changeTurn) {
 	if (changeTurn) this.board.turn = !this.board.turn;
 	
 	this.messageColor = (this.board.turn == PLAYER1)? COLOR_P1 : COLOR_P2;	
-	this.message = 'Player' + (this.board.turn + 1) + ' - place marble';	
+	this.message = 'Player' + (this.board.turn + 1) + ' - place pin';	
 }
 
 Game.prototype.onMoveOver = function() {			
@@ -227,12 +224,9 @@ Game.prototype.onMoveOver = function() {
         this.quad = INVALID;
         this.arrow = INVALID;	
         this.cursorR = 0;
-        this.cursorC = 0;	                        
-		if (!this.rotateMode) {
-			this.mode = (this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
-			this.player.play();
-			//this.mode = MODE_PLACE;	
-		}
+        this.cursorC = 0;	                        		
+		this.mode = (this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
+		this.player.play();					
     }
     else this.onGameOver(gameState);
 }
