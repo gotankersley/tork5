@@ -95,7 +95,7 @@ Game.prototype.onClick = function(e) {
 		x = e.offsetX; 
 		y = e.offsetY; 
 	}
-			
+		console.log(x,y);	
     if (game.mode == MODE_PLACE || e.ctrlKey) {
         var r = toRC(y);
         var c = toRC(x);
@@ -105,7 +105,8 @@ Game.prototype.onClick = function(e) {
         var r = toRC(y);
         var c = toRC(x);
 		//Skip rotation if there is an empty quad
-		if (SETTING_SKIP_ROTATION && game.cursorR == r && game.cursorC == c) {
+		if (SETTING_SKIP_ROTATION && game.cursorR == r && game.cursorC == c &&
+			x >= UNIT_SIZE && y >= UNIT_SIZE && x < (BOARD_SIZE + UNIT_SIZE) && y < (BOARD_SIZE + UNIT_SIZE)) {
 			if (game.board.canSkipRotation()) {
 				game.onTurnChanged(true);
 				game.onMoveOver();
@@ -159,9 +160,10 @@ Game.prototype.onKeyPress = function(e) {
 	else if (e.keyCode == KEY_ENTER) game.onTurnChanged(true);
     else if (e.keyCode == KEY_F) game.showFindWins();
     else if (e.keyCode == 83) {
-        var b = game.board.clone();
-        b.turn = !b.turn;
-        b.score();
+        //var b = game.board.clone();
+        //b.turn = !b.turn;
+        //b.score();
+		game.board.score(true);
     }
     
     game.draw();

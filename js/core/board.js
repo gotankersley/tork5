@@ -439,11 +439,11 @@ function testWinLineFromSpace(side, board, pos, avail, winsRef) { //Wins passed 
 	}
 }
 
-Board.prototype.score = function() {
+Board.prototype.score = function(inv) {
     var board;
     var opp;    
-	var curScore;
-	var oppScore;
+	var curScore = 0;
+	var oppScore = 0;
 	//Turn inverted because move has already been made before evaluating board state
     if (this.turn == PLAYER2) {
         board = this.p1;
@@ -456,21 +456,34 @@ Board.prototype.score = function() {
 	
 	//Board less than half full, so check pins
 	var count = bitCount(or(board, opp));
-	if (count <= 12) { 		        
-		curScore = scoreWinLines(board, opp, bitScan(board));        
-		oppScore = scoreWinLines(opp, board, bitScan(opp));
+	if (count <= 20) { 	//20 rather than 18 because of additional winchecking overhead required for empty spaces
+		curScore = scoreWinLines(board, opp, bitScan(board), 5);        
+		oppScore = scoreWinLines(opp, board, bitScan(opp), 4);
 	}
 	//Board more than half full, so check empty spaces
     else {
-		var avail = not(or(this.p1,this.p2));
-		curScore = scoreWinLines(board, opp, bitScan(avail));
-		oppScore = scoreWinLines(opp, board, bitScan(avail));
+		//Have to check for wins
+	    for (var i = 0; i < MID_WINS.length; i++) {
+			var mid = MID_WINS[i];
+			if (and(board, mid) == mid && and(board, SPAN_WINS[i])) {
+				curScore = INFINITY;
+				break;
+			}
+			else if (and(opp, mid) == mid && and(opp, SPAN_WINS[i])) {
+				oppScore = INFINITY;
+				break;
+			}
+		}
+		var avail = not(or(board, opp));
+		curScore += scoreWinLines(board, opp, bitScan(avail), 5);
+		oppScore += scoreWinLines(opp, board, bitScan(avail), 4);
 	}	
 	//console.log("Score: " + curScore + '/' + oppScore + ' = ' + (curScore - oppScore));
+	if (typeof(inv) != 'undefined') console.log("Score: " + oppScore + '/' + curScore + ' = ' + (oppScore - curScore));
     return curScore - oppScore;
 }
 
-function scoreWinLines(board, opp, positions) {	
+function scoreWinLines(board, opp, positions, numToWin) {	
 	var winLines = {};
 	var score = 0;
 	
@@ -488,9 +501,11 @@ function scoreWinLines(board, opp, positions) {
 	var winKeys = Object.keys(winLines);		
 	for (var i = 0; i < winKeys.length; i++) {
 		if (!and(opp, winKeys[i])) {
-			var bc = bitCount(and(board, winKeys[i]));
-			var exp = (bc >= 4)? Math.pow(bc, 5) : Math.pow(bc, 3);			
-			score += exp;         
+			var pinCount = bitCount(and(board, winKeys[i]));
+			if (pinCount >= numToWin) score += INFINITY;
+			else score += (pinCount >= 4)? Math.pow(pinCount, 5) : Math.pow(pinCount, 3);
+			//var weightedCount = (pinCount >= 4)? Math.pow(pinCount, 5) : Math.pow(pinCount, 3);			
+			        
 		}        
         
 		
