@@ -94,8 +94,7 @@ Game.prototype.onClick = function(e) {
 	else {
 		x = e.offsetX; 
 		y = e.offsetY; 
-	}
-		console.log(x,y);	
+	}		
     if (game.mode == MODE_PLACE || e.ctrlKey) {
         var r = toRC(y);
         var c = toRC(x);
@@ -117,11 +116,7 @@ Game.prototype.onClick = function(e) {
 			var rot = arrowToRot(game.quad, game.arrow);
 			game.onRotateStart(game.quad, rot, e.altKey);
 		}
-	}
-	else if (game.mode == MODE_ANIM) {
-		game.quadRotDegrees = (89 * game.quadRotDir);
 	}	
-    game.draw();
 }
 
 Game.prototype.onMouse = function(e) {
@@ -165,8 +160,7 @@ Game.prototype.onKeyPress = function(e) {
         //b.score();
 		game.board.score(true);
     }
-    
-    game.draw();
+        
 }
 
 Game.prototype.onFrame = function() {

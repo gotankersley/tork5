@@ -118,7 +118,7 @@ Board.prototype.getOpen = function() {
     var open = [];
     var avail = not(or(this.p1,this.p2));
 	var availBits = bitScan(avail);
-	for (var i in availBits) {		
+	for (var i = 0; i < availBits.length; i++) {		
 		open.push(availBits[i]);        
     }
     return open;
@@ -152,7 +152,7 @@ Board.prototype.isWin = function() {
 	
     var p1Win = false;
     var p2Win = false;
-    for (var i in MID_WINS) {
+    for (var i = 0; i < MID_WINS.length; i++) {
         var mid = MID_WINS[i];
         if (and(this.p1, mid) == mid && and(this.p1, SPAN_WINS[i])) p1Win = true;
         else if (and(this.p2, mid) == mid && and(this.p2, SPAN_WINS[i])) p2Win = true;
@@ -165,7 +165,7 @@ Board.prototype.isWin = function() {
 
 Board.prototype.getWinLines = function(win) {
     var lines = [[],[]];
-    for (var i in MID_WINS) {
+    for (var i = 0; i < MID_WINS.length; i++) {
         var mid = MID_WINS[i];        
         if (and(this.p1, mid) == mid && and(this.p1, SPAN_WINS[i])) {
             var boardSpan = and(this.p1, SPAN_WINS[i]);            
@@ -187,7 +187,7 @@ Board.prototype.getWinLine = function(win) {
     var r, c;
     //Get min, and max points to figure out line dimensions
 	var winBits = bitScan(win);
-	for (var i in winBits) {
+	for (var i = 0; i < winBits.length; i++) {
 		var pos = winBits[i];    
 		r = ROW[pos];
 		c = COL[pos];
@@ -254,7 +254,7 @@ Board.prototype.getAllNonLossMoves = function() {
     var oppWins = this.findOppRotateWins(opp);
     var avail = not(or(board,opp));
     var availBits = bitScan(avail);
-    for (var a in availBits) {
+    for (var a = 0; a < availBits.length; a++) {
         for (var i = 0; i < ALL_ROTATIONS; i++) {
             if (oppWins[i]) continue;
             var q = Math.floor(i/2);
@@ -272,7 +272,7 @@ Board.prototype.getAllNonLossMoves = function() {
 Board.prototype.findOppRotateWins = function(opp) {
 	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
     var wins = [0,0,0,0,0,0,0,0];
-	for (var i in QUAD_MID_WINS) {
+	for (var i = 0; i < QUAD_MID_WINS.length; i++) {
 		var mid = QUAD_MID_WINS[i];
         if (and(opp, mid) == mid) {            
             var q = Math.floor(i / 20);
@@ -381,7 +381,7 @@ Board.prototype.findAllWins = function() {
 	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 	
 	var side = Number(this.turn);
 	var oppSide = Number(!side);
-	for (var i in QUAD_MID_WINS) {
+	for (var i = 0; i < QUAD_MID_WINS.length; i++) {
 		var mid = QUAD_MID_WINS[i];
 		if (and(board, mid) == mid && and(board, QUAD_SPAN_WINS[i])) {            
             var q = Math.floor(i / 20);
@@ -418,7 +418,7 @@ Board.prototype.findAllWins = function() {
 
 
 function testWinLineFromSpace(side, board, pos, avail, winsRef) { //Wins passed by reference
-	for (var a in AVAIL_WINS[pos]) {
+	for (var a = 0; a < AVAIL_WINS[pos].length; a++) {
 		var win = AVAIL_WINS[pos][a];	
 		var boardLine = and(board, win);		
 		var count = bitCount(boardLine);

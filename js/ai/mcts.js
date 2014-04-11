@@ -50,7 +50,7 @@ MCTS.prototype.runMCTS = function(board) {
         root.board.makeRandomMove();
         return root;    
     }
-    for (var m in moves) {
+    for (var m = 0; m < moves.length; m++) {
         root.kids.push({visits:0, score:0, board:moves[m], parent:root, kids:[]});
     }
 	
@@ -59,7 +59,7 @@ MCTS.prototype.runMCTS = function(board) {
         //TODO: top level win-propagation
 		//Check to see if win has been propagated up in direct decendents of root (i.e. first level)		
 		/*var kids = root.kids;
-		for (var k in kids) {
+		for (var k = 0; k < kids.length; k++) {
 			if (kids[k].score == INFINITY) {
 				console.log('Win found!');
 				return kids[k];
@@ -137,7 +137,7 @@ MCTS.prototype.expandNode = function(node) {
     //Tie
     if (moves.length == 0) this.backpropagate(node, TIE_SCORE);
     else {
-        for (var m in moves) {
+        for (var m = 0; m < moves.length; m++) {
             node.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
         }
     }
@@ -181,7 +181,7 @@ MCTS.prototype.backpropagate = function(node, score) {
         //Loss - but all children must be checked to prove parent loss
         else if (score == -INFINITY) {
             var loss = true;
-            for (i in node.kids) {
+            for (var i = 0; i < node.kids.length; i++) {
                 if (node.kids[i].score != -INFINITY) {
                     loss = false;
                     break;
@@ -204,7 +204,7 @@ MCTS.prototype.pickFinalMove = function(root) {
 	var bestVisits = -INFINITY;
 	var bestNode = null;
 		
-	for (var i in root.kids) {
+	for (var i = 0; i < root.kids.length; i++) {
 		var kid = root.kids[i];
 		if (kid.visits > bestVisits) {
 			bestVisits = kid.visits;

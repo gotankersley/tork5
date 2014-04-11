@@ -1,4 +1,4 @@
-var ALPHA_BETA_MAX_DEPTH = 1;
+var ALPHA_BETA_MAX_DEPTH = 2;
 
 
 //Class AlphaBeta
@@ -10,7 +10,7 @@ AlphaBeta.prototype.getMove = function() {
 	//Check for available wins before trying to build the search tree
 	var winFound = this.board.findWin();
 	if (winFound) {
-		//alert('win found');
+		alert('win found');
 		return this.board.getMoveFromMidWin(winFound);
 	}
 	
@@ -21,17 +21,20 @@ AlphaBeta.prototype.getMove = function() {
 	var moves = root.getAllMoves();
 	for (var i = 0; i < moves.length; i++) {
 		var node = moves[i];		
-		var score = node.score();
-		//var score = -negamaxSearch(node, 1);
+		//var score = node.score();
+		var score = negamaxSearch(node, 1);
 		if (score > bestScore) {
 			bestScore = score;
 			bestNode = node;
 		}
 	}
-	console.log("Score: " + bestScore);	
-	bestNode.print();	
-	var move = this.board.deriveMove(bestNode); 	
-	return move;
+	//console.log("Score: " + bestScore);	
+	//bestNode.print();	
+	if (bestScore <= -INFINITY) {
+		alert('All moves lead to loss - making random move');
+		this.board.makeRandomMove();   
+	}
+	return this.board.deriveMove(bestNode); 		
 }
 
 function negamaxSearch(node, depth) { //recursive
