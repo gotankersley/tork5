@@ -12,6 +12,7 @@ AlphaBeta.prototype.getMove = function() {
 	if (winFound) {		
 		return this.board.getMoveFromMidWin(winFound);
 	}
+    this.board.print();
 	
 	//Else run search
 	var root = this.board.clone();            
@@ -27,8 +28,8 @@ AlphaBeta.prototype.getMove = function() {
 			bestNode = node;
 		}
 	}
-	//console.log("Score: " + bestScore);	
-	//bestNode.print();	
+	console.log("Score: " + bestScore);	
+	bestNode.print();	
 	if (bestScore <= -INFINITY) {
 		alert('All moves lead to loss - making random move');
 		this.board.makeRandomMove();   

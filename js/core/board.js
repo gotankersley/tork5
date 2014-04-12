@@ -319,19 +319,23 @@ Board.prototype.getMoveFromMidWin = function(i) {
     var quad = INVALID;
     var rot = INVALID;
     //Short diag win without rotation        
-    if (i > 95) pos = MPOS_TO_POS[xor(SHORT_WINS[i - 71], board)];
+    if (i > 95) {
+        var combined = and(SHORT_WINS[i - 71], board);
+        pos = MPOS_TO_POS[xor(SHORT_WINS[i - 71], combined)];
+    }
     
     //Short diagonal win with rotation
     else if (i > 70) { 
         i -= 71;
         quad = Math.floor(i/6);
         rot = Math.floor(i/3)%2;
-        var win = SHORT_WINS[i];        
-        if (and(board, win) == win) {
+        var win = SHORT_WINS[i];
+        var combined = and(board,win);
+        if (combined == win) {
             var availBits = bitScan(avail); 
             pos = availBits[0]; //Any available
         }
-        else pos = MPOS_TO_POS[xor(win, board)];               
+        else pos = MPOS_TO_POS[xor(win, combined)];               
     }
     //Long wins
     else {
