@@ -163,6 +163,12 @@ Board.prototype.isWin = function() {
     else return IN_PLAY;    
 }
 
+Board.prototype.canSkipRotation = function() {
+	var board = or(this.p1, this.p2);
+	if (!and(board, QUADS[0]) || !and(board, QUADS[1]) || !and(board, QUADS[2]) || !and(board, QUADS[3])) return true;
+	else return false;
+}
+
 Board.prototype.getWinLines = function(win) {
     var lines = [[],[]];
     for (var i = 0; i < MID_WINS.length; i++) {
@@ -241,7 +247,8 @@ Board.prototype.getAllMoves = function() {
 Board.prototype.getAllNonLossMoves = function() { 
     var board;
     var opp;
-    var moves = {};
+    var moves = [];
+    var moveSet = {};
     if (this.turn == PLAYER1) {
         board = this.p1;
         opp = this.p2;
@@ -263,53 +270,11 @@ Board.prototype.getAllNonLossMoves = function() {
             if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); 
 			else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); 
             newBoard.rotate(q, r);
-            moves[String(newBoard.p1) + '_' + String(newBoard.p2)] = newBoard;
+            var boardIdStr = String(newBoard.p1) + '_' + String(newBoard.p2);
+            if (typeof(moveSet[boardIdStr]) == 'undefined') moves.push(newBoard);
         }
     }
     return moves;
-}
-
-Board.prototype.findOppRotateWins = function(opp) {
-	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
-    var wins = [0,0,0,0,0,0,0,0];
-	for (var i = 0; i < QUAD_MID_WINS.length; i++) {
-		var mid = QUAD_MID_WINS[i];
-        if (and(opp, mid) == mid) {            
-            var q = Math.floor(i / 20);
-            var r = Math.floor(i / 10) % 2;
-            wins[(r * BOARD_QUADS) + q] = true;
-        }
-    }
-	return wins;
-}
-
-Board.prototype.findWin = function() {
-	//Check if there are enough pins on the board for a win   
-	var board = (this.turn == PLAYER1)? this.p1 : this.p2;
-	var count = bitCount(board);
-	if (count < 4) return false;     
-	
-	var avail = not(or(this.p1, this.p2));
-	if (!avail) return false; 
-		
-	for (var i = 0; i < 70; i++) {
-		var mid = LONG_MID_WINS[i];
-        var combinedMid = and(board, mid);
-        if (combinedMid == mid) { //4 in a row, need one available, or 5+ in a row that just needs to be turned
-            if (and(avail, LONG_SPAN_WINS[i]) || and(board, LONG_SPAN_WINS[i])) return Number(i) + 1;
-        }
-        else if (bitCount(combinedMid) == 3) { //3 out of 4 in mid, need 1 of the spans, and one availble 
-            if (and(board, LONG_SPAN_WINS[i]) && and(avail, mid)) return Number(i) + 1;  
-        }        
-    }    
-    for (var i = 0; i < 28; i++) {
-        var win = SHORT_WINS[i];
-        var combined = and(board, win);
-        if (combined == win) return Number(i) + 71;  //Win just with rotation
-        else if (bitCount(combined) == 4 && and(avail, win)) return Number(i) + 71;
-    }
-		
-	return false;
 }
 
 Board.prototype.getMoveFromMidWin = function(i) {
@@ -358,6 +323,49 @@ Board.prototype.getMoveFromMidWin = function(i) {
                         
     }
     return {pos:pos, quad:quad, rot:rot};
+}
+
+Board.prototype.findOppRotateWins = function(opp) {
+	//Rotate quads to see if rotation yield a win, if so any avail move can be chosen 
+    var wins = [0,0,0,0,0,0,0,0];
+	for (var i = 0; i < QUAD_MID_WINS.length; i++) {
+		var mid = QUAD_MID_WINS[i];
+        if (and(opp, mid) == mid) {            
+            var q = Math.floor(i / 20);
+            var r = Math.floor(i / 10) % 2;
+            wins[(r * BOARD_QUADS) + q] = true;
+        }
+    }
+	return wins;
+}
+
+Board.prototype.findWin = function() {
+	//Check if there are enough pins on the board for a win   
+	var board = (this.turn == PLAYER1)? this.p1 : this.p2;
+	var count = bitCount(board);
+	if (count < 4) return false;     
+	
+	var avail = not(or(this.p1, this.p2));
+	if (!avail) return false; 
+		
+	for (var i = 0; i < 70; i++) {
+		var mid = LONG_MID_WINS[i];
+        var combinedMid = and(board, mid);
+        if (combinedMid == mid) { //4 in a row, need one available, or 5+ in a row that just needs to be turned
+            if (and(avail, LONG_SPAN_WINS[i]) || and(board, LONG_SPAN_WINS[i])) return Number(i) + 1;
+        }
+        else if (bitCount(combinedMid) == 3) { //3 out of 4 in mid, need 1 of the spans, and one availble 
+            if (and(board, LONG_SPAN_WINS[i]) && and(avail, mid)) return Number(i) + 1;  
+        }        
+    }    
+    for (var i = 0; i < 28; i++) {
+        var win = SHORT_WINS[i];
+        var combined = and(board, win);
+        if (combined == win) return Number(i) + 71;  //Win just with rotation
+        else if (bitCount(combined) == 4 && and(avail, win)) return Number(i) + 71;
+    }
+		
+	return false;
 }
 
 
@@ -563,11 +571,6 @@ Board.prototype.deriveMove = function(after) {
 	return {pos:INVALID, quad:INVALID, rot:INVALID};
 }
 
-Board.prototype.canSkipRotation = function() {
-	var board = or(this.p1, this.p2);
-	if (!and(board, QUADS[0]) || !and(board, QUADS[1]) || !and(board, QUADS[2]) || !and(board, QUADS[3])) return true;
-	else return false;
-}
 Board.prototype.clone = function() {
     var newBoard = new Board();
     newBoard.p1 = this.p1;
