@@ -4,7 +4,7 @@
 	  so, the local node is actually opposite of board.turn
 	- A node's score will be in the range of [-1,+1], or = -infinity, +infinity
 */
-var MCTS_MAX_ITERATIONS = 10000;
+var MCTS_MAX_ITERATIONS = 1000;
 var MCTS_UCT_TUNING = 0.9; //Controls exploration (< 1) vs. exploitation (> 1)
 var MCTS_VISITS_TO_ADD_NODE = 1;
 var MCTS_MIN_FAIR_PLAY = 1;
@@ -15,6 +15,7 @@ var MCTS_TIE_SCORE = 0;
 
 
 //Class MCTS
+var scoreMap = [];
 function MCTS(board) {    
     this.board = board;		
 }
@@ -46,7 +47,7 @@ MCTS.prototype.runMCTS = function(board) {
 	-----------------------------------
     5. Pick final move
 	*/
-    var root = {visits:0, score:0, board:board, parent:null, kids:[]};
+    var root = {visits:0, score:0, board:board, parent:null, kids:[], nscore:0};
 	
 	//Pre-expand root's children
 	if (!this.preExpand(root)) {
@@ -115,10 +116,7 @@ MCTS.prototype.selectNode = function(root) {
 		} 
 
 		node = bestNode;
-		if (bestNode == null) { 
-			console.log(uct);
-			console.log("No best kid found - broken select! " + root.board.toString());
-		}
+		if (bestNode == null) console.log('All moves lead to loss'); 			
     }	
 	return bestNode;       
    
@@ -170,6 +168,7 @@ MCTS.prototype.simulate = function(node) {
 MCTS.prototype.backpropagate = function(node, score) {	
 	//Update leaf
     node.visits++;	
+	node.nscore += score;
 	if (Math.abs(score) == INFINITY) node.score = score; //Don't average score if terminal position			
 	else node.score = (node.score + score) / node.visits; //Average    
 
@@ -177,7 +176,7 @@ MCTS.prototype.backpropagate = function(node, score) {
     while (node.parent != null) {
         score *= -1;
         node = node.parent;
-        node.visits++;
+        node.visits++;		
         
         //Loss - if a child can win then that is a loss for the parent
         if (score == -INFINITY) node.score = -INFINITY;
@@ -216,14 +215,27 @@ MCTS.prototype.pickFinalMove = function(root) {
 	//Max visits
 	var bestVisits = -INFINITY;
 	var bestNode = null;
-		
+	
+	//Init score map
+	var board = root.board;	
+	for (var r = 0; r < ROW_SPACES; r++) {
+		scoreMap.push([]);
+		for (var c = 0; c < COL_SPACES; c++) {
+			scoreMap[r].push({visits: 0, score: 0, nscore: 0});
+		}
+	}	
+	
 	for (var i = 0; i < root.kids.length; i++) {
 		var kid = root.kids[i];
 		if (kid.visits > bestVisits) {
 			bestVisits = kid.visits;
 			bestNode = kid;
 		}
+		//Populate score map
+		var move = board.deriveMove(kid.board);
+		scoreMap[ROW[move.pos]][COL[move.pos]] = {visits:kid.visits, score: kid.score, nscore: kid.nscore, quad:move.quad, rot:move.rot};
 	}
+	SETTING_SHOW_SCORE_MAP = true;
 	
 	if (bestNode == null) return root.kids[Math.floor(Math.rand() * root.kids.length)]; //All moves lead to loss
 	else return bestNode;

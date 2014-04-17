@@ -271,7 +271,10 @@ Board.prototype.getAllNonLossMoves = function() {
 			else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); 
             newBoard.rotate(q, r);
             var boardIdStr = String(newBoard.p1) + '_' + String(newBoard.p2);
-            if (typeof(moveSet[boardIdStr]) == 'undefined') moves.push(newBoard);
+            if (typeof(moveSet[boardIdStr]) == 'undefined') {
+				moveSet[boardIdStr] = true;
+				moves.push(newBoard);
+			}
         }
     }
     return moves;
@@ -323,6 +326,64 @@ Board.prototype.getMoveFromMidWin = function(i) {
                         
     }
     return {pos:pos, quad:quad, rot:rot};
+}
+
+Board.prototype.getAllNonSymMoves = function() {
+	var avail = not(or(this.p1, this.p2));
+    var availBits = bitScan(avail);
+	var moves = [];
+	var moveSet = {};
+	for (var a = 0; a < availBits.length; a++) {
+		for (var i = 0; i < ALL_ROTATIONS; i++) {
+			var q = Math.floor(i/2);
+            var r = i%2;
+            var newBoard = this.clone();
+            if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); //Place pin
+			else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); //Place pin
+            newBoard.rotate(q, r); //Rotate
+			var boardIdStr = String(newBoard.p1) + '_' + String(newBoard.p2);
+            if (typeof(moveSet[boardIdStr]) == 'undefined') {
+				moveSet[boardIdStr] = true;				
+				moves.push(newBoard);
+				var symMoves = getSymMoveIds(newBoard);
+				moveSet[symMoves[0]] = true;
+				moveSet[symMoves[1]] = true;
+				moveSet[symMoves[2]] = true;
+				moveSet[symMoves[3]] = true;
+				moveSet[symMoves[4]] = true;
+				moveSet[symMoves[5]] = true;
+				moveSet[symMoves[6]] = true;				
+			}
+		}
+	}
+	return moves;
+}
+
+function getSymMoveIds(board) {
+	var curP1 = board.p1;
+	var curP2 = board.p2;
+	var p1s = [0,0,0,0,0,0,0];
+	var p2s = [0,0,0,0,0,0,0];
+	//Generate all symmetrical moves
+	for (var i = 0; i < BOARD_SPACES; i++) {
+		for (var k = 0; k < 7; k++) {
+			var mpos = POS_TO_MPOS[i];
+			var transPos = POS_TO_MPOS[SYM_MAP[k][i]];
+			var p1 = p1s[k];
+			var p2 = p2s[k];
+			if (and(curP1, mpos)) p1s[k] = xor(p1, transPos);
+			if (and(curP2, mpos)) p2s[k] = xor(p2, transPos);
+		}
+	}
+	var symMoves = [];
+	symMoves.push(String(p1s[0]) + '_' + String(p2s[0]));
+	symMoves.push(String(p1s[1]) + '_' + String(p2s[1]));
+	symMoves.push(String(p1s[2]) + '_' + String(p2s[2]));
+	symMoves.push(String(p1s[3]) + '_' + String(p2s[3]));
+	symMoves.push(String(p1s[4]) + '_' + String(p2s[4]));
+	symMoves.push(String(p1s[5]) + '_' + String(p2s[5]));
+	symMoves.push(String(p1s[6]) + '_' + String(p2s[6]));
+	return symMoves;
 }
 
 Board.prototype.findOppRotateWins = function(opp) {

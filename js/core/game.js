@@ -336,6 +336,9 @@ Game.prototype.draw = function() {
             this.drawWinLine(ctx, this.winLines[PLAYER2][line], COLOR_P2_WIN);
         }
     }
+	
+	//Scoremap
+	if (SETTING_SHOW_SCORE_MAP) this.drawScoreMap(ctx);
     ctx.restore();
 }
 
@@ -442,6 +445,15 @@ Game.prototype.drawWinLine = function(ctx, line, color) {
     this.drawLine(ctx, line[0], line[1], line[2], line[3]);
 }
 
+Game.prototype.drawScoreMap = function(ctx) {
+	ctx.fillStyle = '#ff0000';
+	for (var r = 0; r < ROW_SPACES; r++) {
+		for (var c = 0; c < COL_SPACES; c++) {
+			ctx.fillText('V:' + scoreMap[r][c].visits, c * UNIT_SIZE, (r * UNIT_SIZE) + HALF_UNIT); 			
+		}
+		break;
+	}
+}
 //Helper functions
 Game.prototype.showFindWins = function() {
 	//Three ways to win
