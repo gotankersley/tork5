@@ -25,10 +25,11 @@ Player.prototype.create = function(playerType) {
         case PLAYER_HUMAN: return null;
         case PLAYER_RANDOM: return new Random(this.board);
 		case PLAYER_SIM: return new Sim(this.board);
+		case PLAYER_MC: return new MC(this.board);
+		case PLAYER_MC2: return new MC2(this.board);
         case PLAYER_MCTS: return new MCTS(this.board);
 		case PLAYER_CPP: return new CPP(this.board);
 		case PLAYER_ALPHA_BETA: return new AlphaBeta(this.board);
-		case PLAYER_MC: return new MC(this.board);
     }    
     return null;
 }

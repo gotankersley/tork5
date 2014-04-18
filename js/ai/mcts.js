@@ -4,11 +4,11 @@
 	  so, the local node is actually opposite of board.turn
 	- A node's score will be in the range of [-1,+1], or = -infinity, +infinity
 */
-var MCTS_MAX_ITERATIONS = 1000;
+var MCTS_MAX_ITERATIONS = 20000;
 var MCTS_UCT_TUNING = 0.9; //Controls exploration (< 1) vs. exploitation (> 1)
 var MCTS_VISITS_TO_ADD_NODE = 1;
 var MCTS_MIN_FAIR_PLAY = 1;
-var MCTS_SIM_DIST = true;
+var MCTS_SIM_DIST = false;
 
 var MCTS_WIN_SCORE = 1;
 var MCTS_LOSE_SCORE = -1;
@@ -119,7 +119,10 @@ MCTS.prototype.selectNode = function(root) {
 		} 
 
 		node = bestNode;
-		if (bestNode == null) console.log('All moves lead to loss'); 			
+		if (bestNode == null) {
+			console.log('All moves lead to loss'); 			
+			bestNode = root.kids[0];
+		}
     }	
 	return bestNode;       
    
@@ -239,7 +242,7 @@ MCTS.prototype.pickFinalMove = function(root) {
 		var move = root.board.deriveMove(kid.board);
         var r = ROW[move.pos];
         var c = COL[move.pos];       
-		scoreMap[r][c].push({visits:kid.visits, score:kid.score.toFixed(2)});
+		scoreMap[r][c].push({visits:kid.visits, score:kid.score.toFixed(5)});
 	}	
 	
 	if (bestNode == null) return root.kids[Math.floor(Math.rand() * root.kids.length)]; //All moves lead to loss

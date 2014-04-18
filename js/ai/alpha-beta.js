@@ -39,7 +39,7 @@ AlphaBeta.prototype.getMove = function() {
 		scoreMap[r][c].push({visits:0, score: score});
 	}
 	scoreEnabled = true;
-	console.log("Score: " + bestScore);	
+	console.log('Score: ' + bestScore);	
 	bestNode.print();	
 	if (bestScore <= -INFINITY) {
 		alert('All moves lead to loss - making random move');

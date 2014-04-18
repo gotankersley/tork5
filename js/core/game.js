@@ -95,7 +95,7 @@ Game.prototype.onClick = function(e) {
 		x = e.offsetX; 
 		y = e.offsetY; 
 	}	
-	if (scoreEnabled) {
+	if (SETTING_SHOW_SCORE_MAP && scoreEnabled) {
 		if (game.player.getType() != PLAYER_HUMAN) game.player.onPlayed();
 		scoreEnabled = false;
 		return;

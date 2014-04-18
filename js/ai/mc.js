@@ -1,7 +1,6 @@
 var MC_SIMULATIONS = 500;
-var MC_SIM_DIST = true;
+var MC_SIM_DIST = false;
 var MC_FLAT = true;
-var MC_TIMEOUT = 1000;
 
 var MC_WIN_SCORE = 1;
 var MC_LOSE_SCORE = -1;
@@ -48,7 +47,7 @@ MC.prototype.getMove = function() {
 		var move = board.deriveMove(moves[i]);
         var r = ROW[move.pos];
         var c = COL[move.pos];       
-		scoreMap[r][c].push({visits:MC_SIMULATIONS, score: scores});
+		scoreMap[r][c].push({visits:MC_SIMULATIONS, score: scores.toFixed(2)});
     }	
     console.log('Best: ' + bestScore);
     var move;
@@ -85,7 +84,27 @@ MC.prototype.simulate = function(board) {
         }
         
         //Make random moves
-        board.makeRandomMove();           
+		var moveSafe = false;
+		for (var n = 0; n < movesLeft; n++) {
+			var randMove = board.clone();
+			randMove.makeRandomMove();  			
+			if (!randMove.findWin()) {
+				moveSafe = true;
+				board = randMove;
+				break;
+			}			
+		}
+		if (!moveSafe) {	
+			var moves = board.getAllMoves();			
+			for (var m = 0; m < moves.length; m++) {
+				if (!moves[m].findWin()) {
+					moveSafe = true;
+					board = moves[m];
+					break;
+				}
+			}
+			if (!moveSafe) board.makeRandomMove();
+		}
     }    
     return MC_TIE_SCORE;
 }
