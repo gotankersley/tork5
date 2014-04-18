@@ -10,7 +10,7 @@ AlphaBeta.prototype.getMove = function() {
 	//Check for available wins before trying to build the search tree
 	var winFound = this.board.findWin();
 	if (winFound) {		
-		SETTING_SHOW_SCORE_MAP = false;
+		scoreEnabled = false;
 		return this.board.getMoveFromMidWin(winFound);
 	}
     this.board.print();
@@ -38,7 +38,7 @@ AlphaBeta.prototype.getMove = function() {
         var c = COL[move.pos];       
 		scoreMap[r][c].push({visits:0, score: score});
 	}
-	SETTING_SHOW_SCORE_MAP = true;
+	scoreEnabled = true;
 	console.log("Score: " + bestScore);	
 	bestNode.print();	
 	if (bestScore <= -INFINITY) {
@@ -46,7 +46,7 @@ AlphaBeta.prototype.getMove = function() {
 		this.board.makeRandomMove();   
 	}
 	var move = this.board.deriveMove(bestNode); 		
-	enableScoreMap(move);
+	enableScoreMap(move, moves.length);
 	return move;
 }
 

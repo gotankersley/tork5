@@ -34,7 +34,7 @@ Player.prototype.create = function(playerType) {
 }
 
 
-Player.prototype.play = function(preview) {
+Player.prototype.play = function() {
     var playerType = this.getType();	
 	if (playerType != PLAYER_HUMAN && this.game.mode != MODE_WIN) {
 		this.startTime = performance.now();		
@@ -51,8 +51,10 @@ Player.prototype.play = function(preview) {
 			var player = this.create(playerType);
 			this.move = player.getMove(board);
 			if (!SETTING_SHOW_SCORE_MAP) this.onPlayed();
+			else if (!scoreEnabled) this.onPlayed();
 		}
-	}	
+	}
+	
 }
 
 
@@ -82,6 +84,7 @@ Player.prototype.onPlayed = function() {
 //End class Player
 
 //Score map
+var scoreEnabled = false;
 var scoreMap;
 var scoreBestR;
 var scoreBestC;
@@ -97,9 +100,10 @@ function initScoreMap() {
 	}	
 }
 
-function enableScoreMap(move) {
+function enableScoreMap(move, total) {
 	scoreBestR = ROW[move.pos];
 	scoreBestC = COL[move.pos];
 	scoreBestArrow = rotToArrow(move.quad, move.rot);
-	SETTING_SHOW_SCORE_MAP = true;
+	game.message = 'Total: ' + total;
+	scoreEnabled = true;
 }

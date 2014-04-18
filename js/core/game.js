@@ -95,9 +95,9 @@ Game.prototype.onClick = function(e) {
 		x = e.offsetX; 
 		y = e.offsetY; 
 	}	
-	if (SETTING_SHOW_SCORE_MAP) {
-		game.player.onPlayed();
-		SETTING_SHOW_SCORE_MAP = false;
+	if (scoreEnabled) {
+		if (game.player.getType() != PLAYER_HUMAN) game.player.onPlayed();
+		scoreEnabled = false;
 		return;
 	}
     if (game.mode == MODE_PLACE || e.ctrlKey) {
@@ -345,7 +345,7 @@ Game.prototype.draw = function() {
     }
 	
 	//Scoremap
-	if (SETTING_SHOW_SCORE_MAP) this.drawScoreMap(ctx);
+	if (SETTING_SHOW_SCORE_MAP && scoreEnabled) this.drawScoreMap(ctx);
     ctx.restore();
 }
 
@@ -367,7 +367,7 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 
 Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrow) {	    
     ctx.fillStyle = (this.mode != MODE_PLACE && this.arrow == arrow)? COLOR_CURSOR : COLOR_ARROW;	        	
-	if (SETTING_SHOW_SCORE_MAP) ctx.fillStyle = '#ff0000';
+	if (SETTING_SHOW_SCORE_MAP && scoreEnabled) ctx.fillStyle = '#ff0000';
 	ctx.save();		
 	var halfW = (w + h)/2;
 	var halfH = h/2;
@@ -461,7 +461,7 @@ Game.prototype.drawScoreMap = function(ctx) {
             for (var i = 0; i < scoreMap[r][c].length; i++) { 
                 var stats = scoreMap[r][c][i];
                 ctx.fillText(stats.visits, (c * UNIT_SIZE) + 5, (r * UNIT_SIZE) + ((i + 1)* 15)); 
-                ctx.fillText(stats.score.toFixed(2), (c * UNIT_SIZE) + HALF_UNIT + 10, (r * UNIT_SIZE) + ((i + 1)* 15)); 
+                ctx.fillText(stats.score, (c * UNIT_SIZE) + HALF_UNIT + 10, (r * UNIT_SIZE) + ((i + 1)* 15)); 
             }
 		}		
 	}

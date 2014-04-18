@@ -8,6 +8,7 @@ var MCTS_MAX_ITERATIONS = 1000;
 var MCTS_UCT_TUNING = 0.9; //Controls exploration (< 1) vs. exploitation (> 1)
 var MCTS_VISITS_TO_ADD_NODE = 1;
 var MCTS_MIN_FAIR_PLAY = 1;
+var MCTS_SIM_DIST = true;
 
 var MCTS_WIN_SCORE = 1;
 var MCTS_LOSE_SCORE = -1;
@@ -23,7 +24,7 @@ MCTS.prototype.getMove = function() {
 	//Check for available wins before trying to build the search tree
 	var winFound = this.board.findWin();
 	if (winFound) {
-		SETTING_SHOW_SCORE_MAP = false;
+		scoreEnabled = false;
 		return this.board.getMoveFromMidWin(winFound);	
 	}
 	//TODO: check for ties?	
@@ -152,12 +153,21 @@ MCTS.prototype.simulate = function(node) {
     var board = node.board.clone();	
     var moveCount = bitCount(or(board.p1, board.p2));
 	var curPlayer = !board.turn;
-    for (var i = 0; i < (BOARD_SPACES - moveCount); i++) {
+	var movesLeft = BOARD_SPACES - moveCount;
+    for (var i = 0; i < movesLeft; i++) {
         //Check for wins
         var winFound = board.findWin();
         if (winFound) {
-			if (board.turn == curPlayer) return MCTS_WIN_SCORE; //Board turn hasn't changed yet
-			else return MCTS_LOSE_SCORE;
+			if (MC_SIM_DIST) {
+				var winScalar;
+				if (board.turn != curPlayer) winScalar = MCTS_WIN_SCORE;
+				else winScalar = MCTS_LOSE_SCORE;				
+				return ((movesLeft - i)/movesLeft) * winScalar;
+			}
+			else {
+				if (board.turn == curPlayer) return MCTS_WIN_SCORE; //Board turn hasn't changed yet
+				else return MCTS_LOSE_SCORE;
+			}
 			//TODO: test for dual win
 		}
         
@@ -226,16 +236,16 @@ MCTS.prototype.pickFinalMove = function(root) {
 			bestNode = kid;
 		}
 		//Populate score map
-		var move = board.deriveMove(kid.board);
+		var move = root.board.deriveMove(kid.board);
         var r = ROW[move.pos];
         var c = COL[move.pos];       
-		scoreMap[r][c].push({visits:kid.visits, score:kid.score});
+		scoreMap[r][c].push({visits:kid.visits, score:kid.score.toFixed(2)});
 	}	
 	
 	if (bestNode == null) return root.kids[Math.floor(Math.rand() * root.kids.length)]; //All moves lead to loss
 	else {
 		var move = root.board.deriveMove(bestNode.board);
-		enableScoreMap(move);
+		enableScoreMap(move, root.visits);
 		return bestNode;
 	}
 }
