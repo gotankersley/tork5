@@ -14,17 +14,11 @@ MC.prototype.getMove = function() {
 	//See if win available
 	var winFound = board.findWin();
 	if (winFound) {        
+		SETTING_SHOW_SCORE_MAP = false;
 		return board.getMoveFromMidWin(winFound);                
 	}	
     
-    //Init score map
-    scoreMap = [];
-	for (var r = 0; r < ROW_SPACES; r++) {
-		scoreMap.push([]);
-		for (var c = 0; c < COL_SPACES; c++) {
-			scoreMap[r].push([]);
-		}
-	}	
+    initScoreMap();	
     
     //Loop through each of the children to run the simulations
     var moves = board.getAllNonLossMoves();    
@@ -50,7 +44,6 @@ MC.prototype.getMove = function() {
         var c = COL[move.pos];       
 		scoreMap[r][c].push({visits:MC_SIMULATIONS, score: scores});
     }	
-    SETTING_SHOW_SCORE_MAP = true;
     console.log('Best: ' + bestScore);
     var move;
     if (bestKid == INVALID) {
@@ -59,7 +52,7 @@ MC.prototype.getMove = function() {
         move = this.board.deriveMove(board); 	
     }
     else move = this.board.deriveMove(moves[bestKid]); 	
-    scoreBest = move.pos;
+    enableScoreMap(move);
 	return move;
 }
 

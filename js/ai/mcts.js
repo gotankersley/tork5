@@ -15,8 +15,6 @@ var MCTS_TIE_SCORE = 0;
 
 
 //Class MCTS
-var scoreMap;
-var scoreBest;
 function MCTS(board) {    
     this.board = board;		
 }
@@ -24,7 +22,10 @@ function MCTS(board) {
 MCTS.prototype.getMove = function() {		
 	//Check for available wins before trying to build the search tree
 	var winFound = this.board.findWin();
-	if (winFound) return this.board.getMoveFromMidWin(winFound);	
+	if (winFound) {
+		SETTING_SHOW_SCORE_MAP = false;
+		return this.board.getMoveFromMidWin(winFound);	
+	}
 	//TODO: check for ties?	
 	//Run the monte-carlo tree search
 	console.log('MCTS: Initial board');
@@ -216,15 +217,7 @@ MCTS.prototype.pickFinalMove = function(root) {
 	var bestVisits = -INFINITY;
 	var bestNode = null;
 	
-	//Init score map
-	var board = root.board;	
-    scoreMap = [];
-	for (var r = 0; r < ROW_SPACES; r++) {
-		scoreMap.push([]);
-		for (var c = 0; c < COL_SPACES; c++) {
-			scoreMap[r].push([]);
-		}
-	}	
+	initScoreMap();
 	
 	for (var i = 0; i < root.kids.length; i++) {
 		var kid = root.kids[i];
@@ -237,11 +230,14 @@ MCTS.prototype.pickFinalMove = function(root) {
         var r = ROW[move.pos];
         var c = COL[move.pos];       
 		scoreMap[r][c].push({visits:kid.visits, score:kid.score});
-	}
-	SETTING_SHOW_SCORE_MAP = true;
+	}	
 	
 	if (bestNode == null) return root.kids[Math.floor(Math.rand() * root.kids.length)]; //All moves lead to loss
-	else return bestNode;
+	else {
+		var move = root.board.deriveMove(bestNode.board);
+		enableScoreMap(move);
+		return bestNode;
+	}
 }
 
 

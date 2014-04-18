@@ -2,7 +2,7 @@
 var UNIT_SIZE = 120;
 var QUAD_SIZE = UNIT_SIZE * 3;
 var BOARD_SIZE = UNIT_SIZE * 6;
-var CANVAS_SIZE = 800;
+var CANVAS_SIZE = 900;
 var CANVAS_OFFSET = (CANVAS_SIZE - BOARD_SIZE) / 2;
 
 var HALF_UNIT = UNIT_SIZE/2;
@@ -94,7 +94,12 @@ Game.prototype.onClick = function(e) {
 	else {
 		x = e.offsetX; 
 		y = e.offsetY; 
-	}		
+	}	
+	if (SETTING_SHOW_SCORE_MAP) {
+		game.player.onPlayed();
+		SETTING_SHOW_SCORE_MAP = false;
+		return;
+	}
     if (game.mode == MODE_PLACE || e.ctrlKey) {
         var r = toRC(y);
         var c = toRC(x);
@@ -310,7 +315,7 @@ Game.prototype.draw = function() {
     ctx.fillStyle = COLOR_QUAD;
 	this.drawLine(ctx, QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
 	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
-    	
+    
 	//Rotation arrows
 	if (this.mode == MODE_ROTATE || this.mode == MODE_ANIM) {
 		this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 292.5, 4); //Q0 - A
@@ -361,7 +366,8 @@ Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
 }
 
 Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrow) {	    
-    ctx.fillStyle = (this.mode != MODE_PLACE && this.arrow == arrow)? COLOR_CURSOR : COLOR_ARROW;	        
+    ctx.fillStyle = (this.mode != MODE_PLACE && this.arrow == arrow)? COLOR_CURSOR : COLOR_ARROW;	        	
+	if (SETTING_SHOW_SCORE_MAP) ctx.fillStyle = '#ff0000';
 	ctx.save();		
 	var halfW = (w + h)/2;
 	var halfH = h/2;
@@ -459,32 +465,33 @@ Game.prototype.drawScoreMap = function(ctx) {
             }
 		}		
 	}
-    
-    var r = Math.floor(scoreBest / ROW_SPACES);
-    var c = scoreBest % COL_SPACES;
-    this.drawStar(ctx, (c * UNIT_SIZE) + HALF_UNIT, (r * UNIT_SIZE) + HALF_UNIT, 25, 5, 0.5);
+        
+	//Highlight best move
+	ctx.lineWidth = 3;
+	ctx.strokeStyle = '#ff0000';
+	ctx.beginPath();
+	ctx.rect(scoreBestC * UNIT_SIZE, scoreBestR * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);	
+	ctx.stroke();
+	
+	switch (scoreBestArrow) {
+		case 0: this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 157.5, 0); break; //Q0 - C
+		case 1: this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 22.5, 1); break; //Q1 -> A	    
+		case 2: this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 202.5, 2); break;//Q2 -> A        
+		case 3: this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 337.5, 3); break; //Q3 -> C    	   
+		case 4: this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 292.5, 4); break; //Q0 - A
+		case 5: this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 247.5, 5); break;//Q1 -> C
+		case 6: this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 67.5, 6); break; //Q2 -> C
+		case 7: this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 112.5, 7); break;//Q3 -> A    					 
+	}
 }
 
-Game.prototype.drawStar = function(ctx, x, y, r, p, m) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.translate(x, y);
-    ctx.moveTo(0,0-r);
-    for (var i = 0; i < p; i++) {
-        ctx.rotate(Math.PI / p);
-        ctx.lineTo(0, 0 - (r*m));
-        ctx.rotate(Math.PI / p);
-        ctx.lineTo(0, 0 - r);
-    }
-    ctx.fill();
-    ctx.restore();
-}
+
 //Helper functions
 Game.prototype.showFindWins = function() {
 	//Three ways to win
 	//1. Can win just by rotation
 	//2. Can with by placing a pin with no rotation
-	//3.. Can win by placing a pin and rotating        
+	//3. Can win by placing a pin and rotating        
     var wins = this.board.findAllWins();
     $('#find-wins-text').html('');
     

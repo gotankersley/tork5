@@ -6,6 +6,7 @@ function Player(currentGame, board, player1Type, player2Type) {
     this.player1 = player1Type;
     this.player2 = player2Type;  
 	this.startTime = 0;
+	this.move = null;
 }
 
 Player.prototype.set = function(playerNum, playerType) {
@@ -48,14 +49,15 @@ Player.prototype.play = function(preview) {
 		}
 		else { //Regular synchronous		
 			var player = this.create(playerType);
-			var move = player.getMove(board);
-			if (typeof(preview) != 'undefined') this.onPlayed(move);
+			this.move = player.getMove(board);
+			if (!SETTING_SHOW_SCORE_MAP) this.onPlayed();
 		}
-	}
+	}	
 }
 
 
-Player.prototype.onPlayed = function(move) {	
+Player.prototype.onPlayed = function() {	
+	var move = this.move;
 	var elapsedTime = performance.now() - this.startTime;
 	var placeDelay = Math.max(0, SETTING_AI_PLACE_DELAY - elapsedTime);
 	console.log('Time: ' + (elapsedTime/1000) + ' seconds')
@@ -78,3 +80,26 @@ Player.prototype.onPlayed = function(move) {
 	else this.game.onInvalidMove(move);	
 }
 //End class Player
+
+//Score map
+var scoreMap;
+var scoreBestR;
+var scoreBestC;
+var scoreBestArrow;
+function initScoreMap() {
+    //Init score map
+    scoreMap = [];
+	for (var r = 0; r < ROW_SPACES; r++) {
+		scoreMap.push([]);
+		for (var c = 0; c < COL_SPACES; c++) {
+			scoreMap[r].push([]);
+		}
+	}	
+}
+
+function enableScoreMap(move) {
+	scoreBestR = ROW[move.pos];
+	scoreBestC = COL[move.pos];
+	scoreBestArrow = rotToArrow(move.quad, move.rot);
+	SETTING_SHOW_SCORE_MAP = true;
+}
