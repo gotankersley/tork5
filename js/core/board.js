@@ -550,10 +550,9 @@ Board.prototype.score = function(inv) {
 		var avail = not(or(board, opp));
 		curScore += scoreWinLines(board, opp, bitScan(avail), 5);
 		oppScore += scoreWinLines(opp, board, bitScan(avail), 4);
-	}	
-	//console.log("Score: " + curScore + '/' + oppScore + ' = ' + (curScore - oppScore));
-	if (typeof(inv) != 'undefined') console.log("Score: " + oppScore + '/' + curScore + ' = ' + (oppScore - curScore));
-    return curScore - oppScore;
+	}		
+	if (typeof(inv) != 'undefined') return {cur:oppScore, opp:curScore, total:(oppScore - curScore)};
+    else return curScore - oppScore;
 }
 
 function scoreWinLines(board, opp, positions, numToWin) {	

@@ -1,5 +1,5 @@
 //Constants
-var UNIT_SIZE = 100;
+var UNIT_SIZE = 120;
 var QUAD_SIZE = UNIT_SIZE * 3;
 var BOARD_SIZE = UNIT_SIZE * 6;
 var CANVAS_SIZE = 800;
@@ -36,6 +36,7 @@ var KEY_DELETE = 46;
 var KEY_ENTER = 13;
 var KEY_F = 70;
 var KEY_R = 82;
+var KEY_S = 83;
 var KEY_SPACE = 32;
 
 //Animation shim
@@ -75,10 +76,9 @@ function Game() {
 	$(this.canvas).click(this.onClick);
 	$(this.canvas).mousemove(this.onMouse);	    
 	$(document).keyup(this.onKeyPress);	 
-    
-	//$('#rand-tool').click(this.onRandomize);
+    	
 	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
-    this.mode = MODE_PLACE;//(this.player.getType() == PLAYER_HUMAN)?  MODE_PLACE : MODE_WAIT;
+    this.mode = MODE_PLACE;
     this.player.play();
     
     this.onFrame();
@@ -153,12 +153,14 @@ Game.prototype.onKeyPress = function(e) {
 	else if (e.keyCode == KEY_R) game.mode = MODE_ROTATE;
 	else if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;
 	else if (e.keyCode == KEY_ENTER) game.onTurnChanged(true);
-    else if (e.keyCode == KEY_F) game.showFindWins();
-    else if (e.keyCode == 83) {
-        //var b = game.board.clone();
-        //b.turn = !b.turn;
-        //b.score();
-		game.board.score(true);
+    else if (e.keyCode == KEY_F) {
+        SETTING_FIND_WINS = !SETTING_FIND_WINS;
+        $('#find-wins').toggle();   
+    }
+    else if (e.keyCode == KEY_S) {        
+		var score = game.board.score(true);
+        game.message = 'Score: ' + score.cur + '/' + score.opp + ' = ' + score.total;
+       // game.player.play();
     }
         
 }
@@ -447,12 +449,35 @@ Game.prototype.drawWinLine = function(ctx, line, color) {
 
 Game.prototype.drawScoreMap = function(ctx) {
 	ctx.fillStyle = '#ff0000';
+    ctx.font = '10pt times';
 	for (var r = 0; r < ROW_SPACES; r++) {
 		for (var c = 0; c < COL_SPACES; c++) {
-			ctx.fillText('V:' + scoreMap[r][c].visits, c * UNIT_SIZE, (r * UNIT_SIZE) + HALF_UNIT); 			
-		}
-		break;
+            for (var i = 0; i < scoreMap[r][c].length; i++) { 
+                var stats = scoreMap[r][c][i];
+                ctx.fillText(stats.visits, (c * UNIT_SIZE) + 5, (r * UNIT_SIZE) + ((i + 1)* 15)); 
+                ctx.fillText(stats.score.toFixed(2), (c * UNIT_SIZE) + HALF_UNIT + 10, (r * UNIT_SIZE) + ((i + 1)* 15)); 
+            }
+		}		
 	}
+    
+    var r = Math.floor(scoreBest / ROW_SPACES);
+    var c = scoreBest % COL_SPACES;
+    this.drawStar(ctx, (c * UNIT_SIZE) + HALF_UNIT, (r * UNIT_SIZE) + HALF_UNIT, 25, 5, 0.5);
+}
+
+Game.prototype.drawStar = function(ctx, x, y, r, p, m) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.translate(x, y);
+    ctx.moveTo(0,0-r);
+    for (var i = 0; i < p; i++) {
+        ctx.rotate(Math.PI / p);
+        ctx.lineTo(0, 0 - (r*m));
+        ctx.rotate(Math.PI / p);
+        ctx.lineTo(0, 0 - r);
+    }
+    ctx.fill();
+    ctx.restore();
 }
 //Helper functions
 Game.prototype.showFindWins = function() {

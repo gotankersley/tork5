@@ -15,7 +15,8 @@ var MCTS_TIE_SCORE = 0;
 
 
 //Class MCTS
-var scoreMap = [];
+var scoreMap;
+var scoreBest;
 function MCTS(board) {    
     this.board = board;		
 }
@@ -47,7 +48,7 @@ MCTS.prototype.runMCTS = function(board) {
 	-----------------------------------
     5. Pick final move
 	*/
-    var root = {visits:0, score:0, board:board, parent:null, kids:[], nscore:0};
+    var root = {visits:0, score:0, board:board, parent:null, kids:[]};
 	
 	//Pre-expand root's children
 	if (!this.preExpand(root)) {
@@ -167,8 +168,7 @@ MCTS.prototype.simulate = function(node) {
 
 MCTS.prototype.backpropagate = function(node, score) {	
 	//Update leaf
-    node.visits++;	
-	node.nscore += score;
+    node.visits++;		
 	if (Math.abs(score) == INFINITY) node.score = score; //Don't average score if terminal position			
 	else node.score = (node.score + score) / node.visits; //Average    
 
@@ -218,10 +218,11 @@ MCTS.prototype.pickFinalMove = function(root) {
 	
 	//Init score map
 	var board = root.board;	
+    scoreMap = [];
 	for (var r = 0; r < ROW_SPACES; r++) {
 		scoreMap.push([]);
 		for (var c = 0; c < COL_SPACES; c++) {
-			scoreMap[r].push({visits: 0, score: 0, nscore: 0});
+			scoreMap[r].push([]);
 		}
 	}	
 	
@@ -233,7 +234,9 @@ MCTS.prototype.pickFinalMove = function(root) {
 		}
 		//Populate score map
 		var move = board.deriveMove(kid.board);
-		scoreMap[ROW[move.pos]][COL[move.pos]] = {visits:kid.visits, score: kid.score, nscore: kid.nscore, quad:move.quad, rot:move.rot};
+        var r = ROW[move.pos];
+        var c = COL[move.pos];       
+		scoreMap[r][c].push({visits:kid.visits, score:kid.score});
 	}
 	SETTING_SHOW_SCORE_MAP = true;
 	

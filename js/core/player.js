@@ -33,12 +33,12 @@ Player.prototype.create = function(playerType) {
 }
 
 
-Player.prototype.play = function() {
+Player.prototype.play = function(preview) {
     var playerType = this.getType();	
 	if (playerType != PLAYER_HUMAN && this.game.mode != MODE_WIN) {
 		this.startTime = performance.now();		
 		var board = this.board;
-		if (SETTING_PLAYER_WORKER) {
+		if (SETTING_PLAYER_WORKER) { //Web-worker
 			var worker = new Worker('js/core/player-worker.js');
 			worker.onmessage = function(e) {
 				game.player.onPlayed(e.data);
@@ -46,10 +46,10 @@ Player.prototype.play = function() {
 			var data = {p1:board.p1, p2:board.p2, turn:board.turn, type:playerType};			
 			worker.postMessage(data); 
 		}
-		else {			
+		else { //Regular synchronous		
 			var player = this.create(playerType);
 			var move = player.getMove(board);
-			this.onPlayed(move);
+			if (typeof(preview) != 'undefined') this.onPlayed(move);
 		}
 	}
 }
