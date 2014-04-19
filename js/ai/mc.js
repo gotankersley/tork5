@@ -29,8 +29,7 @@ MC.prototype.getMove = function() {
       
     var bestScore = -INFINITY;
     var bestKid = INVALID;     
-	var startTime = game.player.startTime;
-	//while (true) {if (performance.now() - startTime > MC_TIMEOUT) break;
+		
     for (var i = 0; i < moves.length; i++) {
         //Run the simulations for each kid
         var scores = 0;
@@ -71,40 +70,32 @@ MC.prototype.simulate = function(board) {
         var winFound = board.findWin();
         if (winFound) {
             //TODO: test for dual win
-			if (MC_SIM_DIST) {
-				var winScalar;
-				if (board.turn != curPlayer) winScalar = MC_WIN_SCORE;
-				else winScalar = MC_LOSE_SCORE;				
-				return ((movesLeft - i)/movesLeft) * winScalar;
-			}
-			else {
+			//if (MC_SIM_DIST) {
+			//	var winScalar;
+			//	if (board.turn != curPlayer) winScalar = MC_WIN_SCORE;
+			//	else winScalar = MC_LOSE_SCORE;				
+			//	return ((movesLeft - i)/movesLeft) * winScalar;
+			//}
+			//else {
 				if (board.turn != curPlayer) return MC_WIN_SCORE;
 				else return MC_LOSE_SCORE;	
-			}
+			//}
         }
-        
-        //Make random moves
-		var moveSafe = false;
-		for (var n = 0; n < movesLeft; n++) {
-			var randMove = board.clone();
-			randMove.makeRandomMove();  			
-			if (!randMove.findWin()) {
-				moveSafe = true;
-				board = randMove;
-				break;
-			}			
-		}
-		if (!moveSafe) {	
-			var moves = board.getAllMoves();			
-			for (var m = 0; m < moves.length; m++) {
-				if (!moves[m].findWin()) {
-					moveSafe = true;
-					board = moves[m];
-					break;
-				}
-			}
-			if (!moveSafe) board.makeRandomMove();
-		}
+        else { //Block opponent win
+            board.turn = !board.turn;
+            winFound = board.findWin();
+            if (winFound) {
+                var move = board.getMoveFromMidWin(winFound);
+                board.turn = !board.turn;
+                board.setPin(move.pos);
+                board.rotate(move.quad, move.rot);
+            }
+            else {
+                board.turn = !board.turn;
+                board.makeRandomMove();
+            }
+        }
+
     }    
     return MC_TIE_SCORE;
 }

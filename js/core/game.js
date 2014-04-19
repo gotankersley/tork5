@@ -461,7 +461,7 @@ Game.prototype.drawScoreMap = function(ctx) {
             for (var i = 0; i < scoreMap[r][c].length; i++) { 
                 var stats = scoreMap[r][c][i];
                 ctx.fillText(stats.visits, (c * UNIT_SIZE) + 5, (r * UNIT_SIZE) + ((i + 1)* 15)); 
-                ctx.fillText(stats.score, (c * UNIT_SIZE) + HALF_UNIT + 10, (r * UNIT_SIZE) + ((i + 1)* 15)); 
+                ctx.fillText(stats.score, (c * UNIT_SIZE) + HALF_UNIT, (r * UNIT_SIZE) + ((i + 1)* 15)); 
             }
 		}		
 	}

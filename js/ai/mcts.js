@@ -4,11 +4,11 @@
 	  so, the local node is actually opposite of board.turn
 	- A node's score will be in the range of [-1,+1], or = -infinity, +infinity
 */
-var MCTS_MAX_ITERATIONS = 20000;
+var MCTS_MAX_ITERATIONS = 100000;
 var MCTS_UCT_TUNING = 0.9; //Controls exploration (< 1) vs. exploitation (> 1)
+var MCTS_SECURE_TUNING = 1;
 var MCTS_VISITS_TO_ADD_NODE = 1;
 var MCTS_MIN_FAIR_PLAY = 1;
-var MCTS_SIM_DIST = false;
 
 var MCTS_WIN_SCORE = 1;
 var MCTS_LOSE_SCORE = -1;
@@ -50,7 +50,7 @@ MCTS.prototype.runMCTS = function(board) {
 	-----------------------------------
     5. Pick final move
 	*/
-    var root = {visits:0, score:0, board:board, parent:null, kids:[]};
+    var root = {visits:0, score:0, val:0, board:board, parent:null, kids:[]};
 	
 	//Pre-expand root's children
 	if (!this.preExpand(root)) {
@@ -93,7 +93,7 @@ MCTS.prototype.preExpand = function(root) {
         return false;   
     }
 	for (var m = 0; m < moves.length; m++) {
-        root.kids.push({visits:0, score:0, board:moves[m], parent:root, kids:[]});
+        root.kids.push({visits:0, score:0, val:0, board:moves[m], parent:root, kids:[]});
     }
 	return true;
 }
@@ -121,7 +121,7 @@ MCTS.prototype.selectNode = function(root) {
 		node = bestNode;
 		if (bestNode == null) {
 			console.log('All moves lead to loss'); 			
-			bestNode = root.kids[0];
+			return root.kids[0];
 		}
     }	
 	return bestNode;       
@@ -146,7 +146,7 @@ MCTS.prototype.expandNode = function(node) {
 	
 	//Add all children to the node    
 	for (var m = 0; m < moves.length; m++) {
-		node.kids.push({visits:0, score:0, board:moves[m], parent:node, kids:[]});
+		node.kids.push({visits:0, score:0, val: 0, board:moves[m], parent:node, kids:[]});
 	}
 	return false;
 }
@@ -160,38 +160,45 @@ MCTS.prototype.simulate = function(node) {
     for (var i = 0; i < movesLeft; i++) {
         //Check for wins
         var winFound = board.findWin();
-        if (winFound) {
-			if (MC_SIM_DIST) {
-				var winScalar;
-				if (board.turn != curPlayer) winScalar = MCTS_WIN_SCORE;
-				else winScalar = MCTS_LOSE_SCORE;				
-				return ((movesLeft - i)/movesLeft) * winScalar;
-			}
-			else {
-				if (board.turn == curPlayer) return MCTS_WIN_SCORE; //Board turn hasn't changed yet
-				else return MCTS_LOSE_SCORE;
-			}
+        if (winFound) {			
+            if (board.turn == curPlayer) return MCTS_WIN_SCORE; //Board turn hasn't changed yet
+            else return MCTS_LOSE_SCORE;			
 			//TODO: test for dual win
 		}
+        else { //Block opponent win
+            board.turn = !board.turn;
+            winFound = board.findWin();
+            if (winFound) {
+                var move = board.getMoveFromMidWin(winFound);
+                board.turn = !board.turn;
+                board.setPin(move.pos);
+                board.rotate(move.quad, move.rot);
+            }
+            else { //Safe to make a random move
+                board.turn = !board.turn;
+                board.makeRandomMove();
+            }
+        }
         
         //Make random moves
-        board.makeRandomMove();           
+        //board.makeRandomMove();           
     }    
     return MCTS_TIE_SCORE;
 }
 
 MCTS.prototype.backpropagate = function(node, score) {	
 	//Update leaf
-    node.visits++;		
+    node.visits++;
+    node.val += score;
 	if (Math.abs(score) == INFINITY) node.score = score; //Don't average score if terminal position			
 	else node.score = (node.score + score) / node.visits; //Average    
 
     //Backpropagate from the leaf's parent up to the root, inverting the score each level due to minmax
     while (node.parent != null) {
-        score *= -1;
+        score *= -1;        
         node = node.parent;
         node.visits++;		
-        
+        node.val += score;
         //Loss - if a child can win then that is a loss for the parent
         if (score == -INFINITY) node.score = -INFINITY;
         
@@ -225,24 +232,24 @@ MCTS.prototype.backpropagate = function(node, score) {
 }
 
 MCTS.prototype.pickFinalMove = function(root) {
-	//TODO: should we use secure child?
-	//Max visits
-	var bestVisits = -INFINITY;
+	//Should we use secure child?	
+    var bestScore = -INFINITY;
 	var bestNode = null;
 	
 	initScoreMap();
 	
 	for (var i = 0; i < root.kids.length; i++) {
 		var kid = root.kids[i];
-		if (kid.visits > bestVisits) {
-			bestVisits = kid.visits;
+        var score = kid.score + (MCTS_SECURE_TUNING / Math.sqrt(kid.visits));		
+        if (score > bestScore) {
+			bestScore = score;
 			bestNode = kid;
 		}
 		//Populate score map
 		var move = root.board.deriveMove(kid.board);
         var r = ROW[move.pos];
         var c = COL[move.pos];       
-		scoreMap[r][c].push({visits:kid.visits, score:kid.score.toFixed(5)});
+		scoreMap[r][c].push({visits:kid.visits, score:String(kid.val) + '(' + kid.score.toFixed(4) + ')'});
 	}	
 	
 	if (bestNode == null) return root.kids[Math.floor(Math.rand() * root.kids.length)]; //All moves lead to loss

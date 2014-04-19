@@ -1,4 +1,4 @@
-var MC2_ITERATIONS = 100;
+var MC2_ITERATIONS = 10000;
 var MC2_SIM_DIST = false;
 
 
@@ -31,12 +31,18 @@ MC2.prototype.getMove = function() {
 	for (var i = 0; i < MC2_ITERATIONS; i++) {
 		var avg = 0;
 		for (var m = 0; m < moves.length; m++) {
-			//Run a simulation for board state			
-			scores[m] += this.simulate(moves[m].clone());
-			avg += scores[m];		
-			if (i > (MC2_ITERATIONS/2) && scores[m] < lastAvg) {
-			
+			//Run a simulation for board state						
+			if (i > (MC2_ITERATIONS/2)) {
+                if (scores[m] < lastAvg) {
+                    scores[m] += this.simulate(moves[m].clone());
+                    avg += scores[m];		
+                }
+                else scores[m] = -1000;
 			}
+            else {
+                scores[m] += this.simulate(moves[m].clone());
+                avg += scores[m];		
+            }
 		}
 		lastAvg = avg / moves.length;
 	}
