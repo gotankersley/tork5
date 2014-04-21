@@ -4,8 +4,8 @@
 	  so, the local node is actually opposite of board.turn
 	- A node's score will be in the range of [-1,+1], or = -infinity, +infinity
 */
-var MCTS_MAX_ITERATIONS = 100000;
-var MCTS_UCT_TUNING = 0.9; //Controls exploration (< 1) vs. exploitation (> 1)
+var MCTS_MAX_ITERATIONS = 10000;
+var MCTS_UCT_TUNING = 1.2; //Controls exploration (< 1) vs. exploitation (> 1)
 var MCTS_SECURE_TUNING = 1;
 var MCTS_VISITS_TO_ADD_NODE = 1;
 var MCTS_MIN_FAIR_PLAY = 1;
@@ -98,10 +98,13 @@ MCTS.prototype.preExpand = function(root) {
 	return true;
 }
 
+//var selMaxDepth = 0;
 MCTS.prototype.selectNode = function(root) {
     //Traverse the tree until a leaf is reached by selecting the best UCT	
     var node = root;
+    //var d = 0;
     while (node.kids.length > 0) {
+      //  if (d++ > selMaxDepth) selMaxDepth = d;
 		var bestUCT = -INFINITY;
 		var bestNode = null;		
 		var length = node.kids.length;
@@ -129,26 +132,38 @@ MCTS.prototype.selectNode = function(root) {
 }
 
 MCTS.prototype.expandNode = function(node) {	
-	var board = node.board;	
+	var board = node.board;
     //Check for terminal state - they need backpropagated instead of expanding	    
     var winFound = board.findWin();	
-	if (winFound) return -INFINITY; //Negative because it's from the parent's point of view	
-
+	if (winFound) {        
+        return -INFINITY; //Negative because it's from the parent's point of view	
+    }
     //TODO: Handle dual wins?
     
     //Else get all possible unique moves that don't lead to a loss
-    var moves = board.getAllNonLossMoves();
+    var moves = board.getAllMoves(); //getAllNonLossMoves();
     if (moves.length == 0) {
 		if (board.getAllMoves().length) return INFINITY; //All moves lead to loss - So parent's win
 		else return MCTS_TIE_SCORE; //Tie - no moves available
 		
     }
 	
-	//Add all children to the node    
+	//Add all children to the node  
+    var win = false;
 	for (var m = 0; m < moves.length; m++) {
-		node.kids.push({visits:0, score:0, val: 0, board:moves[m], parent:node, kids:[]});
+        moves[m].turn = !moves[m].turn;
+        if (moves[m].findWin()) {
+            win = true;
+            moves[m].turn = !moves[m].turn;
+            node.kids.push({visits:1, score:-INFINITY, val: -INFINITY, board:moves[m], parent:node, kids:[]});
+        }
+        else {
+            moves[m].turn = !moves[m].turn;
+            node.kids.push({visits:0, score:0, val: 0, board:moves[m], parent:node, kids:[]});
+        }       
 	}
-	return false;
+    if (win) return INFINITY;
+	else return false;
 }
 
 MCTS.prototype.simulate = function(node) {
@@ -256,6 +271,7 @@ MCTS.prototype.pickFinalMove = function(root) {
 	else {
 		var move = root.board.deriveMove(bestNode.board);
 		enableScoreMap(move, root.visits);
+        //alert("max depth: " + selMaxDepth);
 		return bestNode;
 	}
 }

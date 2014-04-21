@@ -19,58 +19,30 @@ MC2.prototype.getMove = function() {
     
     initScoreMap();	
     
-    //Loop through each of the children to run the simulations    
-    var moves = board.getAllNonLossMoves();           
-	
-	var scores = [];
-	for (var m = 0; m < moves.length; m++) {
-		scores.push(0);
-	}
-		
-	var lastAvg;
-	for (var i = 0; i < MC2_ITERATIONS; i++) {
-		var avg = 0;
-		for (var m = 0; m < moves.length; m++) {
-			//Run a simulation for board state						
-			if (i > (MC2_ITERATIONS/2)) {
-                if (scores[m] < lastAvg) {
-                    scores[m] += this.simulate(moves[m].clone());
-                    avg += scores[m];		
-                }
-                else scores[m] = -1000;
-			}
-            else {
-                scores[m] += this.simulate(moves[m].clone());
-                avg += scores[m];		
-            }
-		}
-		lastAvg = avg / moves.length;
-	}
-	
-	//Pick best score
+    //Loop through each of the children to run the simulations    	           
 	var bestScore = -INFINITY;
-    var bestMove = INVALID;     
-	for (var m = 0; m < moves.length; m++) {
-	
-		if (scores[m] >= bestScore) {
-			bestScore = scores[m];
-			bestMove = m;
+	var bestKid = INVALID;
+	var moves = board.getAllMoves();
+	for (var m = 0; m < moves.length; m++) {		
+		var simScore = this.simulate(moves[m]);
+		if (simScore > bestScore) {
+			bestScore = simScore;
+			bestKid = m;
 		}
+		
 		//Populate score map
 		var move = board.deriveMove(moves[m]);
-		var r = ROW[move.pos];
-		var c = COL[move.pos];       
-		scoreMap[r][c].push({visits:MC2_ITERATIONS, score: scores[m].toFixed(2)});
-	}
-			
-			
-    var move;
-    if (bestMove == INVALID) {        
+        var r = ROW[move.pos];
+        var c = COL[move.pos];       
+		scoreMap[r][c].push({visits:1, score:simScore});
+	}	
+    
+    if (bestKid == INVALID) {
         board.makeRandomMove();        
         move = this.board.deriveMove(board); 	
     }
-    else move = this.board.deriveMove(moves[bestMove]); 	
-    enableScoreMap(move, moves.length * MC2_ITERATIONS);
+    else move = this.board.deriveMove(moves[bestKid]); 	
+    enableScoreMap(move, moves.length);
 	return move;
 }
 
@@ -80,24 +52,22 @@ MC2.prototype.simulate = function(board) {
     var curPlayer = board.turn;
 	var movesLeft = (BOARD_SPACES - moveCount);
     for (var i = 0; i < movesLeft; i++) {
-        //Check for wins
-        var winFound = board.findWin();
-        if (winFound) {
-            //TODO: test for dual win
-			if (MC2_SIM_DIST) {
-				var winScalar;
-				if (board.turn != curPlayer) winScalar = MC_WIN_SCORE;
-				else winScalar = MC_LOSE_SCORE;				
-				return ((movesLeft - i)/movesLeft) * winScalar;
-			}
-			else {
-				if (board.turn != curPlayer) return MC_WIN_SCORE;
-				else return MC_LOSE_SCORE;	
-			}
-        }
-        
-        //Make random moves
-        board.makeRandomMove();           
+        var bestScore = -INFINITY;
+        var bestKid = INVALID;
+        var moves = board.getAllMoves();
+        for (var m = 0; m < moves.length; m++) {		
+            var score = board.score();
+            if (score >= INFINITY) {    //Win
+				if (board.turn != curPlayer) return score;
+				else return -score;
+            }            
+            else if (score > bestScore) {
+                bestScore = score;
+                bestKid = m;
+            }
+        }  
+        if (bestKid == INVALID) -INFINITY;
+        else board = moves[bestKid];
     }    
     return MC_TIE_SCORE;
 }
