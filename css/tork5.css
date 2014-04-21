@@ -81,3 +81,6 @@ body {
     padding: 5px;
     margin: auto 10px;
 }
+
+ /* TREE-VIEWER */
+ #treeViewerCanvas { border: 1px solid red; }

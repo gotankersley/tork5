@@ -52,6 +52,7 @@ var requestAnimationFrame =
 	
 
 var game;
+var treeViewer;
 //Class Game
 function Game() {
 	this.canvas = document.getElementById('mainCanvas');
@@ -80,13 +81,14 @@ function Game() {
 	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
     this.mode = MODE_PLACE;
     this.player.play();
-    
+	treeViewer = new TreeViewer();	
     this.onFrame();
 }
 
 
 //Events
 Game.prototype.onClick = function(e) {	
+	var x, y;
 	if(e.offsetX == undefined) { //Required for FF
 		x = e.pageX - $('#mainCanvas').offset().left;
 		y = e.pageY - $('#mainCanvas').offset().top;
@@ -125,6 +127,7 @@ Game.prototype.onClick = function(e) {
 }
 
 Game.prototype.onMouse = function(e) {
+	var x,y;
 	if(e.offsetX == undefined) { //Required for FF
 		x = e.pageX - $('#mainCanvas').offset().left;
 		y = e.pageY - $('#mainCanvas').offset().top; 
@@ -313,8 +316,8 @@ Game.prototype.draw = function() {
 	//Quad division lines
 	ctx.strokeStyle = COLOR_QUAD;
     ctx.fillStyle = COLOR_QUAD;
-	this.drawLine(ctx, QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
-	this.drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
+	drawLine(ctx, QUAD_SIZE, 0, QUAD_SIZE, BOARD_SIZE); //Vertical
+	drawLine(ctx, 0, QUAD_SIZE, BOARD_SIZE, QUAD_SIZE); //Horizontal	
     
 	//Rotation arrows
 	if (this.mode == MODE_ROTATE || this.mode == MODE_ANIM) {
@@ -349,7 +352,7 @@ Game.prototype.draw = function() {
     ctx.restore();
 }
 
-Game.prototype.drawLine = function(ctx, x1, y1, x2, y2) {
+function drawLine(ctx, x1, y1, x2, y2) {
 	ctx.beginPath();
 	ctx.moveTo(x1,y1);
 	ctx.lineTo(x2,y2);    
@@ -357,7 +360,7 @@ Game.prototype.drawLine = function(ctx, x1, y1, x2, y2) {
 	ctx.stroke();   
 }
 
-Game.prototype.drawCircle = function(ctx, x, y, r, margin, color) {
+function drawCircle(ctx, x, y, r, margin, color) {
 	ctx.beginPath();    
 	ctx.arc(x + r,y + r, r - margin, 0, 2 * Math.PI, true);
 	ctx.closePath();
@@ -408,20 +411,20 @@ Game.prototype.drawQuad = function(ctx, quad, degrees, anim) {
     for (var r = 0; r < QUAD_ROW_SPACES; r++) {
         y = toXY(r);
         ctx.strokeStyle = COLOR_GRID;
-		this.drawLine(ctx, 0, y, QUAD_SIZE, y); //Horizontal
-		this.drawLine(ctx, y, 0, y, QUAD_SIZE); //Vertical
+		drawLine(ctx, 0, y, QUAD_SIZE, y); //Horizontal
+		drawLine(ctx, y, 0, y, QUAD_SIZE); //Vertical
         
         for (var c = 0; c < QUAD_COL_SPACES; c++) {
             //Draw pins
 			x = toXY(c);
 			var p = board.get(qR + r,qC + c);			
-			if (p == PLAYER1) this.drawCircle(ctx, x, y, HALF_UNIT, 5, COLOR_P1);						
-			else if (p == PLAYER2) this.drawCircle(ctx, x,y, HALF_UNIT, 5, COLOR_P2);		        
+			if (p == PLAYER1) drawCircle(ctx, x, y, HALF_UNIT, 5, COLOR_P1);						
+			else if (p == PLAYER2) drawCircle(ctx, x,y, HALF_UNIT, 5, COLOR_P2);		        
         }
     }
     y = toXY(QUAD_ROW_SPACES);
-	this.drawLine(ctx, 0, y, QUAD_SIZE, y); //Horizontal
-	this.drawLine(ctx, y, 0, y, QUAD_SIZE); //Vertical
+	drawLine(ctx, 0, y, QUAD_SIZE, y); //Horizontal
+	drawLine(ctx, y, 0, y, QUAD_SIZE); //Vertical
     
     ctx.restore();
 }
@@ -450,7 +453,7 @@ Game.prototype.drawRowNotation = function(ctx) {
 Game.prototype.drawWinLine = function(ctx, line, color) {
     ctx.strokeStyle = color;
     ctx.lineWidth = 5;
-    this.drawLine(ctx, line[0], line[1], line[2], line[3]);
+    drawLine(ctx, line[0], line[1], line[2], line[3]);
 }
 
 Game.prototype.drawScoreMap = function(ctx) {
@@ -484,6 +487,8 @@ Game.prototype.drawScoreMap = function(ctx) {
 		case 7: this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 112.5, 7); break;//Q3 -> A    					 
 	}
 }
+
+
 
 
 //Helper functions

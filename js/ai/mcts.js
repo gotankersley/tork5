@@ -4,7 +4,7 @@
 	  so, the local node is actually opposite of board.turn
 	- A node's score will be in the range of [-1,+1], or = -infinity, +infinity
 */
-var MCTS_MAX_ITERATIONS = 10000;
+var MCTS_MAX_ITERATIONS = 10;
 var MCTS_UCT_TUNING = 1.2; //Controls exploration (< 1) vs. exploitation (> 1)
 var MCTS_SECURE_TUNING = 1;
 var MCTS_VISITS_TO_ADD_NODE = 1;
@@ -50,7 +50,7 @@ MCTS.prototype.runMCTS = function(board) {
 	-----------------------------------
     5. Pick final move
 	*/
-    var root = {visits:0, score:0, val:0, board:board, parent:null, kids:[]};
+    var root = {visits:0, score:0, val:0, board:board, parent:null, kids:[]};	
 	
 	//Pre-expand root's children
 	if (!this.preExpand(root)) {
@@ -94,6 +94,7 @@ MCTS.prototype.preExpand = function(root) {
     }
 	for (var m = 0; m < moves.length; m++) {
         root.kids.push({visits:0, score:0, val:0, board:moves[m], parent:root, kids:[]});
+		if (m >= 2) break;
     }
 	return true;
 }
@@ -104,7 +105,7 @@ MCTS.prototype.selectNode = function(root) {
     var node = root;
     //var d = 0;
     while (node.kids.length > 0) {
-      //  if (d++ > selMaxDepth) selMaxDepth = d;
+        //if (d++ > selMaxDepth) selMaxDepth = d;
 		var bestUCT = -INFINITY;
 		var bestNode = null;		
 		var length = node.kids.length;
@@ -139,7 +140,19 @@ MCTS.prototype.expandNode = function(node) {
         return -INFINITY; //Negative because it's from the parent's point of view	
     }
     //TODO: Handle dual wins?
-    
+	//Check for opponent win on next move - if so, the only valid move is to block
+    board.turn = !board.turn;
+	winFound = board.findWin();
+	board.turn = !board.turn;
+	if (winFound) {
+		var move = board.getMoveFromMidWin(winFound);
+		var newBoard = board.clone();
+		newBoard.setPin(move.pos);
+		newBoard.rotate(move.quad, move.rot);		
+		node.kids.push({visits:0, score:0, val:0, board:newBoard, parent:node, kids:[]});
+		return false;
+	}
+	
     //Else get all possible unique moves that don't lead to a loss
     var moves = board.getAllMoves(); //getAllNonLossMoves();
     if (moves.length == 0) {
@@ -148,21 +161,24 @@ MCTS.prototype.expandNode = function(node) {
 		
     }
 	
-	//Add all children to the node  
-    var win = false;
-	for (var m = 0; m < moves.length; m++) {
-        moves[m].turn = !moves[m].turn;
-        if (moves[m].findWin()) {
-            win = true;
-            moves[m].turn = !moves[m].turn;
-            node.kids.push({visits:1, score:-INFINITY, val: -INFINITY, board:moves[m], parent:node, kids:[]});
-        }
-        else {
-            moves[m].turn = !moves[m].turn;
-            node.kids.push({visits:0, score:0, val: 0, board:moves[m], parent:node, kids:[]});
-        }       
-	}
-    if (win) return INFINITY;
+	//Add all children to the node      
+	var winCount = 0;
+	for (var m = 0; m < moves.length; m++) {    
+		var move = moves[m];
+		//Need to check if can win next move though
+		if (move.findWin()) node.kids.push({visits:1, score:-INFINITY, val: -INFINITY, board:move, parent:node, kids:[]});        
+		else {
+			move.turn = !move.turn;
+			if (move.findWin()) {
+				winCount++;			
+				node.kids.push({visits:0, score:INFINITY, val:INFINITY, board:move, parent:node, kids:[]});        
+			}
+			node.kids.push({visits:0, score:0, val: 0, board:move, parent:node, kids:[]});        
+			move.turn = !move.turn;
+		}
+		if (m >= 2) break;
+	}    
+	if (winCount >= 2) return -INFINITY; //If there are multiple ways to win, then a win can't be stopped
 	else return false;
 }
 
@@ -247,7 +263,7 @@ MCTS.prototype.backpropagate = function(node, score) {
 }
 
 MCTS.prototype.pickFinalMove = function(root) {
-	//Should we use secure child?	
+	
     var bestScore = -INFINITY;
 	var bestNode = null;
 	
@@ -272,6 +288,7 @@ MCTS.prototype.pickFinalMove = function(root) {
 		var move = root.board.deriveMove(bestNode.board);
 		enableScoreMap(move, root.visits);
         //alert("max depth: " + selMaxDepth);
+		treeViewer.draw(root);
 		return bestNode;
 	}
 }
