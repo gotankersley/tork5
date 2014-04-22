@@ -79,11 +79,11 @@ MCTS.prototype.runMCTS = function(board) {
             //Backpropagate			
             var winFound = this.backpropagate(node, simScore);
 			if (winFound) return winFound; 
-        }
-        break;
+        }        
+		break;
 	}	
     this.expandNode(root.kids[0]); 
-    //this.expandNode(root.kids[1]); 
+    this.expandNode(root.kids[1]); 
     this.expandNode(root.kids[2]); 
 	//Pick the final move
 	return this.pickFinalMove(root);
@@ -91,7 +91,7 @@ MCTS.prototype.runMCTS = function(board) {
 
 //Steps
 MCTS.prototype.preExpand = function(root) {
-	var moves = this.board.getAllNonLossMoves();       
+	var moves = this.board.getAllDebugMoves();//AllNonLossMoves();       
     if (moves.length == 0) {
         alert('No non-loss moves found - making random');
         return false;   
@@ -158,7 +158,7 @@ MCTS.prototype.expandNode = function(node) {
 	}
 	
     //Else get all possible unique moves that don't lead to a loss
-    var moves = board.getAllMoves(); //getAllNonLossMoves();
+    var moves = board.getAllDebugMoves();//board.getAllMoves(); //getAllNonLossMoves();
     if (moves.length == 0) {
 		if (board.getAllMoves().length) return INFINITY; //All moves lead to loss - So parent's win
 		else return MCTS_TIE_SCORE; //Tie - no moves available

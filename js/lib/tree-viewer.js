@@ -2,9 +2,11 @@ var TV_UNIT_SIZE = 20;
 var TV_HALF_UNIT = TV_UNIT_SIZE/2;
 var TV_QUAD_SIZE = TV_UNIT_SIZE * 3;
 var TV_BOARD_SIZE = TV_UNIT_SIZE * 6;
+var TV_NODE_SIZE_H = TV_BOARD_SIZE + 10;
+var TV_NODE_SIZE_V = TV_BOARD_SIZE + 40;
 var TV_CANVAS_SIZE = 1000;
 
-var TV_MAX_KIDS_PER_LEVEL = 20;
+var TV_MAX_KIDS = 2;
 //Class TreeViewer
 function TreeViewer() {
 	canvas = document.getElementById('treeViewerCanvas');
@@ -19,6 +21,7 @@ function TreeViewer() {
 	this.dragX = 0;
 	this.dragY = 0;
 	this.root = null;
+	this.leafStart = 0;
 }
 
 TreeViewer.prototype.onMouseDown = function(e) {	
@@ -61,61 +64,66 @@ TreeViewer.prototype.onMouseMove = function(e) {
 TreeViewer.prototype.draw = function(root) {
 	if (typeof(root) != 'undefined') this.root = root;
     else if (this.root == null) return;
-	var ctx = this.ctx;
-	//Draw root
-	ctx.clearRect(0,0, TV_CANVAS_SIZE, TV_CANVAS_SIZE);	
-	ctx.save();
-	ctx.translate(this.offsetX, this.offsetY);
-
-	this.drawNode(ctx, this.root);
-	ctx.restore();
-	var queue = [{n:this.root,r:0, c:0}];
-    var levelRow = -1;
-    var levelCol = 0;
-	while (queue.length) {
-		var item = queue.pop();		
-		var node = item.n;
-		if (node) {
-            if (levelRow != item.r) {
-                levelCol = 0;
-                levelRow = item.r;
-            }
-            else levelCol += node.kids.length;
-			this.drawKids(ctx, node.kids, item.r, item.c, levelCol );
-			for (var k = 0; k < node.kids.length; k++) {
-				queue.unshift({n:node.kids[k], r:item.r + 1, c:(levelCol + k)});
-			}
-		}
-	}			
+	this.ctx.clearRect(0,0, TV_CANVAS_SIZE, TV_CANVAS_SIZE);	
+	this.leafStart = 0;
+	this.drawTree(this.ctx, this.root, 0); //Recursive
 }
 
-TreeViewer.prototype.drawKids = function(ctx, kids, row, parentCol, col) {
-	for (var k = 0; k < kids.length; k++) {
-        var parentX = parentCol * (TV_BOARD_SIZE + TV_UNIT_SIZE) + this.offsetX;
-        var parentY = (row * (TV_BOARD_SIZE + UNIT_SIZE)) + TV_BOARD_SIZE + 10 + this.offsetY;
-        
-        var x = (k + col) * (TV_BOARD_SIZE + TV_UNIT_SIZE) + this.offsetX;
-        var y = (row + 1) * (TV_BOARD_SIZE + UNIT_SIZE) + this.offsetY;
-        drawLine(ctx, parentX + TV_QUAD_SIZE, parentY, x + TV_QUAD_SIZE, y - 5);
-		ctx.save(); 	        
-		ctx.translate(x, y);
-		if (k < TV_MAX_KIDS_PER_LEVEL) this.drawNode(ctx, kids[k]);
-		else { //Cutoff
-			ctx.beginPath();
-			ctx.fillText('[' + (kids.length - k) + ' more kids]', 10, TV_BOARD_SIZE / 2);
-			ctx.rect(0, 0, TV_BOARD_SIZE, TV_BOARD_SIZE);
-			ctx.stroke();
-			ctx.restore();		
+TreeViewer.prototype.drawTree = function(ctx, node, depth) {	  //Recursive
+	//Leaf
+	if (!node.kids.length) {
+		ctx.save();
+		var x = this.offsetX + (this.leafStart * TV_NODE_SIZE_H);
+		ctx.translate(x, this.offsetY + (depth * TV_NODE_SIZE_V));
+		this.leafStart++;
+		this.drawNode(ctx, node, depth);
+		ctx.restore();
+		return x;
+	}
+	
+	var start = this.leafStart;	
+	var kidXs = [];
+	//Recursive on child for depth first rendering
+	for (var i = 0; i < node.kids.length; i++) {
+		if (i >= TV_MAX_KIDS) { 	
+			kidXs.push(this.drawMore(ctx, node.kids.length - i, depth + 1));			
 			break;
 		}
-		ctx.restore();		
+		kidXs.push(this.drawTree(ctx, node.kids[i], depth + 1));	
+	}	
+	
+	//Draw lines from parent to kids
+	var x = this.offsetX + (TV_NODE_SIZE_H * ((start + (this.leafStart - 1)) / 2));
+	var y = this.offsetY + (TV_NODE_SIZE_V * depth);
+	for (var i = 0; i < kidXs.length; i++) {
+		drawLine(ctx, x + TV_QUAD_SIZE, y + TV_BOARD_SIZE, kidXs[i] + TV_QUAD_SIZE, y + TV_NODE_SIZE_V);
 	}
+	
+	//Draw parent node
+	ctx.save();
+	ctx.translate(x, y);	
+	this.drawNode(ctx, node, depth);	
+	ctx.restore();	
+	return x;
 }
 
-TreeViewer.prototype.drawNode = function(ctx, node) {	  
+TreeViewer.prototype.drawMore = function(ctx, count, depth) {	  
+	ctx.save();
+	var x = this.offsetX + (this.leafStart * TV_NODE_SIZE_H);
+	this.leafStart++;
+	ctx.translate(x, this.offsetY + (depth * TV_NODE_SIZE_V));
+	ctx.beginPath();
+	ctx.fillText('[' + count + ' more kids]', 20, TV_BOARD_SIZE / 2);
+	ctx.rect(0, 0, TV_BOARD_SIZE, TV_BOARD_SIZE);
+	ctx.stroke();			
+	ctx.restore();	
+	return x;	
+}
+
+TreeViewer.prototype.drawNode = function(ctx, node, depth) {	  
 	var board = node.board;
 	//Player Turn  	
-	if (board.turn == PLAYER1) {
+	if (board.turn != PLAYER1) {
 		ctx.fillStyle = COLOR_P1;				
 		ctx.fillText('Player 1', 5, -10);				   
 	}

@@ -244,6 +244,19 @@ Board.prototype.getAllMoves = function() {
 	return moves;
 }
 
+Board.prototype.getAllDebugMoves = function() {
+    var avail = not(or(this.p1, this.p2));
+    var availBits = bitScan(avail);
+	var moves = [];	
+	for (var a = 0; a < availBits.length; a++) {		
+		var newBoard = this.clone();
+		if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); //Place pin
+		else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); //Place pin
+		moves.push(newBoard);			
+	}
+	return moves;
+}
+
 Board.prototype.getAllNonLossMoves = function() { 
     var board;
     var opp;
