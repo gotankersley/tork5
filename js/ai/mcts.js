@@ -80,7 +80,11 @@ MCTS.prototype.runMCTS = function(board) {
             var winFound = this.backpropagate(node, simScore);
 			if (winFound) return winFound; 
         }
+        break;
 	}	
+    this.expandNode(root.kids[0]); 
+    //this.expandNode(root.kids[1]); 
+    this.expandNode(root.kids[2]); 
 	//Pick the final move
 	return this.pickFinalMove(root);
 }

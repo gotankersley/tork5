@@ -60,35 +60,45 @@ TreeViewer.prototype.onMouseMove = function(e) {
 
 TreeViewer.prototype.draw = function(root) {
 	if (typeof(root) != 'undefined') this.root = root;
+    else if (this.root == null) return;
 	var ctx = this.ctx;
 	//Draw root
 	ctx.clearRect(0,0, TV_CANVAS_SIZE, TV_CANVAS_SIZE);	
 	ctx.save();
 	ctx.translate(this.offsetX, this.offsetY);
-	var y = TV_BOARD_SIZE + 15;
-	var x = TV_QUAD_SIZE;
-	for (var i = 0; i < this.root.kids.length; i++) {
-		drawLine(ctx, x, y, x + (i * TV_BOARD_SIZE), y + TV_QUAD_SIZE);
-	}
+
 	this.drawNode(ctx, this.root);
 	ctx.restore();
-	var queue = [{n:this.root,d:0}];
+	var queue = [{n:this.root,r:0, c:0}];
+    var levelRow = -1;
+    var levelCol = 0;
 	while (queue.length) {
 		var item = queue.pop();		
 		var node = item.n;
-		if (node.kids) {
-			this.drawKids(ctx, node.kids, item.d);
-			for (var k = 0; k < 2; k++) {
-				queue.unshift({n:node.kids[k], d:(item.d + 1)});
+		if (node) {
+            if (levelRow != item.r) {
+                levelCol = 0;
+                levelRow = item.r;
+            }
+            else levelCol += node.kids.length;
+			this.drawKids(ctx, node.kids, item.r, item.c, levelCol );
+			for (var k = 0; k < node.kids.length; k++) {
+				queue.unshift({n:node.kids[k], r:item.r + 1, c:(levelCol + k)});
 			}
 		}
 	}			
 }
 
-TreeViewer.prototype.drawKids = function(ctx, kids, depth) {
+TreeViewer.prototype.drawKids = function(ctx, kids, row, parentCol, col) {
 	for (var k = 0; k < kids.length; k++) {
-		ctx.save(); 	
-		ctx.translate(k * (TV_BOARD_SIZE + TV_UNIT_SIZE) + this.offsetX, (depth + 1) * (TV_BOARD_SIZE + UNIT_SIZE) + this.offsetY);
+        var parentX = parentCol * (TV_BOARD_SIZE + TV_UNIT_SIZE) + this.offsetX;
+        var parentY = (row * (TV_BOARD_SIZE + UNIT_SIZE)) + TV_BOARD_SIZE + 10 + this.offsetY;
+        
+        var x = (k + col) * (TV_BOARD_SIZE + TV_UNIT_SIZE) + this.offsetX;
+        var y = (row + 1) * (TV_BOARD_SIZE + UNIT_SIZE) + this.offsetY;
+        drawLine(ctx, parentX + TV_QUAD_SIZE, parentY, x + TV_QUAD_SIZE, y - 5);
+		ctx.save(); 	        
+		ctx.translate(x, y);
 		if (k < TV_MAX_KIDS_PER_LEVEL) this.drawNode(ctx, kids[k]);
 		else { //Cutoff
 			ctx.beginPath();
@@ -116,9 +126,7 @@ TreeViewer.prototype.drawNode = function(ctx, node) {
 	
 	//Stats		
 	ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.score.toFixed(6), 5, TV_BOARD_SIZE + 10);				   
-	
-    		    
-	
+	    		   
     //Quads	
 	ctx.strokeStyle = COLOR_GRID;
 	var y;		
