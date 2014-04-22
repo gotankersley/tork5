@@ -4,7 +4,7 @@
 	  so, the local node is actually opposite of board.turn
 	- A node's score will be in the range of [-1,+1], or = -infinity, +infinity
 */
-var MCTS_MAX_ITERATIONS = 10;
+var MCTS_MAX_ITERATIONS = 50;
 var MCTS_UCT_TUNING = 1.2; //Controls exploration (< 1) vs. exploitation (> 1)
 var MCTS_SECURE_TUNING = 1;
 var MCTS_VISITS_TO_ADD_NODE = 1;
@@ -80,11 +80,11 @@ MCTS.prototype.runMCTS = function(board) {
             var winFound = this.backpropagate(node, simScore);
 			if (winFound) return winFound; 
         }        
-		break;
+		
 	}	
-    this.expandNode(root.kids[0]); 
-    this.expandNode(root.kids[1]); 
-    this.expandNode(root.kids[2]); 
+    //this.expandNode(root.kids[0]); 
+    //this.expandNode(root.kids[1]); 
+    //this.expandNode(root.kids[2]); 
 	//Pick the final move
 	return this.pickFinalMove(root);
 }
@@ -98,7 +98,7 @@ MCTS.prototype.preExpand = function(root) {
     }
 	for (var m = 0; m < moves.length; m++) {
         root.kids.push({visits:0, score:0, val:0, board:moves[m], parent:root, kids:[]});
-		if (m >= 2) break;
+		//if (m >= 2) break;
     }
 	return true;
 }

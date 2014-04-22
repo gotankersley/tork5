@@ -252,6 +252,7 @@ Board.prototype.getAllDebugMoves = function() {
 		var newBoard = this.clone();
 		if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); //Place pin
 		else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); //Place pin
+		newBoard.turn = !newBoard.turn;
 		moves.push(newBoard);			
 	}
 	return moves;

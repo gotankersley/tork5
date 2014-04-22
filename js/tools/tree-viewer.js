@@ -3,10 +3,10 @@ var TV_HALF_UNIT = TV_UNIT_SIZE/2;
 var TV_QUAD_SIZE = TV_UNIT_SIZE * 3;
 var TV_BOARD_SIZE = TV_UNIT_SIZE * 6;
 var TV_NODE_SIZE_H = TV_BOARD_SIZE + 10;
-var TV_NODE_SIZE_V = TV_BOARD_SIZE + 40;
-var TV_CANVAS_SIZE = 1000;
+var TV_NODE_SIZE_V = TV_BOARD_SIZE + 60;
+var TV_CANVAS_SIZE = 2000;
 
-var TV_MAX_KIDS = 2;
+var TV_MAX_KIDS = 20;
 //Class TreeViewer
 function TreeViewer() {
 	canvas = document.getElementById('treeViewerCanvas');
@@ -96,7 +96,7 @@ TreeViewer.prototype.drawTree = function(ctx, node, depth) {	  //Recursive
 	var x = this.offsetX + (TV_NODE_SIZE_H * ((start + (this.leafStart - 1)) / 2));
 	var y = this.offsetY + (TV_NODE_SIZE_V * depth);
 	for (var i = 0; i < kidXs.length; i++) {
-		drawLine(ctx, x + TV_QUAD_SIZE, y + TV_BOARD_SIZE, kidXs[i] + TV_QUAD_SIZE, y + TV_NODE_SIZE_V);
+		drawLine(ctx, x + TV_QUAD_SIZE, y + TV_BOARD_SIZE + 15, kidXs[i] + TV_QUAD_SIZE, y + TV_NODE_SIZE_V);
 	}
 	
 	//Draw parent node
@@ -134,7 +134,22 @@ TreeViewer.prototype.drawNode = function(ctx, node, depth) {
 	
 	//Stats		
 	ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.score.toFixed(6), 5, TV_BOARD_SIZE + 10);				   
-	    		   
+	    	
+	//Placed pin
+	if (depth != 0) {
+		var parentBoard, kidBoard;
+		if (board.turn == PLAYER1) {
+			parentBoard = node.parent.board.p2;
+			kidBoard = node.board.p2;
+		}
+		else {
+			parentBoard = node.parent.board.p1;
+			kidBoard = node.board.p1;
+		}
+		var pos = MPOS_TO_POS[xor(parentBoard, kidBoard)];
+		drawCircle(ctx, (COL[pos] * TV_UNIT_SIZE) - 1, (ROW[pos] * TV_UNIT_SIZE) - 1, TV_HALF_UNIT + 1, 2, '#FF0000'); 	
+	}
+	
     //Quads	
 	ctx.strokeStyle = COLOR_GRID;
 	var y;		
