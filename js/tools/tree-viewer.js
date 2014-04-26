@@ -4,7 +4,7 @@ var TV_QUAD_SIZE = TV_UNIT_SIZE * 3;
 var TV_BOARD_SIZE = TV_UNIT_SIZE * 6;
 var TV_NODE_SIZE_H = TV_BOARD_SIZE + 10;
 var TV_NODE_SIZE_V = TV_BOARD_SIZE + 60;
-var TV_CANVAS_SIZE = 2000;
+var TV_CANVAS_SIZE = 1000;
 
 var TV_MAX_KIDS = 20;
 //Class TreeViewer
@@ -133,7 +133,8 @@ TreeViewer.prototype.drawNode = function(ctx, node, depth) {
 	}
 	
 	//Stats		
-	ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.score.toFixed(6), 5, TV_BOARD_SIZE + 10);				   
+	//ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.score.toFixed(6), 5, TV_BOARD_SIZE + 10);				   
+	ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.val, 5, TV_BOARD_SIZE + 10);				   
 	    	
 	//Placed pin
 	if (depth != 0) {

@@ -61,7 +61,9 @@ function Game() {
     this.messageColor = COLOR_P1;
     this.message = 'Player1 - place pin';
     
-	this.board = new Board();    
+	this.board = new Board(); 
+	this.board.p1 = 12582912;
+	this.board.p2 = 67108880;
     this.cursorR = 0;
     this.cursorC = 0;
     this.arrow = INVALID;

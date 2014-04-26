@@ -221,6 +221,18 @@ Board.prototype.makeRandomMove = function() {
     this.rotate(randQuad, randRot);	
 }
 
+Board.prototype.makeDebugRandomMove = function() { 
+    var avail = and(QUADS[2], not(or(this.p1, this.p2)));
+    var availBits = bitScan(avail);
+    var randPos = availBits[Math.floor(Math.random() * availBits.length)];
+    if (this.turn == PLAYER1) this.p1 = xor(this.p1, POS_TO_MPOS[randPos]);
+    else this.p2 = xor(this.p2, POS_TO_MPOS[randPos]);
+    
+    var randQuad = Math.floor(Math.random() * BOARD_QUADS);
+    var randRot = Math.floor(Math.random() * 2);
+    this.rotate(randQuad, randRot);	
+}
+
 Board.prototype.getAllMoves = function() {
     var avail = not(or(this.p1, this.p2));
     var availBits = bitScan(avail);
@@ -244,9 +256,11 @@ Board.prototype.getAllMoves = function() {
 	return moves;
 }
 
-Board.prototype.getAllDebugMoves = function() {
-    var avail = not(or(this.p1, this.p2));
-    var availBits = bitScan(avail);
+Board.prototype.getAllDebugMoves = function(mask) {
+	if (typeof(mask) == 'undefined') mask = 0x181248040;
+	if (this.turn == PLAYER1) mask = 0x100000000;
+    var avail = and(mask, not(or(this.p1, this.p2)));
+    var availBits = bitScan(avail);	
 	var moves = [];	
 	for (var a = 0; a < availBits.length; a++) {		
 		var newBoard = this.clone();
