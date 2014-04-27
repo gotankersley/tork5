@@ -83,7 +83,7 @@ function Game() {
 	this.player = new Player(this, this.board, PLAYER_HUMAN, PLAYER_HUMAN);
     this.mode = MODE_PLACE;
     this.player.play();
-	treeViewer = new TreeViewer();	
+	//treeViewer = new TreeViewer();	
     this.onFrame();
 }
 

@@ -133,8 +133,8 @@ TreeViewer.prototype.drawNode = function(ctx, node, depth) {
 	}
 	
 	//Stats		
-	//ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.score.toFixed(6), 5, TV_BOARD_SIZE + 10);				   
-	ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.val, 5, TV_BOARD_SIZE + 10);				   
+	ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.score.toFixed(6), 5, TV_BOARD_SIZE + 10);				   
+	//ctx.fillText('Visits: ' + node.visits + ', Score: ' + node.val, 5, TV_BOARD_SIZE + 10);				   
 	    	
 	//Placed pin
 	if (depth != 0) {
@@ -180,7 +180,7 @@ TreeViewer.prototype.drawNode = function(ctx, node, depth) {
     //Win line(s)
 	var winFound = board.findWin();
     if (winFound) {   
-		var winRCs = this.board.getWinLines(); 
+		var winRCs = board.getWinLines(); 
 		this.winLines = [[],[]];
 		for (var side in winRCs) {
 			for (var i in winRCs[side]) {

@@ -258,7 +258,7 @@ Board.prototype.getAllMoves = function() {
 
 Board.prototype.getAllDebugMoves = function(mask) {
 	if (typeof(mask) == 'undefined') mask = 0x181248040;
-	if (this.turn == PLAYER1) mask = 0x100000000;
+	if (this.turn == PLAYER1) mask = 0x101000000;
     var avail = and(mask, not(or(this.p1, this.p2)));
     var availBits = bitScan(avail);	
 	var moves = [];	

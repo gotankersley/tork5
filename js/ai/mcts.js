@@ -4,8 +4,8 @@
 	  so, the local node is actually opposite of board.turn
 	- A node's score will be in the range of [-1,+1], or = -infinity, +infinity
 */
-var MCTS_MAX_ITERATIONS = 5;
-var MCTS_UCT_TUNING = 1.2; //Controls exploration (< 1) vs. exploitation (> 1)
+var MCTS_MAX_ITERATIONS = 100000;
+var MCTS_UCT_TUNING = 0.9; //Controls exploration (< 1) vs. exploitation (> 1)
 var MCTS_SECURE_TUNING = 1;
 var MCTS_VISITS_TO_ADD_NODE = 1;
 var MCTS_MIN_FAIR_PLAY = 1;
@@ -29,13 +29,13 @@ MCTS.prototype.getMove = function() {
 	}
 	//TODO: check for ties?	
 	//Run the monte-carlo tree search
-	console.log('MCTS: Initial board');
-	this.board.print();
+	//console.log('MCTS: Initial board');
+	//this.board.print();
 	var bestKid = this.runMCTS(this.board.clone());	
 	var move = this.board.deriveMove(bestKid.board);
-	console.log('Visits: ' + bestKid.visits + ', Score: ' + bestKid.score);		
-	this.board.printMove(move);
-	bestKid.board.print();
+	//console.log('Visits: ' + bestKid.visits + ', Score: ' + bestKid.score);		
+	//this.board.printMove(move);
+	//bestKid.board.print();
 	return move;
 }
 
@@ -67,9 +67,9 @@ MCTS.prototype.runMCTS = function(board) {
 		//Expand - but make sure an adequate number of simulations have been run before expanding.		
 		if (node.visits >= MCTS_VISITS_TO_ADD_NODE) {
 			var terminalScore = this.expandNode(node); 	
-			if (terminalScore !== false) {
-				//var winFound = this.backpropagate(node, terminalScore);
-				//if (winFound) return winFound;
+			if (terminalScore !== false) {            
+				var winFound = this.backpropagate(node, terminalScore);
+				if (winFound) return winFound;
 			}
 		}
         else {
@@ -79,27 +79,23 @@ MCTS.prototype.runMCTS = function(board) {
             //Backpropagate			
             var winFound = this.backpropagate(node, simScore);
 			if (winFound) return winFound; 
-        }      
-		//break;
+        }      		
 		
 	}	
-    //this.expandNode(root.kids[0]); 
-    //this.expandNode(root.kids[1]); 
-    //this.expandNode(root.kids[2]); 
 	//Pick the final move
 	return this.pickFinalMove(root);
 }
 
 //Steps
 MCTS.prototype.preExpand = function(root) {
-	var moves = this.board.getAllDebugMoves(0x100008000);//AllNonLossMoves();       
+	//var moves = this.board.getAllDebugMoves(0x100008000);//AllNonLossMoves();       
+	var moves = this.board.getAllNonLossMoves();//getAllDebugMoves( 0x8000);
     if (moves.length == 0) {
         alert('No non-loss moves found - making random');
         return false;   
     }
 	for (var m = 0; m < moves.length; m++) {
-        root.kids.push({visits:0, score:0, val:0, board:moves[m], parent:root, kids:[]});
-		//if (m >= 2) break;
+        root.kids.push({visits:0, score:0, val:0, board:moves[m], parent:root, kids:[]});		
     }
 	return true;
 }
@@ -141,54 +137,38 @@ MCTS.prototype.expandNode = function(node) {
 	var board = node.board;
     //Check for terminal state - they need backpropagated instead of expanding	    
     var winFound = board.findWin();	
-	if (winFound) {        
+	if (winFound) {                
         return -INFINITY; //Negative because it's from the parent's point of view	
     }
     //TODO: Handle dual wins?
-	//Check for opponent win on next move - if so, the only valid move is to block
-	/*
+	//Check for own win in two moves - if so, the only valid next move is to block
     board.turn = !board.turn;
-	winFound = board.findWin();
-	board.turn = !board.turn;
+	winFound = board.findWin();    
 	if (winFound) {
-		var move = board.getMoveFromMidWin(winFound);
-		var newBoard = board.clone();
+		var move = board.getMoveFromMidWin(winFound);       
+        board.turn = !board.turn;   
+		var newBoard = board.clone(); 
 		newBoard.setPin(move.pos);
-		newBoard.rotate(move.quad, move.rot);		
-		node.kids.push({visits:0, score:0, val:0, board:newBoard, parent:node, kids:[]});
-		return false;
-	}
-	*/
-    //Else get all possible unique moves that don't lead to a loss
-    var moves = board.getAllDebugMoves();//board.getAllMoves(); //getAllNonLossMoves();
-    if (moves.length == 0) {
-		if (board.getAllMoves().length) return INFINITY; //All moves lead to loss - So parent's win
-		else return MCTS_TIE_SCORE; //Tie - no moves available
-		
-    }
+		if (move.quad != INVALID) newBoard.rotate(move.quad, move.rot);	//Todo - not necessarily best / only strategy
+        else newBoard.turn = !newBoard.turn; //Still have to change turn if not rotating
+		node.kids.push({visits:0, score:0, val:0, board:newBoard, parent:node, kids:[]});		        
+        return false;
+	}	
+    else board.turn = !board.turn;   
+    
+    //Else get all possible unique moves
+    var moves = board.getAllMoves(); //board.getAllDebugMoves();
+    if (moves.length == 0) return MCTS_TIE_SCORE; //Tie 
 	
 	//Add all children to the node      
-	var winCount = 0;
-	for (var m = 0; m < moves.length; m++) {    
-		
-		var move = moves[m];
-		/*
-		//Need to check if can win next move though
-		if (move.findWin()) node.kids.push({visits:1, score:-INFINITY, val: -INFINITY, board:move, parent:node, kids:[]});        
-		else {
-			move.turn = !move.turn;
-			if (move.findWin()) {
-				winCount++;			
-				node.kids.push({visits:0, score:INFINITY, val:INFINITY, board:move, parent:node, kids:[]});        
-			}
-		*/
-			node.kids.push({visits:0, score:0, val: 0, board:move, parent:node, kids:[]});        
-			//move.turn = !move.turn;
-		//}
-		//if (m >= 2) break;
+	//var winCount = 0;
+	for (var m = 0; m < moves.length; m++) {    		
+		var move = moves[m];		
+        node.kids.push({visits:0, score:0, val: 0, board:move, parent:node, kids:[]});        
 	}    
-	if (winCount >= 2) return -INFINITY; //If there are multiple ways to win, then a win can't be stopped
-	else return false;
+	//if (winCount >= 2) return -INFINITY; //If there are multiple ways to win, then a win can't be stopped
+	//else
+    return false;
 }
 
 MCTS.prototype.simulate = function(node) {
@@ -217,7 +197,7 @@ MCTS.prototype.simulate = function(node) {
             }
             else { //Safe to make a random move
                 board.turn = !board.turn;
-                board.makeDebugRandomMove();
+                board.makeRandomMove(); //makeDebugRandomMove();
             }
         }
         
@@ -231,7 +211,7 @@ MCTS.prototype.backpropagate = function(node, score) {
 	//Update leaf
     node.visits++;
     node.val += Number(score);
-	if (Math.abs(score) == INFINITY) node.score = score; //Don't average score if terminal position			
+	if (score >= INFINITY || score <= -INFINITY) node.score = score; //Don't average score if terminal position			
 	else node.score = (node.score + score) / node.visits; //Average    
 	
     //Backpropagate from the leaf's parent up to the root, inverting the score each level due to minmax
@@ -240,37 +220,36 @@ MCTS.prototype.backpropagate = function(node, score) {
         node = node.parent;
         node.visits++;		
         node.val += Number(score);
-		/*
+	
         //Loss - if a child can win then that is a loss for the parent
-        if (score == -INFINITY) node.score = -INFINITY;
+        if (score <= -INFINITY) node.score = score;
         
         //Win - but all children must be checked to prove parent win
-        else if (score == INFINITY) {
+        else if (score >= INFINITY) {
             var loss = true;
             for (var i = 0; i < node.kids.length; i++) {
-                if (node.kids[i].score != -INFINITY) {
+                if (node.kids[i].score <= -INFINITY) {
                     loss = false;
                     break;
                 }
             }
-            if (loss) node.score = INFINITY; //Proven win
-            else node.score = MCTS_LOSE_SCORE; //Can't prove parent win, so not terminal
+            if (loss) node.score = score; //Proven win
+            else node.score = MCTS_WIN_SCORE; //Can't prove parent win, so not terminal
         }
         
         //Non-terminal position, so just average score        			
-		else node.score = (node.score + score) / node.visits; */
-		node.score = (node.score + score) / node.visits;
+		else node.score = (node.score + score) / node.visits; 		
     }	
 	//Check to see if win has been propagated up in direct decendents of root (i.e. first level)	
-	// if (score == INFINITY) {
-		// var kids = node.kids; //node is now equal to root
-		// for (var k = 0; k < kids.length; k++) { 
-			// if (kids[k].score == INFINITY) {
-				// alert ('Win propagated');
-				// return kids[k];			
-			// }
-		// }		
-	// }
+	if (score == INFINITY) {
+		var kids = node.kids; //node is now equal to root
+		for (var k = 0; k < kids.length; k++) { 
+			if (kids[k].score == INFINITY) {
+				alert ('Win propagated');
+				return kids[k];			
+			}
+		}		
+	}
 	return false;
 }
 
@@ -292,15 +271,16 @@ MCTS.prototype.pickFinalMove = function(root) {
 		var move = root.board.deriveMove(kid.board);
         var r = ROW[move.pos];
         var c = COL[move.pos];       
-		scoreMap[r][c].push({visits:kid.visits, score:String(kid.val) + '(' + kid.score.toFixed(4) + ')'});
+		//scoreMap[r][c].push({visits:kid.visits, score:String(kid.val) + '(' + kid.score.toFixed(4) + ')'});
+		scoreMap[r][c].push({visits:kid.visits, score:String(kid.val)});
 	}	
 	
 	if (bestNode == null) return root.kids[Math.floor(Math.rand() * root.kids.length)]; //All moves lead to loss
 	else {
 		var move = root.board.deriveMove(bestNode.board);
 		enableScoreMap(move, root.visits);
-        //alert("max depth: " + selMaxDepth);
-		treeViewer.draw(root);
+        //console.log("max depth: " + selMaxDepth);
+		//treeViewer.draw(root);
 		return bestNode;
 	}
 }
