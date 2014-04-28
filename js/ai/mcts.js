@@ -91,7 +91,7 @@ MCTS.prototype.preExpand = function(root) {
 	//var moves = this.board.getAllDebugMoves(0x100008000);//AllNonLossMoves();       
 	var moves = this.board.getAllNonLossMoves();//getAllDebugMoves( 0x8000);
     if (moves.length == 0) {
-        alert('No non-loss moves found - making random');
+        //alert('No non-loss moves found - making random');
         return false;   
     }
 	for (var m = 0; m < moves.length; m++) {
@@ -100,13 +100,11 @@ MCTS.prototype.preExpand = function(root) {
 	return true;
 }
 
-//var selMaxDepth = 0;
+
 MCTS.prototype.selectNode = function(root) {
     //Traverse the tree until a leaf is reached by selecting the best UCT	
-    var node = root;
-    //var d = 0;
+    var node = root;    
     while (node.kids.length > 0) {
-        //if (d++ > selMaxDepth) selMaxDepth = d;
 		var bestUCT = -INFINITY;
 		var bestNode = null;		
 		var length = node.kids.length;
@@ -143,7 +141,14 @@ MCTS.prototype.expandNode = function(node) {
     //TODO: Handle dual wins?
 	//Check for own win in two moves - if so, the only valid next move is to block
     board.turn = !board.turn;
-	winFound = board.findWin();    
+	winFound = board.findWin();  
+    board.turn = !board.turn; 
+    var moves;
+    if (winFound) {
+        moves = board.getAllNonLossMoves();
+        if (moves.length == 0) return INFINITY;
+    }
+/*    
 	if (winFound) {
 		var move = board.getMoveFromMidWin(winFound);       
         board.turn = !board.turn;   
@@ -154,11 +159,14 @@ MCTS.prototype.expandNode = function(node) {
 		node.kids.push({visits:0, score:0, val:0, board:newBoard, parent:node, kids:[]});		        
         return false;
 	}	
-    else board.turn = !board.turn;   
+    else board.turn = !board.turn;  
+*/    
     
     //Else get all possible unique moves
-    var moves = board.getAllMoves(); //board.getAllDebugMoves();
-    if (moves.length == 0) return MCTS_TIE_SCORE; //Tie 
+    else {
+        moves = board.getAllMoves(); //board.getAllDebugMoves();
+        if (moves.length == 0) return MCTS_TIE_SCORE; //Tie 
+    }
 	
 	//Add all children to the node      
 	//var winCount = 0;
@@ -258,7 +266,7 @@ MCTS.prototype.pickFinalMove = function(root) {
     var bestScore = -INFINITY;
 	var bestNode = null;
 	
-	initScoreMap();
+	//initScoreMap();
 	
 	for (var i = 0; i < root.kids.length; i++) {
 		var kid = root.kids[i];
@@ -272,14 +280,13 @@ MCTS.prototype.pickFinalMove = function(root) {
         var r = ROW[move.pos];
         var c = COL[move.pos];       
 		//scoreMap[r][c].push({visits:kid.visits, score:String(kid.val) + '(' + kid.score.toFixed(4) + ')'});
-		scoreMap[r][c].push({visits:kid.visits, score:String(kid.val)});
+		//scoreMap[r][c].push({visits:kid.visits, score:String(kid.val)});
 	}	
 	
 	if (bestNode == null) return root.kids[Math.floor(Math.rand() * root.kids.length)]; //All moves lead to loss
 	else {
 		var move = root.board.deriveMove(bestNode.board);
-		enableScoreMap(move, root.visits);
-        //console.log("max depth: " + selMaxDepth);
+		//enableScoreMap(move, root.visits);        
 		//treeViewer.draw(root);
 		return bestNode;
 	}

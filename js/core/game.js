@@ -1,8 +1,8 @@
 //Constants
-var UNIT_SIZE = 120;
+var UNIT_SIZE = 100;
 var QUAD_SIZE = UNIT_SIZE * 3;
 var BOARD_SIZE = UNIT_SIZE * 6;
-var CANVAS_SIZE = 900;
+var CANVAS_SIZE = 800;
 var CANVAS_OFFSET = (CANVAS_SIZE - BOARD_SIZE) / 2;
 
 var HALF_UNIT = UNIT_SIZE/2;
@@ -52,7 +52,7 @@ var requestAnimationFrame =
 	
 
 var game;
-var treeViewer;
+//var treeViewer;
 //Class Game
 function Game() {
 	this.canvas = document.getElementById('mainCanvas');
@@ -62,8 +62,6 @@ function Game() {
     this.message = 'Player1 - place pin';
     
 	this.board = new Board(); 
-	this.board.p1 = 12582912;
-	this.board.p2 = 67108880;
     this.cursorR = 0;
     this.cursorC = 0;
     this.arrow = INVALID;
@@ -350,7 +348,7 @@ Game.prototype.draw = function() {
     }
 	
 	//Scoremap
-	if (SETTING_SHOW_SCORE_MAP && scoreEnabled) this.drawScoreMap(ctx);
+	//if (SETTING_SHOW_SCORE_MAP && scoreEnabled) this.drawScoreMap(ctx);
     ctx.restore();
 }
 

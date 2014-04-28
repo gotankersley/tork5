@@ -25,8 +25,8 @@ AlphaBeta.prototype.getMove = function() {
 	var moves = root.getAllMoves();
 	for (var i = 0; i < moves.length; i++) {
 		var node = moves[i];				
-		var score = node.score();
-		//var score = negamaxSearch(node, 1);
+		//var score = node.score();
+		var score = negamaxSearch(node, 1);
 		if (score > bestScore) {
 			bestScore = score;
 			bestNode = node;
