@@ -603,8 +603,7 @@ function scoreWinLines(board, opp, positions, numToWin) {
 		if (!and(opp, winKeys[i])) {
 			var pinCount = bitCount(and(board, winKeys[i]));
 			if (pinCount >= numToWin) score += INFINITY;
-			else score += (pinCount >= 4)? Math.pow(pinCount, 5) : Math.pow(pinCount, 3);
-			//var weightedCount = (pinCount >= 4)? Math.pow(pinCount, 5) : Math.pow(pinCount, 3);			
+			else score += (pinCount >= 4)? Math.pow(pinCount, 5) : Math.pow(pinCount, 3);			
 			        
 		}        
         

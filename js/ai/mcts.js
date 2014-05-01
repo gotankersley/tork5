@@ -7,7 +7,7 @@
 var MCTS_MAX_ITERATIONS = 100000;
 var MCTS_UCT_TUNING = 0.9; //Controls exploration (< 1) vs. exploitation (> 1)
 var MCTS_SECURE_TUNING = 1;
-var MCTS_VISITS_TO_ADD_NODE = 1;
+var MCTS_VISITS_TO_ADD_NODE = 5;
 var MCTS_MIN_FAIR_PLAY = 1;
 
 var MCTS_WIN_SCORE = 1;
@@ -17,7 +17,8 @@ var MCTS_TIE_SCORE = 0;
 
 //Class MCTS
 function MCTS(board) {    
-    this.board = board;		
+    this.board = board;	
+	this.moveCount;
 }
 
 MCTS.prototype.getMove = function() {		
@@ -31,6 +32,7 @@ MCTS.prototype.getMove = function() {
 	//Run the monte-carlo tree search
 	//console.log('MCTS: Initial board');
 	//this.board.print();
+	this.moveCount = bitCount(this.board);
 	var bestKid = this.runMCTS(this.board.clone());	
 	var move = this.board.deriveMove(bestKid.board);
 	//console.log('Visits: ' + bestKid.visits + ', Score: ' + bestKid.score);		
@@ -89,13 +91,14 @@ MCTS.prototype.runMCTS = function(board) {
 //Steps
 MCTS.prototype.preExpand = function(root) {
 	//var moves = this.board.getAllDebugMoves(0x100008000);//AllNonLossMoves();       
-	var moves = this.board.getAllNonLossMoves();//getAllDebugMoves( 0x8000);
+	var moves = this.board.getAllNonSymMoves();//getAllDebugMoves( 0x8000);
     if (moves.length == 0) {
         //alert('No non-loss moves found - making random');
         return false;   
     }
 	for (var m = 0; m < moves.length; m++) {
-        root.kids.push({visits:0, score:0, val:0, board:moves[m], parent:root, kids:[]});		
+		root.visits += 5;
+        root.kids.push({visits:5, score:moves[m].score(), val:0, board:moves[m], parent:root, kids:[]});		
     }
 	return true;
 }
@@ -143,12 +146,12 @@ MCTS.prototype.expandNode = function(node) {
     board.turn = !board.turn;
 	winFound = board.findWin();  
     board.turn = !board.turn; 
-    var moves;
-    if (winFound) {
-        moves = board.getAllNonLossMoves();
-        if (moves.length == 0) return INFINITY;
-    }
-/*    
+//    var moves;
+//    if (winFound) {
+//        moves = board.getAllNonLossMoves();
+//        if (moves.length == 0) return INFINITY;
+//    }
+    
 	if (winFound) {
 		var move = board.getMoveFromMidWin(winFound);       
         board.turn = !board.turn;   
@@ -160,14 +163,15 @@ MCTS.prototype.expandNode = function(node) {
         return false;
 	}	
     else board.turn = !board.turn;  
-*/    
+   
     
     //Else get all possible unique moves
-    else {
-        moves = board.getAllMoves(); //board.getAllDebugMoves();
-        if (moves.length == 0) return MCTS_TIE_SCORE; //Tie 
-    }
-	
+//    else {
+ //       moves = board.getAllMoves(); //board.getAllDebugMoves();
+  //      if (moves.length == 0) return MCTS_TIE_SCORE; //Tie 
+   // }
+	var moves = (this.moveCount <= 2)? board.getAllNonSymMoves() : board.getAllMoves(); //board.getAllDebugMoves();
+	if (moves.length == 0) return MCTS_TIE_SCORE;
 	//Add all children to the node      
 	//var winCount = 0;
 	for (var m = 0; m < moves.length; m++) {    		
