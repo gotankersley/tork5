@@ -1,4 +1,4 @@
-var SETTING_FIND_WINS = false;
+var SETTING_FIND_WINS = true;
 var SETTING_ROW_NUMBERS = true;
 var SETTING_ROW_NOTATION = false;
 var SETTING_ROT_ANIM = true;

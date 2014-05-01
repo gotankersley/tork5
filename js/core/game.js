@@ -69,8 +69,8 @@ function Game() {
 	this.quadRotDegrees = 0;
 	this.quadRotDir = 0;    
     this.rotateMode = false;
-    this.winLines = null;
-         
+    this.winLines = null;	
+    this.wins = null;     
     this.status = $('#status');    
     
     //Event callbacks
@@ -162,8 +162,9 @@ Game.prototype.onKeyPress = function(e) {
 	else if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;
 	else if (e.keyCode == KEY_ENTER) game.onTurnChanged(true);
     else if (e.keyCode == KEY_F) {
-        SETTING_FIND_WINS = !SETTING_FIND_WINS;
-        $('#find-wins').toggle();   
+        //SETTING_FIND_WINS = !SETTING_FIND_WINS;
+		game.wins = game.board.findAllWins();		
+        //$('#find-wins').toggle();   
     }
     else if (e.keyCode == KEY_S) {        
 		var score = game.board.score(true);
@@ -229,7 +230,7 @@ Game.prototype.onTurnChanged = function(changeTurn) {
 Game.prototype.onMoveOver = function() {			
 	var gameState = this.board.isWin();
     if (gameState == IN_PLAY) {
-		if (SETTING_FIND_WINS) this.showFindWins();	
+		if (SETTING_FIND_WINS) this.wins = this.board.findAllWins();
         this.quadRotDegrees = 0;
         this.quad = INVALID;
         this.arrow = INVALID;	
@@ -321,17 +322,9 @@ Game.prototype.draw = function() {
     
 	//Rotation arrows
 	if (this.mode == MODE_ROTATE || this.mode == MODE_ANIM) {
-		this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 292.5, 4); //Q0 - A
-		this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 157.5, 0); //Q0 - C
-				
-		this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 22.5, 1); //Q1 -> A	    
-		this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 247.5, 5); //Q1 -> C
-		
-		this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 202.5, 2); //Q2 -> A        
-		this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 67.5, 6); //Q2 -> C
-		
-		this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 112.5, 7); //Q3 -> A    
-		this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 337.5, 3); //Q3 -> C    	   
+		for (var i = 0; i < ALL_ROTATIONS; i++) {
+			this.drawArrow(ctx, i, this.arrow,  COLOR_ARROW, COLOR_CURSOR);
+		}
     }
 	
 	//Quad rotation animation
@@ -347,9 +340,31 @@ Game.prototype.draw = function() {
         }
     }
 	
+	//Show win threats and opportunities
+	if (SETTING_FIND_WINS && this.mode == MODE_PLACE && this.wins) this.drawWinThreats(ctx);
+	
 	//Scoremap
 	//if (SETTING_SHOW_SCORE_MAP && scoreEnabled) this.drawScoreMap(ctx);
     ctx.restore();
+}
+function drawArrow(ctx, x, y, w, h, degrees, arrow, color) {	    
+    ctx.fillStyle = color;	        	
+	ctx.save();		
+	var halfW = (w + h)/2;
+	var halfH = h/2;
+	
+	ctx.translate(x, y);
+	ctx.rotate(degrees*Math.PI/180);	    
+	ctx.translate(-(w + h), 0);	
+		   
+	ctx.fillRect(h, -halfH, w, h); 
+	ctx.beginPath();
+	ctx.moveTo(0, 0);	
+	ctx.lineTo(h, h);
+	ctx.lineTo(h, -h);
+	ctx.closePath();
+	ctx.fill();
+	ctx.restore();
 }
 
 function drawLine(ctx, x1, y1, x2, y2) {
@@ -368,26 +383,20 @@ function drawCircle(ctx, x, y, r, margin, color) {
 	ctx.fill();		
 }
 
-Game.prototype.drawArrow = function(ctx, x, y, w, h, degrees, arrow) {	    
-    ctx.fillStyle = (this.mode != MODE_PLACE && this.arrow == arrow)? COLOR_CURSOR : COLOR_ARROW;	        	
-	if (SETTING_SHOW_SCORE_MAP && scoreEnabled) ctx.fillStyle = '#ff0000';
-	ctx.save();		
-	var halfW = (w + h)/2;
-	var halfH = h/2;
-	
-	ctx.translate(x, y);
-	ctx.rotate(degrees*Math.PI/180);	    
-	ctx.translate(-(w + h), 0);	
-		   
-	ctx.fillRect(h, -halfH, w, h); 
-	ctx.beginPath();
-	ctx.moveTo(0, 0);	
-	ctx.lineTo(h, h);
-	ctx.lineTo(h, -h);
-	ctx.closePath();
-	ctx.fill();
-	ctx.restore();
+Game.prototype.drawArrow = function(ctx, arrow, arrowSelected, color, colorSelected) {	  	
+	if (arrow == arrowSelected) color = colorSelected;
+	switch (arrow) {
+		case 0: drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 157.5, 0, color); break; //Q0 - C
+		case 1: drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 22.5, 1, color); break; //Q1 -> A	    
+		case 2: drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 202.5, 2, color); break;//Q2 -> A        
+		case 3: drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 337.5, 3, color); break; //Q3 -> C    	   
+		case 4: drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 292.5, 4, color); break; //Q0 - A
+		case 5: drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 247.5, 5, color); break;//Q1 -> C
+		case 6: drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 67.5, 6, color); break; //Q2 -> C
+		case 7: drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 112.5, 7, color); break;//Q3 -> A    					 
+	}
 }
+	
 
 Game.prototype.drawQuad = function(ctx, quad, degrees, anim) { 
 	if (this.mode == MODE_ANIM && quad == this.quad && !anim) return;
@@ -476,22 +485,80 @@ Game.prototype.drawScoreMap = function(ctx) {
 	ctx.rect(scoreBestC * UNIT_SIZE, scoreBestR * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);	
 	ctx.stroke();
 	
-	switch (scoreBestArrow) {
-		case 0: this.drawArrow(ctx, 0, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 157.5, 0); break; //Q0 - C
-		case 1: this.drawArrow(ctx, BOARD_SIZE, -ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 22.5, 1); break; //Q1 -> A	    
-		case 2: this.drawArrow(ctx, 0, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 202.5, 2); break;//Q2 -> A        
-		case 3: this.drawArrow(ctx, BOARD_SIZE, BOARD_SIZE + ARROW_HEIGHT, ARROW_WIDTH, ARROW_HEIGHT, 337.5, 3); break; //Q3 -> C    	   
-		case 4: this.drawArrow(ctx, -ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 292.5, 4); break; //Q0 - A
-		case 5: this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, 0, ARROW_WIDTH, ARROW_HEIGHT, 247.5, 5); break;//Q1 -> C
-		case 6: this.drawArrow(ctx, -ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 67.5, 6); break; //Q2 -> C
-		case 7: this.drawArrow(ctx, BOARD_SIZE + ARROW_HEIGHT, BOARD_SIZE, ARROW_WIDTH, ARROW_HEIGHT, 112.5, 7); break;//Q3 -> A    					 
-	}
+	this.drawArrow(ctx, scoreBestArrow, INVALID, '#ff0000');	
 }
 
 
+Game.prototype.drawWinThreats = function(ctx) {
+	//Three ways to win
+	//1. Can with by placing a pin with no rotation
+	//2. Can win just by rotation
+	//3. Can win by placing a pin and rotating    	
 
+	for (var side = 0; side < this.wins.length; side++) {
+		var sideWins = this.wins[side];		
+		var color = (side == game.board.turn)? '#ccccff' : '#ffcccc';
+		for (var winId in sideWins) {
+			var winInfo = sideWins[winId];
+			if (winInfo.pos == INVALID) { //Draw arrow only			
+				this.drawArrow(ctx, rotToArrow(winInfo.quad, winInfo.rot), INVALID, color); 
+			}
+			else {				
+				//Draw rect
+				var pos = winInfo.pos;
+				var r = ROW[pos];
+				var c = COL[pos];
+				var x = toXY(c);
+				var y = toXY(r);
+				var centerX = x + HALF_UNIT;
+				var centerY = y + HALF_UNIT;
+				//ctx.fillStyle = (this.cursorR == r && this.cursorC == c)? '#FF0000' : '#FFcccc';
+				ctx.fillStyle = color;
+				ctx.fillRect(x + 12, y + 12, (3*UNIT_SIZE)/4, (3*UNIT_SIZE)/4);
+				
+				if (winInfo.quad != INVALID) { //Rotation required to win								
+					
+					//Draw mini spacer						
+					ctx.strokeStyle = COLOR_GRID;
+					var spacer = 15;
+					drawLine(ctx, centerX, y + spacer, centerX, y + UNIT_SIZE - spacer);				
+					drawLine(ctx, x + spacer, centerY, x + UNIT_SIZE - spacer, centerY);						
+					
+					//Draw turn indicator
+					var arrow = rotToArrow(winInfo.quad, winInfo.rot);								
+					switch (arrow) {
+						case 0: drawCurvedArrow(ctx, centerX, centerY, 30, Math.PI + 0.1, (1.5 * Math.PI) - 0.1, false, -1, -1); break; 
+						case 1: drawCurvedArrow(ctx, centerX, centerY, 30, (1.5 * Math.PI) + 0.1, -0.1, false, 1, -1); break; 
+						case 2: drawCurvedArrow(ctx, centerX, centerY, 30, (0.5 * Math.PI) + 0.1, Math.PI - 0.1, false, -1, 1); break; 
+						case 3: drawCurvedArrow(ctx, centerX, centerY, 30, 0.1, (0.5 * Math.PI) - 0.1, false, 1, 1); break; 
+						case 4: drawCurvedArrow(ctx, centerX, centerY, 30, Math.PI + 0.1, (1.5 * Math.PI) - 0.1, true, -1, -1); break; 
+						case 5: drawCurvedArrow(ctx, centerX, centerY, 30, (1.5 * Math.PI) + 0.1, -0.1, true, 1, -1); break; 
+						case 6: drawCurvedArrow(ctx, centerX, centerY, 30, (0.5 * Math.PI) + 0.1, Math.PI - 0.1, true, -1, 1); break; 
+						case 7: drawCurvedArrow(ctx, centerX, centerY, 30, 0.1, (0.5 * Math.PI) - 0.1, true, 1, 1); break; 
+					}
+				}
+			}
+		}
+	}
+}
+
+function drawCurvedArrow(ctx, x, y, r, arcStart, arcEnd, rot, dirX, dirY) {
+	ctx.beginPath();    
+	ctx.arc(x, y, r, arcStart, arcEnd);
+	ctx.stroke();	
+	
+	if (rot) {
+		drawLine(ctx, x + ((r - 2) * dirX), y + (5 * dirY), x + ((r - 15) * dirX), y + (10 * dirY));
+		drawLine(ctx, x + (r * dirX), y + (5 * dirY), x + ((r + 5) * dirX), y + (15 * dirY));
+	}
+	else {					
+		drawLine(ctx, x + (5 * dirX), y + (r * dirY), x + (15 * dirX), y + ((r + 5) * dirY));
+		drawLine(ctx, x + (5 * dirX), y + (r * dirY), x + (10 * dirX), y + ((r - 15) * dirY));				
+	}
+}
 
 //Helper functions
+
 Game.prototype.showFindWins = function() {
 	//Three ways to win
 	//1. Can win just by rotation
