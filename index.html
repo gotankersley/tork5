@@ -24,8 +24,8 @@
 <script src="js/ai/random.js"></script>
 <script src="js/ai/cpp.js"></script>
 
-<script src="js/ai/mc.js"></script>
 <script src="js/ai/mc2.js"></script>-->
+<script src="js/ai/mc.js"></script>
 <script src="js/ai/alpha-beta.js"></script>
 <script src="js/ai/mcts.js"></script>
 <script src="js/constants/settings.js"></script>
@@ -56,7 +56,7 @@
 <label><input type="checkbox" class="game-option" value="1" checked="checked"/>Row numbers</label><br>
 <!--<label><input type="checkbox" class="game-option" value="2"/>Row notation</label><br>
 <label><input type="checkbox" class="game-option" value="4" checked="checked"/>Score map</label><br>-->
-<label><input type="checkbox" class="game-option" value="3"/>Find wins</label><br>
+<label><input type="checkbox" class="game-option" value="3" checked="checked"/>Find wins</label><br>
 <label><input type="checkbox" class="game-option" value="0" checked="checked"/>Rotation animation</label><br>
 <label>Rotate speed: <input type="input" name="speed" size="8" class="game-option" value="1"/></label><br>
 <!--<label>A/B depth: <input type="input" name="abdepth" size="8" class="game-option" value="2"/></label><br>-->
@@ -65,9 +65,7 @@
 
 </div>
 
-<div id="find-wins" style="display:none;"><h3>Wins found:</h3>
-<div id="find-wins-text"></div>
-</div>
+
 <canvas id="mainCanvas" width="900" height="900"></canvas>
 <!--<canvas id="treeViewerCanvas" width="1000" height="1000"></canvas>-->
 <div id="status"></div>

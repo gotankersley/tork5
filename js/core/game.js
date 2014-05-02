@@ -30,6 +30,8 @@ var COLOR_P1_WIN = '#a00';
 var COLOR_P2_WIN = '#a00';//'#0cc';
 var COLOR_TIE = '#000';
 var COLOR_ROW_NUMBERS = '#c0c0c0';
+var COLOR_THREAT_WIN = '#ccccff';
+var COLOR_THREAT_LOSE = '#ffcccc';
 
 //Keys
 var KEY_DELETE = 46;
@@ -162,9 +164,8 @@ Game.prototype.onKeyPress = function(e) {
 	else if (e.keyCode == KEY_SPACE) game.mode = MODE_PLACE;
 	else if (e.keyCode == KEY_ENTER) game.onTurnChanged(true);
     else if (e.keyCode == KEY_F) {
-        //SETTING_FIND_WINS = !SETTING_FIND_WINS;
+        SETTING_FIND_WINS = true;		
 		game.wins = game.board.findAllWins();		
-        //$('#find-wins').toggle();   
     }
     else if (e.keyCode == KEY_S) {        
 		var score = game.board.score(true);
@@ -497,7 +498,7 @@ Game.prototype.drawWinThreats = function(ctx) {
 
 	for (var side = 0; side < this.wins.length; side++) {
 		var sideWins = this.wins[side];		
-		var color = (side == game.board.turn)? '#ccccff' : '#ffcccc';
+		var color = (side == game.board.turn)? COLOR_THREAT_WIN : COLOR_THREAT_LOSE;
 		for (var winId in sideWins) {
 			var winInfo = sideWins[winId];
 			if (winInfo.pos == INVALID) { //Draw arrow only			
@@ -511,15 +512,14 @@ Game.prototype.drawWinThreats = function(ctx) {
 				var x = toXY(c);
 				var y = toXY(r);
 				var centerX = x + HALF_UNIT;
-				var centerY = y + HALF_UNIT;
-				//ctx.fillStyle = (this.cursorR == r && this.cursorC == c)? '#FF0000' : '#FFcccc';
+				var centerY = y + HALF_UNIT;				
 				ctx.fillStyle = color;
 				ctx.fillRect(x + 12, y + 12, (3*UNIT_SIZE)/4, (3*UNIT_SIZE)/4);
 				
 				if (winInfo.quad != INVALID) { //Rotation required to win								
 					
 					//Draw mini spacer						
-					ctx.strokeStyle = COLOR_GRID;
+					ctx.strokeStyle = '#ffffff';
 					var spacer = 15;
 					drawLine(ctx, centerX, y + spacer, centerX, y + UNIT_SIZE - spacer);				
 					drawLine(ctx, x + spacer, centerY, x + UNIT_SIZE - spacer, centerY);						

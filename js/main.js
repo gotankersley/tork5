@@ -24,8 +24,7 @@ $(function() {
         //else if (opt == 2) SETTING_ROW_NOTATION = !SETTING_ROW_NOTATION;
 		//else if (opt == 4) SETTING_SHOW_SCORE_MAP = !SETTING_SHOW_SCORE_MAP;
         else if (opt == 3) {
-            SETTING_FIND_WINS = !SETTING_FIND_WINS;
-            $('#find-wins').toggle();
+            SETTING_FIND_WINS = !SETTING_FIND_WINS;            
         }        		
         
     });
