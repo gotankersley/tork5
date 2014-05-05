@@ -1,47 +1,5 @@
-Optimizations: (create branch for these) - test with 10k results
-- asm.js for AI
-X change mcts node from assoc to indexed array? (~ 1/4 sec improvement?)
-X change bitboard object to p1, p2 vars to avoid overhead? (hi bit turn?)
-- inline functions / function vs prototype functions?
-- different minification options (closure advanced)
-X pre-calc bitcount in findwin
-X add move children during expansion directly to node
-X use ~~ instead of Math.floor in bitlib
-- simulate 1/n children during selection step
-
-
-Wins:
-- Handle tie wins in findWin
-
-
 Features to add:
 - Show last board state
-X Show hotkeys
-- console output
-- arena tool
-
-Bugs / issues:
-X Player can hover / rotate when AI is turning board error
-X MCTS - expandNode: if (moves.length == 0) return TIE_SCORE;
-- MCTS - propagate todo
-X MCTS (line 98) missing var in for(i
-
-Cleanup / Refactor:
-- generic dropdown menu
-- player select code in HTML
-- some magic numbers like 8, and 12 in find wins
-- terminology - consistant use of board, or bitboard / boardObj, and also quadId
-- move canvas to /canvas?
+- Show threats / wins
 
 
-Multiplayer
-- websockets?
-
-Cool FX:
-X webgl
-- CSS3 animations
-- sounds
-x disable request frame when not animation
-
-Opening book: 
-- sqlite on localhost

@@ -580,7 +580,13 @@ Board.prototype.score = function(inv) {
 		oppScore += scoreWinLines(opp, board, bitScan(avail), 4);
 	}		
 	if (typeof(inv) != 'undefined') return {cur:oppScore, opp:curScore, total:(oppScore - curScore)};
-    else return curScore - oppScore;
+    //else return curScore - oppScore;
+    else { //Normalize
+        var score = curScore - oppScore;
+        if (score >= INFINITY) return 1;
+        else if (score <= -INFINITY) return -1;
+        else return score/INFINTY;
+    }
 }
 
 function scoreWinLines(board, opp, positions, numToWin) {	
@@ -656,6 +662,17 @@ Board.prototype.deriveMove = function(after) {
 		return {pos:pos, quad:INVALID, rot:INVALID};
 	}
 	return {pos:INVALID, quad:INVALID, rot:INVALID};
+}
+
+Board.prototype.toNNInputs = function() {
+    var inputs = [];
+    for (var i = 0; i < BOARD_SPACES; i++) {
+        var mpos = POS_TO_MPOS[i];
+        if (and(this.p1, mpos)) inputs.push(1);
+        else if(and(this.p2, mpos)) inputs.push(-1);
+        else inputs.push(0);
+    }
+    return inputs;
 }
 
 Board.prototype.clone = function() {
