@@ -188,7 +188,7 @@ Board MCTS_engine(Board board) {
 	Board moveBoard = finalNode->board;
 	int visits = finalNode->visits;
 	float score = finalNode->score;
-	root.Cleanup();
+	root.cleanup();
 
 	//Log stats			
 	double duration = (clock() - startTime) / (double) CLOCKS_PER_SEC;

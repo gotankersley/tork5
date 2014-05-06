@@ -143,19 +143,23 @@ struct Board {
 		uint64 avail = Not(Or(p1, p2));
 
 		//Short diag win without rotation        
-		if (i > 95) pos = MPOS_TO_POS(Xor(SHORT_WINS[i - 71], board));
+		if (i > 95) {
+			uint64 combined = And(SHORT_WINS[i - 71], board);
+			pos = MPOS_TO_POS(Xor(SHORT_WINS[i - 71], combined));			
+		}
     
 		//Short diagonal win with rotation
 		else if (i > 70) { 
 			i -= 71;
 			quad = i/6;
 			rot = (i/3)%2;
-			uint64 win = SHORT_WINS[i];        
-			if (And(board, win) == win) {
+			uint64 win = SHORT_WINS[i];  
+			uint64 combined = And(board,win);
+			if (combined == win) {
 				list availBits = bitScan(avail);
 				pos = availBits[0]; //Any available
 			}
-			else pos = MPOS_TO_POS(Xor(win, board));               
+			else pos = MPOS_TO_POS(Xor(win, combined));               
 		}
 		//Long wins
 		else {
@@ -308,6 +312,7 @@ struct Board {
 			}
 		}
 	}
+
 	Board clone() {
 		Board newBoard;
 		newBoard.p1 = p1;

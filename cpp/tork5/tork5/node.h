@@ -2,16 +2,14 @@
 #include <vector>
 #include "board.h"
 
-struct Node
-{
+struct Node {
 	int visits;
 	float score;	
 	Board board;
 	Node* parent;
 	std::vector<Node*> kids;
 
-	Node(Node* parentNode, Board boardState)
-	{
+	Node(Node* parentNode, Board boardState) {
 		visits = 0;
 		score = 0;		
 		board = boardState;
@@ -19,8 +17,7 @@ struct Node
 		//kids.reserve(MAX_MOVES);		
 	}
 
-	void Cleanup() //Recursive
-	{				
+	void cleanup() { //Recursive
 		if (kids.size() == 0)
 		{
 			delete this;
@@ -28,7 +25,7 @@ struct Node
 		}
 		for(unsigned int i = 0; i < kids.size(); i++)
 		{
-			kids[i]->Cleanup();
+			kids[i]->cleanup();
 		}
 	}
 };
