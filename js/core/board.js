@@ -585,7 +585,7 @@ Board.prototype.score = function(inv) {
         var score = curScore - oppScore;
         if (score >= INFINITY) return 1;
         else if (score <= -INFINITY) return -1;
-        else return score/INFINTY;
+        else return score/INFINITY;
     }
 }
 
@@ -665,12 +665,15 @@ Board.prototype.deriveMove = function(after) {
 }
 
 Board.prototype.toNNInputs = function() {
+	//Convert bitboard to array(36) of pin positions.  E.g. 1_2 = [1, -1, 0, 0, 0, ... ];
     var inputs = [];
-    for (var i = 0; i < BOARD_SPACES; i++) {
-        var mpos = POS_TO_MPOS[i];
-        if (and(this.p1, mpos)) inputs.push(1);
-        else if(and(this.p2, mpos)) inputs.push(-1);
-        else inputs.push(0);
+	for (var r = 0; r < ROW_SPACES; r++) {
+		for (var c = 0; c < COL_SPACES; c++) {			
+			var mpos = POS_TO_MPOS[POS[r][c]];
+			if (and(this.p1, mpos)) inputs.push(1);
+			else if(and(this.p2, mpos)) inputs.push(-1);
+			else inputs.push(0);
+		}
     }
     return inputs;
 }
@@ -713,6 +716,6 @@ Board.prototype.printMove = function(move) {
 }
 
 Board.prototype.toString = function() {
-	return '0x' + this.p1.toString(16) + ',0x' + this.p2.toString(16);
+	return this.p1 + '_' + this.p2;
 }
 //End class Board

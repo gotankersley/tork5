@@ -34,5 +34,6 @@
     <ClCompile Include="mcts.cpp">
       <Filter>AI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\..\Users\gotankersley\Documents\Visual Studio 2010\Projects\fann\src\floatfann.c" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,9 @@
 #include <iostream>
 #include <ctime>
 #include "board.h"
+#include "floatfann.h"
+#include "fann_cpp.h"
+
 using namespace std;
 
 void MCTS_getMove(Board board, int& pos, int& quad, int& rot);
@@ -37,8 +40,27 @@ void play(Board board) {
 	int pos;
 	int quad;
 	int rot;
-	MCTS_getMove(board, pos, quad, rot);		
-	printf("{\"pos\":%i, \"quad\":%i, \"rot\":%i}", pos, quad, rot);
+	FANN::neural_net net;	
+	net.create_from_file("score20_k.net");
+	vector<Board>moves = board.getAllMoves();
+	float bestScore = -10000;
+	int bestKid = -1;
+	for (int i = 0; i < moves.size(); i++) {
+		float inputs[BOARD_SPACES];
+		board.toNNInputs(inputs);
+		net.reset_MSE();
+		fann_type *calc_out = net.run(inputs);
+		float score = calc_out[0];
+		if (score > bestScore) {
+			bestKid = i;
+			bestScore = score;
+		}
+	}
+        
+	board.deriveMove(moves[bestKid], pos, quad, rot);
+	//MCTS_getMove(board, pos, quad, rot);		
+	//fann_destroy(ann);
+	printf("{\"pos\":%i, \"quad\":%i, \"rot\":%i}", pos, quad, rot);	
 }
 
 void main(int argc, char* argv[])
@@ -47,7 +69,7 @@ void main(int argc, char* argv[])
 	if (argc > 1) {
 		board.p1 = _atoi64(argv[1]);
 		board.p2 = _atoi64(argv[2]);
-		board.turn = atoi(argv[3]);
+		board.turn = atoi(argv[3]);		
 		play(board);
 		return;
 	}

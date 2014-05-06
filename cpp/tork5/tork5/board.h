@@ -109,6 +109,31 @@ struct Board {
 		return moves;
 	}
 
+	std::vector<Board> getAllMoves() {
+		uint64 avail = Not(Or(p1, p2));
+		list availBits = bitScan(avail);
+		std::vector<Board> moves;
+		hashMap movesSet;
+				
+		for (int a = 0; a < availBits.size(); a++) {
+			for (int i = 0; i < ALL_ROTATIONS; i++) {
+				int q = i/2;
+				int r = i%2;			
+				Board newBoard = clone();
+				if (turn == PLAYER1) newBoard.p1 = Xor(newBoard.p1, POS_TO_MPOS(availBits[a])); //Place pin
+				else newBoard.p2 = Xor(newBoard.p2, POS_TO_MPOS(availBits[a])); //Place pin
+				newBoard.rotate(q, r); //Rotate
+				char buffer[30];
+				sprintf(buffer, "%I64X_%I64X", newBoard.p1, newBoard.p2);
+				std::string key = buffer;
+				if (!movesSet.count(key)) {									
+					movesSet[key] = true;
+					moves.push_back(newBoard);
+				}
+			}
+		}
+		return moves;
+	}
 	void getMoveFromMidWin(int i, int& pos, int& quad, int& rot) {
 		pos = INVALID;
 		quad = INVALID;
@@ -271,6 +296,18 @@ struct Board {
 	
 
 	//Utility Methods
+	void toNNInputs(float inputs[]) {
+		int i = 0;
+		for (int r = 0; r < ROW_SPACES; r++) {
+			for (int c = 0; c < COL_SPACES; c++) {			
+				uint64 mpos = POS_TO_MPOS(POS[r][c]);
+				if (And(p1, mpos)) inputs[i] = 1;
+				else if(And(p2, mpos)) inputs[i] = -1;
+				else inputs[i] = 0;
+				i++;
+			}
+		}
+	}
 	Board clone() {
 		Board newBoard;
 		newBoard.p1 = p1;
