@@ -43,7 +43,7 @@ void play(Board board) {
 }
 
 void main(int argc, char* argv[])
-{			
+{		
 	Board board;	
 	if (argc > 1) {
 		board.p1 = _atoi64(argv[1]);
