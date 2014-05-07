@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ctime>
 #include "board.h"
+//#include "neuralnet.h"
 
 using namespace std;
 
@@ -42,8 +43,19 @@ void play(Board board) {
 	printf("{\"pos\":%i, \"quad\":%i, \"rot\":%i}", pos, quad, rot);	
 }
 
+void GA_train();
 void main(int argc, char* argv[])
-{		
+{	
+	srand((unsigned int) time(0));
+	//NeuralNet nn(2, 2);
+	//std::vector<float> inputs;
+	//inputs.push_back(0); inputs.push_back(1);
+	//float f = nn.evaluate(inputs);	
+	//cout << nn.toString() << endl;
+	//cout << f << endl;
+	
+	//GA_train();
+	return;
 	Board board;	
 	if (argc > 1) {
 		board.p1 = _atoi64(argv[1]);
@@ -55,7 +67,7 @@ void main(int argc, char* argv[])
 	int player1 = PLAYER_HUMAN;	
 	int player2 = PLAYER_MCTS;
 	
-	//srand((unsigned int) time(0));
+	
 	//clock_t startTime = clock();	
 	
 	

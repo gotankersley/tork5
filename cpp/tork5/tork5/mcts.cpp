@@ -1,6 +1,6 @@
 #include <vector>
 #include <ctime>
-#include "Node.h"
+#include "node.h"
 using namespace std;
 
 //Constants

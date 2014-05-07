@@ -124,6 +124,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="genetic_trainer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mcts.cpp" />
   </ItemGroup>
@@ -132,6 +133,7 @@
     <ClInclude Include="board_constants.h" />
     <ClInclude Include="board_macros.h" />
     <ClInclude Include="board_masks.h" />
+    <ClInclude Include="gene.h" />
     <ClInclude Include="neuron.h" />
     <ClInclude Include="neuralnet.h" />
     <ClInclude Include="node.h" />

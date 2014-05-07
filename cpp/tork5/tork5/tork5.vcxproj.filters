@@ -28,6 +28,9 @@
     <ClInclude Include="neuralnet.h">
       <Filter>DataTypes</Filter>
     </ClInclude>
+    <ClInclude Include="gene.h">
+      <Filter>DataTypes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Board">
@@ -39,11 +42,17 @@
     <Filter Include="DataTypes">
       <UniqueIdentifier>{a6496782-387b-41e3-bd9c-4425ba03e266}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tools">
+      <UniqueIdentifier>{1a233472-5bd4-4c4e-9d6f-361b41efb739}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mcts.cpp">
       <Filter>AI</Filter>
+    </ClCompile>
+    <ClCompile Include="genetic_trainer.cpp">
+      <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

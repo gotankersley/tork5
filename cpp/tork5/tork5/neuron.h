@@ -5,12 +5,20 @@
 
 const float BIAS = 1.0f;
 
+inline float randf (float min, float max) {
+	return ((float(rand()) / float(RAND_MAX)) * (max - min)) + min;
+}
+
 struct Neuron {
 	std::vector<float> weights;
 
+	Neuron() {
+
+	}
 	Neuron(int numInputs) {
 		for (int i = 0; i < numInputs; i++) {
-			weights.push_back((rand() % 2) -1); //Range of [-1,1]
+			float randWeight = ((float) rand()) / ((float)(RAND_MAX/2));
+			weights.push_back(randf(-1, 1)); //Range of [-1,1]
 		}
 	}
 
