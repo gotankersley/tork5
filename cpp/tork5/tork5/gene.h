@@ -2,6 +2,7 @@
 
 #include "neuralnet.h"
 
+
 struct Gene {
 	NeuralNet nn;
 	float fitness;	
@@ -13,10 +14,10 @@ struct Gene {
 
 	void getFitness() {
 		//Basic XOR fitness is n/4 for correct
-		fitness += score(0, 0);
-		fitness += score(0, 1);
-		fitness += score(1, 0);
-		fitness += score(1, 1);		
+		fitness += score(0, 0, 0);
+		fitness += score(0, 1, 1);
+		fitness += score(1, 0, 1);
+		fitness += score(1, 1, 0);		
 	}
 	
 	int score(int input1, int input2, int expected) {
