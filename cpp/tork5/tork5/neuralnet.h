@@ -4,11 +4,13 @@
 #include <sstream>
 #include "neuron.h"
 
+const float MUTATION_RATE = 0.05;
+
 //Simple MLP
 struct NeuralNet {
 	int numInputs;
 	std::vector<Neuron> hiddenNeurons;
-	Neuron outputNeuron;
+	Neuron outputNeuron;	
 
 	NeuralNet() {
 		numInputs = 0;
@@ -21,6 +23,7 @@ struct NeuralNet {
 		}		
 		outputNeuron = Neuron(numberOfHidden);
 	}
+
 
 	NeuralNet(int numberOfInputs, int numberOfHidden, std::string nnString) {
 		numInputs = numberOfInputs;
@@ -41,6 +44,34 @@ struct NeuralNet {
 			weights.push_back(weight);
 		}
 		outputNeuron = Neuron(weights);
+	}
+
+	NeuralNet combine(NeuralNet other) {
+		NeuralNet newNet;
+		newNet.numInputs = numInputs;		
+		for (int i = 0; i < numInputs; i++) {			
+			std::vector<float> weights;
+			for (int k = 0; k < numInputs; k++) {
+				float weight;
+				if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation					
+				else if (rand() % 2 != 0) weight = hiddenNeurons[i].weights[k]; //Crossover from self
+				else weight = other.hiddenNeurons[i].weights[k]; //Crossover from other
+				weights.push_back(weight);
+			}
+			newNet.hiddenNeurons.push_back(Neuron(weights));
+		}			
+		
+		std::vector<float> weights;
+		for (int i = 0; i < hiddenNeurons.size(); i++) {									
+			float weight;
+			if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation
+			else if (rand() % 2 != 0) weight = outputNeuron.weights[i]; //Crossover from self
+			else weight = other.outputNeuron.weights[i]; //Crossover from other
+			weights.push_back(weight);			
+			newNet.outputNeuron = Neuron(weights);
+		}	
+
+		return newNet;
 	}
 
 	float evaluate(std::vector<float> inputs) {

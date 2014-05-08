@@ -1,7 +1,7 @@
 #include <iostream>
 #include <ctime>
 #include "board.h"
-//#include "neuralnet.h"
+#include "neuralnet.h"
 
 using namespace std;
 
@@ -44,15 +44,21 @@ void play(Board board) {
 }
 
 void GA_train();
+int nnOut(float output) {
+	if (output > 0) return 1;
+	else return 0;
+}
 void main(int argc, char* argv[])
 {	
-	srand((unsigned int) time(0));
-	//NeuralNet nn(2, 2);
-	//std::vector<float> inputs;
-	//inputs.push_back(0); inputs.push_back(1);
-	//float f = nn.evaluate(inputs);	
-	//cout << nn.toString() << endl;
-	//cout << f << endl;
+	//srand((unsigned int) time(0));
+
+	//string str = "0.893124 -0.983093 -0.489608 0.809076 -0.345378 -0.97589"; //Solves XOR - woot!
+	//NeuralNet nn(2, 2, str);
+	//vector<float> inputTest;
+	//inputTest.push_back(1);
+	//inputTest.push_back(1);
+	//float f = nn.evaluate(inputTest);
+	//printf("Real: %f, Mod: %i\n", f, nnOut(f));
 	
 	//GA_train();
 	return;
