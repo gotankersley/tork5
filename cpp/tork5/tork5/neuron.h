@@ -3,12 +3,6 @@
 #include <string>
 #include <sstream>
 
-const float BIAS = 1.0f;
-
-
-inline float randf (float min, float max) {
-	return ((float(rand()) / float(RAND_MAX)) * (max - min)) + min;
-}
 
 struct Neuron {
 	std::vector<float> weights;		
@@ -32,8 +26,7 @@ struct Neuron {
 		float val = BIAS;
 		for (int i = 0; i < inputs.size(); i++) {
 			val += (inputs[i] * weights[i]);
-		}
-		//return 1 / (Math.Pow(Math.E, -x) + 1); //Sigmoid
+		}		
 		return tanh(val); //Squash function
 
 	}

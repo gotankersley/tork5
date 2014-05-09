@@ -133,7 +133,8 @@ struct Board {
 			}
 		}
 		return moves;
-	}
+	}	
+
 	void getMoveFromMidWin(int i, int& pos, int& quad, int& rot) {
 		pos = INVALID;
 		quad = INVALID;

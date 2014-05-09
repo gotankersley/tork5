@@ -1,7 +1,7 @@
 #include <iostream>
 #include <ctime>
 #include "board.h"
-#include "neuralnet.h"
+//#include "neuralnet.h"
 
 using namespace std;
 
@@ -57,10 +57,10 @@ void main(int argc, char* argv[])
 	//vector<float> inputTest;
 	//inputTest.push_back(1);
 	//inputTest.push_back(1);
-	//float f = nn.evaluate(inputTest);
+	///float f = nn.evaluate(inputTest);
 	//printf("Real: %f, Mod: %i\n", f, nnOut(f));
-	
-	//GA_train();
+
+	GA_train();
 	return;
 	Board board;	
 	if (argc > 1) {

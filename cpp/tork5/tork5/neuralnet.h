@@ -2,94 +2,102 @@
 #include <vector>
 #include <string>
 #include <sstream>
-#include "neuron.h"
 
+
+//Constants
+const int NN_INPUTS = 36;
+const int NN_HIDDEN = 20;
+const float BIAS = 1.0f;
 const float MUTATION_RATE = 0.05;
 
-//Simple MLP
+inline float randf (float min, float max) {
+	return ((float(rand()) / float(RAND_MAX)) * (max - min)) + min;
+}
+
+//Simple MLP 
 struct NeuralNet {
-	int numInputs;
-	std::vector<Neuron> hiddenNeurons;
-	Neuron outputNeuron;	
+	float hidden[NN_HIDDEN][NN_INPUTS];
+	float output[NN_HIDDEN];	
 
 	NeuralNet() {
-		numInputs = 0;
 	}
 
-	NeuralNet(int numberOfInputs, int numberOfHidden) {
-		numInputs = numberOfInputs;
-		for (int i = 0; i < numberOfHidden; i++) {
-			hiddenNeurons.push_back(Neuron(numInputs));
+	//Create new random neural net
+	NeuralNet(bool initRandom) {
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			for (int i = 0; i < NN_INPUTS; i++) {			
+				hidden[h][i] = randf(-1, 1);
+			}		
+			output[h] = randf(-1, 1);
 		}		
-		outputNeuron = Neuron(numberOfHidden);
 	}
 
-
-	NeuralNet(int numberOfInputs, int numberOfHidden, std::string nnString) {
-		numInputs = numberOfInputs;
-		std::istringstream iss(nnString);
+	//Load from serialized neural net string
+	NeuralNet(std::string serializedNN) {		
+		std::istringstream iss(serializedNN);
 		int i = 0;
 		float weight;		
-		for (int i = 0; i < numInputs; i++) {
-			std::vector<float> weights;
-			for (int h = 0; h < numberOfHidden; h++) {
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			for (int i = 0; i < NN_INPUTS; i++) {
 				iss >> weight;
-				weights.push_back(weight);
+				hidden[h][i] = weight;
 			}
-			hiddenNeurons.push_back(Neuron(weights));
-		}	
-		std::vector<float> weights;
-		for (int h = 0; h < numberOfHidden; h++) {
 			iss >> weight;
-			weights.push_back(weight);
-		}
-		outputNeuron = Neuron(weights);
+			output[h] = weight;
+		}		
 	}
 
 	NeuralNet combine(NeuralNet other) {
-		NeuralNet newNet;
-		newNet.numInputs = numInputs;		
-		for (int i = 0; i < numInputs; i++) {			
-			std::vector<float> weights;
-			for (int k = 0; k < numInputs; k++) {
-				float weight;
+		//NOTE: Crossover chance has already been checked because it involves promoting both parents
+		NeuralNet kid;
+		float weight;
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			for (int i = 0; i < NN_INPUTS; i++) { 				
+				//Hidden weights
 				if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation					
-				else if (rand() % 2 != 0) weight = hiddenNeurons[i].weights[k]; //Crossover from self
-				else weight = other.hiddenNeurons[i].weights[k]; //Crossover from other
-				weights.push_back(weight);
+				else if (rand() % 2 != 0) weight = hidden[h][i]; //Crossover from self
+				else weight = other.hidden[h][i]; //Crossover from other
+				kid.hidden[h][i] = weight;
 			}
-			newNet.hiddenNeurons.push_back(Neuron(weights));
-		}			
-		
-		std::vector<float> weights;
-		for (int i = 0; i < hiddenNeurons.size(); i++) {									
-			float weight;
-			if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation
-			else if (rand() % 2 != 0) weight = outputNeuron.weights[i]; //Crossover from self
-			else weight = other.outputNeuron.weights[i]; //Crossover from other
-			weights.push_back(weight);			
-			newNet.outputNeuron = Neuron(weights);
-		}	
 
-		return newNet;
+			//Output weights
+			if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation					
+			else if (rand() % 2 != 0) weight = output[h]; //Crossover from self
+			else weight = other.output[h]; //Crossover from other
+			kid.output[h] = weight;
+		}
+		return kid;
 	}
 
-	float evaluate(std::vector<float> inputs) {
-		std::vector<float> hiddenValues;
-		for (int i = 0; i < hiddenNeurons.size(); i++) {
-			hiddenValues.push_back(hiddenNeurons[i].activate(inputs));
+	//Run inputs through the neural net and calculate the ouput value
+	float calculate(float inputs[]) {
+		
+		float outputValue = BIAS;
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			float hiddenValue = BIAS;
+			for (int i = 0; i < NN_INPUTS; i++) {
+				hiddenValue += (inputs[i] * hidden[h][i]);
+			}
+
+			//Activate hidden neuron - which acts as input to output neuron
+			float hiddenActivation = tanh(hiddenValue);
+			outputValue += (hiddenActivation * output[h]);
 		}
-		return outputNeuron.activate(hiddenValues);
+
+		//Active output neuron
+		return tanh(outputValue);
 	}
 	
+	//Serialize neural net
 	std::string toString() {
-		//Serialize a NN with the format: [hid weight 0 0] [hid weight 0 1] [hid weight 1 0] [hid weight 1 1]...[output weight 0] [output weight 1]
-		//e.g. NN(2,2,1) = 0.127171 0.617481 -0.0402539 0.791925 0.49321 0.717887
-		std::string output = "";
-		for (int i = 0; i < hiddenNeurons.size(); i++) {
-			output += hiddenNeurons[i].toString();
+		//Format: [hid weight 0 0] [hid weight 0 1] [output weight 0] [hid weight 1 0] [hid weight 1 1] [output weight 1]		
+		std::ostringstream oss;		
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			for (int i = 0; i < NN_INPUTS; i++) {
+				oss << hidden[h][i] << ' ';
+			}
+			oss << output[h] << ' ';
 		}
-		output += outputNeuron.toString();
-		return output;
+		return std::string(oss.str());
 	}
 };

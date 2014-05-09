@@ -5,16 +5,18 @@
 
 using namespace std;
 
-const int TOURNAMENT_SIZE = 3;
-const int POOL_SIZE = 30;
-const int GENERATIONS = 50;
+const int TOURNAMENT_SIZE = 11;
+const int POOL_SIZE = 10;
+const int GENERATIONS = 5;
+const int REPORT_FREQ = 1;
+const int SAVE_FREQ = 1000;
 const float CROSSOVER_RATE = 0.7;
-const int UNFIT = -1;
-const int INVALID = -1;
+const int NUM_OPPONENTS = 5;
+
 
 int GA_select(Gene pool[]) {
 	float bestFitness = UNFIT;
-	int bestIndex = INVALID;
+	int bestIndex;
 	for (int t = 0; t < TOURNAMENT_SIZE; t++) {
 		int r = rand() % POOL_SIZE;
 		if (pool[r].fitness > bestFitness) {
@@ -25,39 +27,38 @@ int GA_select(Gene pool[]) {
 	return bestIndex;
 }
 
-
 void GA_train() {	
-	printf("Gen\t|\tBest Fitness\n");
-	float bestFitness = UNFIT;	
+
+	printf("Gen\t|\tBest Fitness\n");	
+
+	//Create testing targets (opponent NN's)
+	NeuralNet opponents[NUM_OPPONENTS];
+	for (int i = 0; i < NUM_OPPONENTS; i++) {
+		opponents[i] = NeuralNet(true);
+	}
+
 	//Initialize (Pre-populate) pool	
 	Gene pools[2][POOL_SIZE];
 	int curPool = 0;	
 	for (int p = 0; p < POOL_SIZE; p++) {
-		pools[curPool][p] = Gene(true);
-		if (pools[curPool][p].fitness > bestFitness) bestFitness = pools[curPool][p].fitness;
+		pools[curPool][p] = Gene(true);	
     }
-	
-	printf("-1\t|\t%f\n", bestFitness);	
+		
 	//elite?
 	
 	//Evolve
-	bool solutionFound = false;
-	Gene solution;
+	float bestFitness;	
 	for (int g = 0; g < GENERATIONS; g++) {		
 
-		//Get fitness for all genes in pool
+		//Evaluate - Get fitness for all genes in pool
 		bestFitness = UNFIT;
 		for (int p = 0; p < POOL_SIZE; p++) {			
-			pools[curPool][p].getFitness();
-			if (pools[curPool][p].fitness >= 4) {							
-				solution = pools[curPool][p];
-				solutionFound = true;
-				break;			
+			for (int i = 0; i < NUM_OPPONENTS; i++) {
+				pools[curPool][p].playMatch(opponents[i]);
 			}
-			else if (pools[curPool][p].fitness > bestFitness) bestFitness = pools[curPool][p].fitness;
+			if (pools[curPool][p].fitness > bestFitness) bestFitness = pools[curPool][p].fitness;
 		}
-		
-		if (solutionFound) break;
+				
 
 		//Fill up the next pool by combining parents
 		int nextPool = !curPool;
@@ -68,21 +69,31 @@ void GA_train() {
 
 			//Combine
 			float opProp = randf(0, 1);
-			if (opProp <= CROSSOVER_RATE) pools[nextPool][p] = parent1.combine(parent2);
+			if (opProp <= CROSSOVER_RATE) pools[nextPool][p] = parent1.combine(parent2); //Mutation included
 			else {
 				pools[nextPool][p] = parent1;
 				p++;
-				pools[nextPool][p] = parent2;
+				if (p < POOL_SIZE) pools[nextPool][p] = parent2;
 			}
 
 		}
 
 		//Report
-		printf("%i\t|\t%f\n", g, bestFitness);
-		
+		if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\n", g, bestFitness);
+		//else if (g % SAVE_FREQ == 0) 
 		curPool = !curPool; //Swap current pool with next pool
 	}	
 
-	if (solutionFound) printf("Solution found!: %s\n", solution.nn.toString().c_str());
-	else printf("No solution found...\n");
+	//Get best gene in pool
+	bestFitness = UNFIT;
+	int best;
+	for (int p = 0; p < POOL_SIZE; p++) {		
+		if (pools[curPool][p].fitness > bestFitness) {
+			bestFitness = pools[curPool][p].fitness;
+			best = p;
+		}
+	}
+	Gene bestGene = pools[curPool][best];
+	printf("\nBest gene: %s\n", bestGene.nn.toString().c_str());
+	
 }

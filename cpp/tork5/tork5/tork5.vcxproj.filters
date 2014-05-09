@@ -22,9 +22,6 @@
     <ClInclude Include="types.h">
       <Filter>DataTypes</Filter>
     </ClInclude>
-    <ClInclude Include="neuron.h">
-      <Filter>DataTypes</Filter>
-    </ClInclude>
     <ClInclude Include="neuralnet.h">
       <Filter>DataTypes</Filter>
     </ClInclude>

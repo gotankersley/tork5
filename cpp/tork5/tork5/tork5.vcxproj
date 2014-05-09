@@ -134,7 +134,6 @@
     <ClInclude Include="board_macros.h" />
     <ClInclude Include="board_masks.h" />
     <ClInclude Include="gene.h" />
-    <ClInclude Include="neuron.h" />
     <ClInclude Include="neuralnet.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="types.h" />
