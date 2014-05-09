@@ -89,11 +89,18 @@ struct Gene {
 	//	else return 0;
 	//}
 
-	Gene combine(Gene other) {
-		Gene kid;		
-		kid.fitness = 0;
-		kid.nn = nn.combine(other.nn);		
+	Gene* combine(Gene* other) {
+		Gene* kid = new Gene();		
+		kid->fitness = 0;
+		kid->nn = nn.combine(other->nn);		
 		
 		return kid;
+	}
+
+	Gene* clone() {
+		Gene* newGene = new Gene();
+		newGene->fitness = fitness;
+		newGene->nn = nn.clone();
+		return newGene;
 	}
 };

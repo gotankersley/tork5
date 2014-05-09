@@ -87,6 +87,17 @@ struct NeuralNet {
 		//Active output neuron
 		return tanh(outputValue);
 	}
+
+	NeuralNet clone() {
+		NeuralNet newNN;
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			for (int i = 0; i < NN_INPUTS; i++) { 		
+				newNN.hidden[h][i] = hidden[h][i];				
+			}
+			newNN.output[h] = output[h];
+		}
+		return newNN;
+	}
 	
 	//Serialize neural net
 	std::string toString() {
