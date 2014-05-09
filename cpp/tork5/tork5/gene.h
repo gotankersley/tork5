@@ -37,7 +37,7 @@ struct Gene {
 	Gene combine(Gene other) {
 		Gene kid;		
 		kid.fitness = 0;
-		kid.nn = nn.combine(other.nn);
+		kid.nn = nn.combine(other.nn);		
 		
 		return kid;
 	}

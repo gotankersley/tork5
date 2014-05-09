@@ -8,6 +8,7 @@ using namespace std;
 const int TOURNAMENT_SIZE = 3;
 const int POOL_SIZE = 30;
 const int GENERATIONS = 50;
+const float CROSSOVER_RATE = 0.7;
 const int UNFIT = -1;
 const int INVALID = -1;
 
@@ -66,7 +67,13 @@ void GA_train() {
 			Gene parent2 = pools[curPool][GA_select(pools[curPool])];		
 
 			//Combine
-			pools[nextPool][p] = parent1.combine(parent2);
+			float opProp = randf(0, 1);
+			if (opProp <= CROSSOVER_RATE) pools[nextPool][p] = parent1.combine(parent2);
+			else {
+				pools[nextPool][p] = parent1;
+				p++;
+				pools[nextPool][p] = parent2;
+			}
 
 		}
 
