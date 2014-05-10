@@ -1,15 +1,16 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream>
 #include "gene.h"
 
 using namespace std;
 
-const int TOURNAMENT_SIZE = 11;
-const int POOL_SIZE = 1000;
-const int GENERATIONS = 5;
+const int TOURNAMENT_SIZE = 5;
+const int POOL_SIZE = 500;
+const int GENERATIONS = 1500;
 const int REPORT_FREQ = 1;
-const int SAVE_FREQ = 1000;
+const int SAVE_FREQ = 5;
 const float CROSSOVER_RATE = 0.7;
 const int NUM_OPPONENTS = 5;
 
@@ -42,8 +43,7 @@ void GA_train() {
 	int curPool = 0;	
 	int nextPool = !curPool;
 	for (int p = 0; p < POOL_SIZE; p++) {
-		pools[curPool][p] = new Gene(true);	
-		//pools[nextPool][p] = NULL;
+		pools[curPool][p] = new Gene(true);			
     }
 		
 	//elite?
@@ -54,14 +54,24 @@ void GA_train() {
 
 		//Evaluate - Get fitness for all genes in pool
 		bestFitness = UNFIT;
+		Gene* bestGene;
 		for (int p = 0; p < POOL_SIZE; p++) {			
 			for (int i = 0; i < NUM_OPPONENTS; i++) {
 				pools[curPool][p]->playMatch(opponents[i]);
 			}
-			if (p % 10 == 0) printf("%i - eval\n", p);
-			if (pools[curPool][p]->fitness > bestFitness) bestFitness = pools[curPool][p]->fitness;
+			//if (p % 10 == 0) printf("%i - eval\n", p);
+			if (pools[curPool][p]->fitness > bestFitness) {
+				bestFitness = pools[curPool][p]->fitness;
+				bestGene = pools[curPool][p];
+			}
 		}
 				
+		if (g % SAVE_FREQ == 0) {
+			ofstream fout;
+			fout.open ("nn.txt");
+			fout << bestGene->nn.toString() << endl;
+			fout.close();
+		}
 
 		//Fill up the next pool by combining parents
 		nextPool = !curPool;
@@ -87,7 +97,7 @@ void GA_train() {
 
 		//Report
 		if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\n", g, bestFitness);
-		//else if (g % SAVE_FREQ == 0)
+		
 
 		//Swap current pool with next pool
 		for (int p = 0; p < POOL_SIZE; p++) { //Cleanup all pointers from current pool
