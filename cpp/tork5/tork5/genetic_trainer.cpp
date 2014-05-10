@@ -74,8 +74,7 @@ void GA_train() {
 			//Combine
 			float oppProb = randf(0, 1);			
 			
-			if (oppProb <= CROSSOVER_RATE) { //Combine includes crossover and mutation
-				//delete pools[nextPool][p];
+			if (oppProb <= CROSSOVER_RATE) { //Combine includes crossover and mutation				
 				pools[nextPool][p] = parent1->combine(parent2); 
 			}
 			else { //Promote parents

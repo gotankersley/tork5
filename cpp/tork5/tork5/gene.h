@@ -24,7 +24,7 @@ struct Gene {
 	void playMatch(NeuralNet opponent) {
 		Board board;
 
-		for (int i = 0; i < BOARD_SPACES; i++) {
+		for (int i = 0; i < 18; i++) {
 
 			//First player
 			std::vector<Board> moves = board.getAllMoves();
