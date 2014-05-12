@@ -8,9 +8,9 @@ using namespace std;
 
 const int TOURNAMENT_SIZE = 4;
 const int POOL_SIZE = 100;
-const int GENERATIONS = 1500;
+const int GENERATIONS = 1000;
 const int REPORT_FREQ = 1;
-const int SAVE_FREQ = 20;
+const int SAVE_FREQ = 25;
 const float CROSSOVER_RATE = 0.7;
 const int NUM_OPPONENTS = 5;
 
@@ -47,7 +47,7 @@ int GA_nextPool(int curPool) {
 }
 void GA_train() {	
 
-	printf("Gen\t|\tBest Fitness|\tAvg\n");	
+	printf("Gen\t|\tBest Fitness\n");	
 
 	//Create testing targets (opponent NN's)
 	NeuralNet opponents[NUM_OPPONENTS];
@@ -70,8 +70,8 @@ void GA_train() {
 
 		//Evaluate - Get fitness for all genes in pool
 		bestFitness = UNFIT;
-		Gene* bestGene;
-		float avgFitness = 0;
+		Gene* bestGene;		
+		int topCount = 0;
 		for (int p = 0; p < POOL_SIZE; p++) {	
 			pools[curPool][p]->fitness = 0;
 			for (int i = 0; i < NUM_OPPONENTS; i++) {
@@ -83,9 +83,9 @@ void GA_train() {
 				bestFitness = fitness;
 				bestGene = pools[curPool][p];
 			}
-			avgFitness += fitness;
-		}				
-		avgFitness /= POOL_SIZE;
+			if (fitness >= 5) topCount++;
+			
+		}						
 
 		if (g % SAVE_FREQ == 0) {
 			ofstream fout;
@@ -99,11 +99,10 @@ void GA_train() {
 			fout.close();
 		}
 		//Switch players
-		if ((g + 1) % 5 == 0) {
+		if (topCount >= 5) {
 			int player = (curPool > 1)? 1 : 2;
 			printf ("Switching to Player %i\n", player);
-		//if (avgFitness >= 4.0f) {
-			//Select elite
+
 			float best[5] = {UNFIT, UNFIT, UNFIT, UNFIT, UNFIT};
 			int elite[5];
 		
@@ -129,13 +128,14 @@ void GA_train() {
 					elite[4] = p;
 				}
 			}
+			//Elite opponents to train other player
 			opponents[0] = pools[curPool][elite[0]]->nn;
 			opponents[1] = pools[curPool][elite[1]]->nn;
 			opponents[2] = pools[curPool][elite[2]]->nn;
 			opponents[3] = pools[curPool][elite[3]]->nn;
 			opponents[4] = pools[curPool][elite[4]]->nn;
 
-			//Shift old pool if necessary			
+			//Shift old pool if necessary - so when switching back the correct pool will be choosen		
 			if (curPool % 2 != 0) {
 				int oldPool = curPool - 1;
 				for (int p = 0; p < POOL_SIZE; p++) {
@@ -168,9 +168,10 @@ void GA_train() {
 			}
 
 		}
+		
 
 		//Report
-		if (g % REPORT_FREQ == 0) printf("%i\t|\t%f|\t%f\n", g, bestFitness, avgFitness);
+		if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\n", g, bestFitness);
 		
 
 		//Swap current pool with next pool
