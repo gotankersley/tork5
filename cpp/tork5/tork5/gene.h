@@ -21,7 +21,7 @@ struct Gene {
 		nn = NeuralNet(init);		
 	}
 	
-	void playMatch(NeuralNet opponent) {
+	void playMatch1(NeuralNet opponent) {
 		Board board;
 
 		for (int i = 0; i < 18; i++) {
@@ -68,6 +68,55 @@ struct Gene {
 
 		}		
 		fitness += GENE_TIE;
+	}
+
+	void playMatch2(NeuralNet opponent) {
+		Board board;
+
+		for (int i = 0; i < 18; i++) {
+
+			//First player
+			std::vector<Board> moves = board.getAllMoves();
+			float bestScore = -GENE_INFINITY;
+			int bestMove;
+			for (int m = 0; m < moves.size(); m++) {
+				float inputs[NN_INPUTS];
+				moves[m].toNNInputs(inputs);
+				float score = opponent.calculate(inputs);
+				if (score > bestScore) {
+					bestScore = score;
+					bestMove = m;
+				}
+			}
+			board = moves[bestMove];
+			int winFound = board.findWin();
+			if (winFound) {
+				fitness += (2 * i) / 38;
+				return;
+			}
+			
+
+			//Second player
+			bestScore = -GENE_INFINITY;
+			moves = board.getAllMoves();
+			for (int m = 0; m < moves.size(); m++) {
+				float inputs[NN_INPUTS];
+				moves[m].toNNInputs(inputs);
+				float score = nn.calculate(inputs);
+				if (score > bestScore) {
+					bestScore = score;
+					bestMove = m;
+				}
+			}
+			board = moves[bestMove];
+			winFound = board.findWin();
+			if (winFound) {
+				fitness += GENE_WIN;
+				return;
+			}
+
+		}		
+		fitness += 0.98f; //Tie
 	}
 
 	//void getFitness() {

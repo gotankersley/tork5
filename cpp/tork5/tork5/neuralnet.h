@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <fstream>
 
 
 //Constants
@@ -35,7 +36,7 @@ struct NeuralNet {
 	//Load from serialized neural net string
 	NeuralNet(std::string serializedNN) {		
 		std::istringstream iss(serializedNN);
-		int i = 0;
+
 		float weight;		
 		for (int h = 0; h < NN_HIDDEN; h++) {
 			for (int i = 0; i < NN_INPUTS; i++) {
@@ -45,6 +46,21 @@ struct NeuralNet {
 			iss >> weight;
 			output[h] = weight;
 		}		
+	}
+
+	void load(std::string path) {
+		std::ifstream fin;
+		fin.open ("nn.txt");
+		float weight;		
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			for (int i = 0; i < NN_INPUTS; i++) {
+				fin >> weight;
+				hidden[h][i] = weight;
+			}
+			fin >> weight;
+			output[h] = weight;
+		}
+		fin.close();
 	}
 
 	NeuralNet combine(NeuralNet other) {
