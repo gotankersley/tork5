@@ -19,8 +19,10 @@ inline float randf (float min, float max) {
 struct NeuralNet {
 	float hidden[NN_HIDDEN][NN_INPUTS];
 	float output[NN_HIDDEN];	
+	float fitness;
 
 	NeuralNet() {
+		fitness = 0;
 	}
 
 	//Create new random neural net
@@ -30,7 +32,8 @@ struct NeuralNet {
 				hidden[h][i] = randf(-1, 1);
 			}		
 			output[h] = randf(-1, 1);
-		}		
+		}
+		fitness = 0;
 	}
 
 	//Load from serialized neural net string
@@ -46,6 +49,7 @@ struct NeuralNet {
 			iss >> weight;
 			output[h] = weight;
 		}		
+		fitness = 0;
 	}
 
 	void load(std::string path) {
@@ -60,30 +64,8 @@ struct NeuralNet {
 			fin >> weight;
 			output[h] = weight;
 		}
-		fin.close();
-	}
-
-	NeuralNet combine(NeuralNet other) {
-		//NOTE: Crossover chance has already been checked because it involves promoting both parents
-		NeuralNet kid;
-		float weight;
-		for (int h = 0; h < NN_HIDDEN; h++) {
-			for (int i = 0; i < NN_INPUTS; i++) { 				
-				//Hidden weights
-				if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation					
-				else if (rand() % 2 != 0) weight = hidden[h][i]; //Crossover from self
-				else weight = other.hidden[h][i]; //Crossover from other
-				kid.hidden[h][i] = weight;
-			}
-
-			//Output weights
-			if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation					
-			else if (rand() % 2 != 0) weight = output[h]; //Crossover from self
-			else weight = other.output[h]; //Crossover from other
-			kid.output[h] = weight;
-		}
-		return kid;
-	}
+		fin.close();		
+	}	
 
 	//Run inputs through the neural net and calculate the ouput value
 	float calculate(float inputs[]) {
@@ -126,5 +108,65 @@ struct NeuralNet {
 			oss << output[h] << ' ';
 		}
 		return std::string(oss.str());
+	}
+
+	//Genetic functions
+	NeuralNet combine(NeuralNet other) {
+		//NOTE: Crossover chance has already been checked because it involves promoting both parents
+		NeuralNet kid;
+		float weight;
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			for (int i = 0; i < NN_INPUTS; i++) { 				
+				//Hidden weights
+				if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation					
+				else if (rand() % 2 != 0) weight = hidden[h][i]; //Crossover from self
+				else weight = other.hidden[h][i]; //Crossover from other
+				kid.hidden[h][i] = weight;
+			}
+
+			//Output weights
+			if (randf(0, 1) <= MUTATION_RATE) weight = randf(-1, 1);  //Mutation					
+			else if (rand() % 2 != 0) weight = output[h]; //Crossover from self
+			else weight = other.output[h]; //Crossover from other
+			kid.output[h] = weight;
+		}
+		return kid;
+	}
+
+	void playMatch() { //Vs. random player
+		Board board;
+
+		for (int i = 0; i < 18; i++) {
+
+			//First player
+			std::vector<Board> moves = board.getAllMoves();
+			float bestScore = -GENE_INFINITY;
+			int bestMove;
+			for (int m = 0; m < moves.size(); m++) {
+				float inputs[NN_INPUTS];
+				moves[m].toNNInputs(inputs);
+				float score = calculate(inputs);
+				if (score > bestScore) {
+					bestScore = score;
+					bestMove = m;
+				}
+			}
+			board = moves[bestMove];
+			int winFound = board.findWin();
+			if (winFound) {
+				fitness += 1.0f;				
+				return;
+			}
+			
+
+			//Second player
+			board.makeRandomMove();
+			winFound = board.findWin();
+			if (winFound) {
+				fitness += -1.0f;
+				return;				
+			}
+
+		}						
 	}
 };
