@@ -21,7 +21,7 @@ struct Gene {
 		nn = NeuralNet(init);		
 	}
 	
-	void playMatch1(NeuralNet opponent) {
+	float playMatch1(NeuralNet opponent) {
 		Board board;
 
 		for (int i = 0; i < 18; i++) {
@@ -42,8 +42,9 @@ struct Gene {
 			board = moves[bestMove];
 			int winFound = board.findWin();
 			if (winFound) {
-				fitness += GENE_WIN;
-				return;
+				//fitness += GENE_WIN;
+				//return;
+				return GENE_WIN;
 			}
 			
 
@@ -62,15 +63,17 @@ struct Gene {
 			board = moves[bestMove];
 			winFound = board.findWin();
 			if (winFound) {
-				fitness += GENE_LOSE;
-				return;
+				//fitness += GENE_LOSE;
+				//return;
+				return GENE_LOSE;
 			}
 
 		}		
-		fitness += GENE_TIE;
+		//fitness += GENE_TIE;
+		return GENE_TIE;
 	}
 
-	void playMatch2(NeuralNet opponent) {
+	float playMatch2(NeuralNet opponent) {
 		Board board;
 
 		for (int i = 0; i < 18; i++) {
@@ -91,8 +94,9 @@ struct Gene {
 			board = moves[bestMove];
 			int winFound = board.findWin();
 			if (winFound) {
-				fitness += (2 * i) / 38;
-				return;
+				//fitness += (2 * i) / 38;
+				//return;
+				return (2 * i) / 38;
 			}
 			
 
@@ -111,12 +115,14 @@ struct Gene {
 			board = moves[bestMove];
 			winFound = board.findWin();
 			if (winFound) {
-				fitness += GENE_WIN;
-				return;
+				//fitness += GENE_WIN;
+				//return;
+				return GENE_WIN;
 			}
 
 		}		
-		fitness += 0.98f; //Tie
+		//fitness += 0.98f; //Tie
+		return 0.98f;
 	}
 
 	//void getFitness() {

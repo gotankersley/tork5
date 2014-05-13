@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -8,7 +9,7 @@ using namespace std;
 
 const int TOURNAMENT_SIZE = 4;
 const int POOL_SIZE = 100;
-const int GENERATIONS = 1000;
+const int GENERATIONS = 100000;
 const int REPORT_FREQ = 1;
 const int SAVE_FREQ = 25;
 const float CROSSOVER_RATE = 0.7;
@@ -69,14 +70,26 @@ void GA_train() {
 	for (int g = 0; g < GENERATIONS; g++) {		
 
 		//Evaluate - Get fitness for all genes in pool
+		float fitnesses[NUM_OPPONENTS][POOL_SIZE];
+		bool p2Match = (curPool >= 2)? true : false;
+		#pragma omp parallel num_threads(NUM_OPPONENTS)
+		{
+			int id = omp_get_thread_num();
+			for (int p = 0; p < POOL_SIZE; p++) {	
+				if (p2Match) fitnesses[id][p] = pools[curPool][p]->playMatch2(opponents[id]);
+				else fitnesses[id][p] = pools[curPool][p]->playMatch1(opponents[id]);
+				
+			}
+		}
 		bestFitness = UNFIT;
 		Gene* bestGene;		
 		int topCount = 0;
 		for (int p = 0; p < POOL_SIZE; p++) {	
 			pools[curPool][p]->fitness = 0;
 			for (int i = 0; i < NUM_OPPONENTS; i++) {
-				if (curPool >= 2) pools[curPool][p]->playMatch2(opponents[i]); //Score player2
-				else pools[curPool][p]->playMatch1(opponents[i]); //Score player1
+				//if (curPool >= 2) pools[curPool][p]->playMatch2(opponents[i]); //Score player2
+				//else pools[curPool][p]->playMatch1(opponents[i]); //Score player1
+				pools[curPool][p]->fitness += fitnesses[i][p];
 			}
 			float fitness = pools[curPool][p]->fitness;			
 			if (fitness > bestFitness) {
@@ -99,7 +112,7 @@ void GA_train() {
 			fout.close();
 		}
 		//Switch players
-		if (topCount >= 5) {
+		if (topCount >= 10) {
 			int player = (curPool > 1)? 1 : 2;
 			printf ("Switching to Player %i\n", player);
 
