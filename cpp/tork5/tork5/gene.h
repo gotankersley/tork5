@@ -15,7 +15,7 @@ struct Gene {
 		fitness = 0;
 		nn = NeuralNet(init);		
 	}
-	
+	/*
 	void setFitness() { //Match vs. random player
 		Board board;
 
@@ -48,7 +48,87 @@ struct Gene {
 			}
 			board.makeRandomMove();
 		}						
+	}*/
+
+	/*
+	void setFitness() { //Match vs. random player
+		Board board;
+
+		for (int i = 0; i < 18; i++) {
+
+			//First player
+			int winFound = board.findWin();						
+			if (winFound) {
+				fitness += -1.0f;
+				return;				
+			}
+			board.makeRandomMove();
+
+			//Second player
+			std::vector<Board> moves = (i < 3)? board.getAllNonSymMoves() : board.getAllMoves();
+			float bestScore = -1000000;
+			int bestMove;
+			for (int m = 0; m < moves.size(); m++) {
+				float inputs[NN_INPUTS];
+				moves[m].toNNInputs(inputs);
+				float score = nn.calculate(inputs);
+				if (score > bestScore) {
+					bestScore = score;
+					bestMove = m;
+				}
+			}
+			board = moves[bestMove];
+			if (board.isWin()) {							
+				fitness += 1.0f;				
+				return;
+			}						
+		}						
 	}
+	*/
+	void setFitness() { //Match vs. heuristic
+		Board board;
+
+		for (int i = 0; i < 18; i++) {
+
+			//First player
+			std::vector<Board> moves = (i < 3)? board.getAllNonSymMoves() : board.getAllMoves();
+			float bestScore = -1000000;
+			int bestMove;
+			for (int m = 0; m < moves.size(); m++) {
+				float inputs[NN_INPUTS];
+				moves[m].toNNInputs(inputs);
+				float score = nn.calculate(inputs);
+				if (score > bestScore) {
+					bestScore = score;
+					bestMove = m;
+				}
+			}
+			board = moves[bestMove];
+			if (board.isWin()) {							
+				fitness += 1.0f;				
+				return;
+			}
+						
+			//Second player
+			int winFound = board.findWin();						
+			if (winFound) {
+				fitness += -1.0f;
+				return;				
+			}
+			moves = (i < 3)? board.getAllNonSymMoves() : board.getAllMoves();
+			bestScore = -10000000;
+			int bestMove;
+			for (int m = 0; m < moves.size(); m++) {								
+				int score = moves[m].score();
+				if (score > bestScore) {
+					bestScore = score;
+					bestMove = m;
+				}
+			}
+			board = moves[bestMove];			
+		}						
+	}
+	
 
 	Gene* combine(Gene* other) {
 		Gene* kid = new Gene();		

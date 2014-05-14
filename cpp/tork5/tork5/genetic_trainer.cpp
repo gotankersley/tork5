@@ -9,11 +9,11 @@ using namespace std;
 
 const int TOURNAMENT_SIZE = 4;
 const int POOL_SIZE = 100;
-const int GENERATIONS = 100;
+const int GENERATIONS = 1000;
 const int REPORT_FREQ = 1;
-const int SAVE_FREQ = 25;
+//const int SAVE_FREQ = 25;
 const float CROSSOVER_RATE = 0.7;
-const int NUM_FITNESS_GAMES = 10;
+const int NUM_FITNESS_GAMES = 50;
 const int NUM_ELITE = 5;
 const int UNFIT = -1;
 const int GA_INFINTY = 1000000;
@@ -45,14 +45,16 @@ bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
 		eliteFitnesses[e] = -GA_INFINTY;
 	}
 	float worstFitness = GA_INFINTY;				
-	float avgFitness = 0;	
+	float avgFitness = 0;		
+	
+	#pragma omp parallel for
 	for (int p = 0; p < POOL_SIZE; p++) {	
 		//Play random games as fitness function
 		pool[p]->fitness = 0;
 		for (int n = 0; n < NUM_FITNESS_GAMES; n++) {			
 			pool[p]->setFitness();
 		}
-		//printf("%i eval\n", p);
+		
 
 		//Identify metrics
 		float fitness = pool[p]->fitness;
@@ -130,16 +132,14 @@ void GA_cleanup(Gene* pool[]) {
 	}
 }
 
-void GA_save(Gene* pool[]) {
-	ofstream fout;
-	fout.open ("nn.txt");
-	//fout << bestGene->nn.toString() << endl;
-	fout.close();
-}
+//void GA_save(Gene* pool[]) {
+//	ofstream fout;
+//	fout.open ("nn.txt");
+//	//fout << bestGene->nn.toString() << endl;
+//	fout.close();
+//}
 
-//float fitnesses[NUM_OPPONENTS][POOL_SIZE];		
-//#pragma omp parallel num_threads(NUM_OPPONENTS)
-//{//int id = omp_get_thread_num();
+
 void GA_train() {	
 
 	printf("Gen\t|\tBest Fitness\t|\tAvg\t\t|\tWorst\n");	
@@ -171,7 +171,8 @@ void GA_train() {
 
 	//Get best gene in pool
 	Gene* best = GA_getBest(pools[curPool]);
-	printf("\nBest gene: %f\n%s\n", best->fitness, best->nn.toString().c_str());
+	printf("\nBest gene: %f\n", best->fitness);
+	best->nn.save("nntest.txt");
 
 	//Cleanup
 	GA_cleanup(pools[curPool]);	

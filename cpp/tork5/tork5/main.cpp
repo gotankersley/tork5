@@ -8,7 +8,8 @@ using namespace std;
 void MCTS_getMove(Board board, int& pos, int& quad, int& rot);
 void NN_getMove(Board board, int &pos, int&quad, int& rot) {	
 	NeuralNet nn;
-	nn.load("nn.txt");
+	if (bitCount(And(board.p1, board.p2)) % 2 == 0)	nn.load("nn-player1.txt");
+	else nn.load("nn-player2.txt");
 	vector<Board> moves = board.getAllMoves();
 	float bestScore = -1000;
 	float bestKid;
@@ -16,6 +17,20 @@ void NN_getMove(Board board, int &pos, int&quad, int& rot) {
 		float inputs[NN_INPUTS];
 		moves[m].toNNInputs(inputs);
 		float score = nn.calculate(inputs);
+		if (score > bestScore) {
+			bestScore = score;
+			bestKid = m;
+		}
+	}
+	board.deriveMove(moves[bestKid], pos, quad, rot);
+
+}
+void Heuristic_getMove(Board board, int &pos, int&quad, int& rot) {		
+	vector<Board> moves = board.getAllMoves();
+	float bestScore = -100000000;
+	float bestKid;
+	for (int m = 0; m < moves.size(); m++) {				
+		int score = moves[m].score();
 		if (score > bestScore) {
 			bestScore = score;
 			bestKid = m;
@@ -58,7 +73,8 @@ void play(Board board) {
 	int quad;
 	int rot;	        	
 	//MCTS_getMove(board, pos, quad, rot);			
-	NN_getMove(board, pos, quad, rot);			
+	//NN_getMove(board, pos, quad, rot);			
+	Heuristic_getMove(board, pos, quad, rot);			
 	printf("{\"pos\":%i, \"quad\":%i, \"rot\":%i}", pos, quad, rot);	
 }
 
@@ -66,10 +82,10 @@ void GA_train();
 
 void main(int argc, char* argv[])
 {	
-	srand((unsigned int) time(0));		
-	GA_train();
+	//srand((unsigned int) time(0));		
+	//GA_train();
 	
-	return;
+	//return;
 	Board board;	
 	if (argc > 1) {
 		board.p1 = _atoi64(argv[1]);

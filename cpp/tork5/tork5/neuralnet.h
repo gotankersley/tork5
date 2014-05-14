@@ -50,17 +50,26 @@ struct NeuralNet {
 
 	void load(std::string path) {
 		std::ifstream fin;
-		fin.open ("nn.txt");
-		float weight;		
+		fin.open (path);			
 		for (int h = 0; h < NN_HIDDEN; h++) {
 			for (int i = 0; i < NN_INPUTS; i++) {
-				fin >> weight;
-				hidden[h][i] = weight;
+				fin >> hidden[h][i];				 
 			}
-			fin >> weight;
-			output[h] = weight;
+			fin >> output[h];			 
 		}
 		fin.close();		
+	}	
+
+	void save(std::string path) {
+		std::ofstream fout;
+		fout.open (path);				
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			for (int i = 0; i < NN_INPUTS; i++) {
+				fout << hidden[h][i] << ' ';				 
+			}
+			fout << output[h] << ' ';			 
+		}
+		fout.close();		
 	}	
 
 	//Run inputs through the neural net and calculate the ouput value

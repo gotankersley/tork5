@@ -293,26 +293,55 @@ struct Board {
 	}
 	
 	void addSymMoves(hashMap& movesSet, uint64 curP1, uint64 curP2) {		
-	uint64 p1s[] = {0,0,0,0,0,0,0};
-	uint64 p2s[] = {0,0,0,0,0,0,0};
-	//Generate all symmetrical moves
-	for (int i = 0; i < BOARD_SPACES; i++) {
-		for (int k = 0; k < 7; k++) {
-			uint64 mpos = POS_TO_MPOS(i);
-			uint64 transPos = POS_TO_MPOS(SYM_MAP[k][i]);
-			uint64 player1 = p1s[k];
-			uint64 player2 = p2s[k];
-			if (And(curP1, mpos)) p1s[k] = Xor(player1, transPos);
-			if (And(curP2, mpos)) p2s[k] = Xor(player2, transPos);
+		uint64 p1s[] = {0,0,0,0,0,0,0};
+		uint64 p2s[] = {0,0,0,0,0,0,0};
+		//Generate all symmetrical moves
+		for (int i = 0; i < BOARD_SPACES; i++) {
+			for (int k = 0; k < 7; k++) {
+				uint64 mpos = POS_TO_MPOS(i);
+				uint64 transPos = POS_TO_MPOS(SYM_MAP[k][i]);
+				uint64 player1 = p1s[k];
+				uint64 player2 = p2s[k];
+				if (And(curP1, mpos)) p1s[k] = Xor(player1, transPos);
+				if (And(curP2, mpos)) p2s[k] = Xor(player2, transPos);
+			}
+		}
+		for (int i = 0; i < 7; i++) {
+			char buffer[30];
+			sprintf(buffer, "%I64X_%I64X", p1s[i], p2s[i]);
+			std::string key = buffer;
+			movesSet[buffer] = true;
 		}
 	}
-	for (int i = 0; i < 7; i++) {
-		char buffer[30];
-		sprintf(buffer, "%I64X_%I64X", p1s[i], p2s[i]);
-		std::string key = buffer;
-		movesSet[buffer] = true;
+
+	int score() {
+		uint64 board;
+		uint64 opp;    
+		int curScore = 0;
+		int oppScore = 0;
+		//Turn inverted because move has already been made before evaluating board state
+		if (turn == PLAYER2) {
+			board = p1;
+			opp = p2;
+		}
+		else {
+			board = p2;
+			opp = p1;
+		}
+		
+		for (int i = 0; i < 32; i++) { //32 possible win lines
+			if (!And(opp, WINS[i])) { //Make sure opponent not blocking
+				int pinCount = bitCount(And(board, WINS[i]));
+				curScore += pow((float)pinCount, 5);
+			}
+
+			if (!And(board, WINS[i])) { //Make sure opponent not blocking
+				int pinCount = bitCount(And(opp, WINS[i]));
+				oppScore += pow((float)pinCount, 3);
+			}
+		}
+		return curScore - oppScore;
 	}
-}
 
 	int findWin() {
 		//Check if there are enough pins on the board for a win   
