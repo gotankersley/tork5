@@ -8,12 +8,12 @@
 using namespace std;
 
 const int TOURNAMENT_SIZE = 4;
-const int POOL_SIZE = 100;
-const int GENERATIONS = 100;
+const int POOL_SIZE = 10;
+const int GENERATIONS = 1;
 const int REPORT_FREQ = 1;
 const int SAVE_FREQ = 25;
 const float CROSSOVER_RATE = 0.7;
-const int NUM_FITNESS_GAMES = 10;
+const int NUM_FITNESS_GAMES = 2;
 const int NUM_ELITE = 5;
 const int UNFIT = -1;
 const int GA_INFINTY = 1000000;
@@ -39,13 +39,13 @@ Gene* GA_select(Gene* pool[]) {
 	return pool[bestIndex];
 }
 
-bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {		
+bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
+	float eliteFitnesses[NUM_ELITE];
 	for (int e = 0; e < NUM_ELITE; e++) {
-		elite[e] = pool[e];
+		eliteFitnesses[e] = -GA_INFINTY;
 	}
 	float worstFitness = GA_INFINTY;				
-	float avgFitness = 0;
-	float b = -GA_INFINTY;
+	float avgFitness = 0;	
 	for (int p = 0; p < POOL_SIZE; p++) {	
 		//Play random games as fitness function
 		pool[p]->fitness = 0;
@@ -58,17 +58,19 @@ bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
 		float fitness = pool[p]->fitness;
 		if (fitness < worstFitness) worstFitness = fitness; //Worst
 		avgFitness += fitness; //Average
-		if (fitness > b) {
-			b = fitness;
-		}
+		
 		//Elite
-		if (fitness > elite[0]->fitness) { //elite fitness 0 has the worst of the elite
-			for (int e = NUM_ELITE - 1; e >= 0; e--) { //Go backwards from best of elite
-				Gene* curElite = pool[p];
-				if (elite[e]->fitness > curElite->fitness) { //Bump lesser values out
-					Gene* tmp = elite[e];
-					elite[e] = curElite;
-					curElite = tmp;
+		if (fitness > eliteFitnesses[0]) { //elite fitness 0 has the worst of the elite
+			Gene* newElite = pool[p];
+			for (int e = NUM_ELITE - 1; e >= 0; e--) { //Go backwards from best of elite to place new elite				
+				if (newElite->fitness > eliteFitnesses[e]) { 
+					for (int w = 0; w < e; w++) { //Bump lesser values down
+						elite[w] = elite[w + 1];
+						eliteFitnesses[w] = eliteFitnesses[w + 1];
+					}					
+					elite[e] = newElite;					
+					eliteFitnesses[e] = fitness;
+					break;
 				}
 			}
 		}				
@@ -78,7 +80,7 @@ bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
 	float bestFitness = elite[NUM_ELITE-1]->fitness;
 
 	//Report
-	if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\t|\t%f\t|\t%f\n", g, b, avgFitness, worstFitness);
+	if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\t|\t%f\t|\t%f\n", g, bestFitness, avgFitness, worstFitness);
 	if (bestFitness >= NUM_FITNESS_GAMES) return true;
 	return false;
 }
@@ -169,7 +171,7 @@ void GA_train() {
 
 	//Get best gene in pool
 	Gene* best = GA_getBest(pools[curPool]);
-	printf("\nBest gene: %f\n%s\n", best->nn.toString().c_str());
+	printf("\nBest gene: %f\n%s\n", best->fitness, best->nn.toString().c_str());
 
 	//Cleanup
 	GA_cleanup(pools[curPool]);	
