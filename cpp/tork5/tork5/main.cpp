@@ -66,8 +66,9 @@ void GA_train();
 
 void main(int argc, char* argv[])
 {	
-	//srand((unsigned int) time(0));		
+	srand((unsigned int) time(0));		
 	GA_train();
+	
 	return;
 	Board board;	
 	if (argc > 1) {

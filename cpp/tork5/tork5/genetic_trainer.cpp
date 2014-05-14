@@ -8,12 +8,12 @@
 using namespace std;
 
 const int TOURNAMENT_SIZE = 4;
-const int POOL_SIZE = 10;
-const int GENERATIONS = 1;
+const int POOL_SIZE = 100;
+const int GENERATIONS = 100;
 const int REPORT_FREQ = 1;
 const int SAVE_FREQ = 25;
 const float CROSSOVER_RATE = 0.7;
-const int NUM_FITNESS_GAMES = 2;
+const int NUM_FITNESS_GAMES = 10;
 const int NUM_ELITE = 5;
 const int UNFIT = -1;
 const int GA_INFINTY = 1000000;

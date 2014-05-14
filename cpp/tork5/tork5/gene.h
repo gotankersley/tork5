@@ -22,7 +22,7 @@ struct Gene {
 		for (int i = 0; i < 18; i++) {
 
 			//First player
-			std::vector<Board> moves = board.getAllMoves();
+			std::vector<Board> moves = (i < 3)? board.getAllNonSymMoves() : board.getAllMoves();
 			float bestScore = -1000000;
 			int bestMove;
 			for (int m = 0; m < moves.size(); m++) {
@@ -35,21 +35,18 @@ struct Gene {
 				}
 			}
 			board = moves[bestMove];
-			int winFound = board.findWin();
-			if (winFound) {
+			if (board.isWin()) {							
 				fitness += 1.0f;				
 				return;
 			}
-			
-
+						
 			//Second player
-			board.makeRandomMove();
-			winFound = board.findWin();
+			int winFound = board.findWin();						
 			if (winFound) {
 				fitness += -1.0f;
 				return;				
 			}
-
+			board.makeRandomMove();
 		}						
 	}
 

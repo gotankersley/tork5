@@ -238,7 +238,7 @@ struct Board {
 	}
 
 	//Win Methods
-	int isWin() {    
+	/*int isWin() {    
 		int moveCount = bitCount(Or(p1, p2));
 		if (moveCount >= BOARD_SPACES) return WIN_TIE;
 		else if (moveCount < NUM_TO_WIN) return IN_PLAY;
@@ -254,7 +254,65 @@ struct Board {
 		else if (p1Win) return WIN_PLAYER1;
 		else if (p2Win) return WIN_PLAYER2;
 		else return IN_PLAY;    
+	}*/
+
+	int isWin() {    
+		for (int i = 0; i < 18; i++) { //MID_WINS
+			uint64 mid = MID_WINS[i];
+			if (And(p1, mid) == mid && And(p1, SPAN_WINS[i])) return true;
+			else if (And(p2, mid) == mid && And(p2, SPAN_WINS[i])) return true;
+		}
+		return false;
 	}
+
+	std::vector<Board> getAllNonSymMoves() {
+		uint64 avail = Not(Or(p1, p2));
+		list availBits = bitScan(avail);
+		std::vector<Board> moves;
+		hashMap movesSet;
+				
+		for (int a = 0; a < availBits.size(); a++) {
+			for (int i = 0; i < ALL_ROTATIONS; i++) {
+				int q = i/2;
+				int r = i%2;			
+				Board newBoard = clone();
+				if (turn == PLAYER1) newBoard.p1 = Xor(newBoard.p1, POS_TO_MPOS(availBits[a])); //Place pin
+				else newBoard.p2 = Xor(newBoard.p2, POS_TO_MPOS(availBits[a])); //Place pin
+				newBoard.rotate(q, r); //Rotate
+				char buffer[30];
+				sprintf(buffer, "%I64X_%I64X", newBoard.p1, newBoard.p2);
+				std::string key = buffer;
+				if (!movesSet.count(key)) {									
+					movesSet[key] = true;
+					moves.push_back(newBoard);
+					addSymMoves(movesSet, newBoard.p1, newBoard.p2);
+				}
+			}
+		}
+		return moves;
+	}
+	
+	void addSymMoves(hashMap& movesSet, uint64 curP1, uint64 curP2) {		
+	uint64 p1s[] = {0,0,0,0,0,0,0};
+	uint64 p2s[] = {0,0,0,0,0,0,0};
+	//Generate all symmetrical moves
+	for (int i = 0; i < BOARD_SPACES; i++) {
+		for (int k = 0; k < 7; k++) {
+			uint64 mpos = POS_TO_MPOS(i);
+			uint64 transPos = POS_TO_MPOS(SYM_MAP[k][i]);
+			uint64 player1 = p1s[k];
+			uint64 player2 = p2s[k];
+			if (And(curP1, mpos)) p1s[k] = Xor(player1, transPos);
+			if (And(curP2, mpos)) p2s[k] = Xor(player2, transPos);
+		}
+	}
+	for (int i = 0; i < 7; i++) {
+		char buffer[30];
+		sprintf(buffer, "%I64X_%I64X", p1s[i], p2s[i]);
+		std::string key = buffer;
+		movesSet[buffer] = true;
+	}
+}
 
 	int findWin() {
 		//Check if there are enough pins on the board for a win   
