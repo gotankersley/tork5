@@ -19,10 +19,8 @@ inline float randf (float min, float max) {
 struct NeuralNet {
 	float hidden[NN_HIDDEN][NN_INPUTS];
 	float output[NN_HIDDEN];	
-	float fitness;
 
-	NeuralNet() {
-		fitness = 0;
+	NeuralNet() {		
 	}
 
 	//Create new random neural net
@@ -32,8 +30,7 @@ struct NeuralNet {
 				hidden[h][i] = randf(-1, 1);
 			}		
 			output[h] = randf(-1, 1);
-		}
-		fitness = 0;
+		}		
 	}
 
 	//Load from serialized neural net string
@@ -48,8 +45,7 @@ struct NeuralNet {
 			}
 			iss >> weight;
 			output[h] = weight;
-		}		
-		fitness = 0;
+		}				
 	}
 
 	void load(std::string path) {
@@ -132,41 +128,5 @@ struct NeuralNet {
 		}
 		return kid;
 	}
-
-	void playMatch() { //Vs. random player
-		Board board;
-
-		for (int i = 0; i < 18; i++) {
-
-			//First player
-			std::vector<Board> moves = board.getAllMoves();
-			float bestScore = -GENE_INFINITY;
-			int bestMove;
-			for (int m = 0; m < moves.size(); m++) {
-				float inputs[NN_INPUTS];
-				moves[m].toNNInputs(inputs);
-				float score = calculate(inputs);
-				if (score > bestScore) {
-					bestScore = score;
-					bestMove = m;
-				}
-			}
-			board = moves[bestMove];
-			int winFound = board.findWin();
-			if (winFound) {
-				fitness += 1.0f;				
-				return;
-			}
-			
-
-			//Second player
-			board.makeRandomMove();
-			winFound = board.findWin();
-			if (winFound) {
-				fitness += -1.0f;
-				return;				
-			}
-
-		}						
-	}
+	
 };

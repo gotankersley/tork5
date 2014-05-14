@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include "neuralnet.h"
+#include "gene.h"
 
 using namespace std;
 
@@ -18,8 +18,15 @@ const int NUM_ELITE = 5;
 const int UNFIT = -1;
 const int GA_INFINTY = 1000000;
 
-NeuralNet* GA_select(NeuralNet* pool[]) {
-	//Use tournament style selectino
+
+void GA_initPool(Gene* pool[]) {
+	for (int p = 0; p < POOL_SIZE; p++) {
+		pool[p] = new Gene(true);
+    }
+}
+
+Gene* GA_select(Gene* pool[]) {
+	//Use tournament style selection
 	float bestFitness = -GA_INFINTY;
 	int bestIndex;
 	for (int t = 0; t < TOURNAMENT_SIZE; t++) {
@@ -32,117 +39,135 @@ NeuralNet* GA_select(NeuralNet* pool[]) {
 	return pool[bestIndex];
 }
 
+bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {		
+	for (int e = 0; e < NUM_ELITE; e++) {
+		elite[e] = pool[e];
+	}
+	float worstFitness = GA_INFINTY;				
+	float avgFitness = 0;
 
+	for (int p = 0; p < POOL_SIZE; p++) {	
+		//Play random games as fitness function
+		for (int n = 0; n < NUM_FITNESS_GAMES; n++) {			
+			pool[p]->setFitness();
+		}
+		printf("%i eval\n", p);
+
+		//Identify metrics
+		float fitness = pool[p]->fitness;
+		if (fitness < worstFitness) worstFitness = fitness; //Worst
+		avgFitness += fitness; //Average
+
+		//Elite
+		if (fitness > elite[0]->fitness) { //elite fitness 0 has the worst of the elite
+			for (int e = NUM_ELITE - 1; e >= 0; e--) { //Go backwards from best of elite
+				Gene* curElite = pool[p];
+				if (elite[e]->fitness > curElite->fitness) { //Bump lesser values out
+					Gene* tmp = elite[e];
+					elite[e] = curElite;
+					curElite = tmp;
+				}
+			}
+		}				
+	}
+
+	avgFitness /= POOL_SIZE;
+	float bestFitness = elite[NUM_ELITE-1]->fitness;
+
+	//Report
+	if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\t|\t%f\n", g, bestFitness, avgFitness, worstFitness);
+	if (bestFitness >= NUM_FITNESS_GAMES) return true;
+	return false;
+}
+
+void GA_populate(Gene* pool[], Gene* nextPool[], Gene* elite[]) {
+	//Pre-promote elite		
+	for (int e = 0; e < NUM_ELITE; e++) {
+		nextPool[e] = elite[e]->clone();
+	}		
+		
+	for (int p = NUM_ELITE; p < POOL_SIZE; p++) {
+
+		//Select parents (Tournament style)
+		Gene* parent1 = GA_select(pool);
+		Gene* parent2 = GA_select(pool);		
+
+		//Combine
+		float crossoverProbablity = randf(0, 1);			
+			
+		if (crossoverProbablity <= CROSSOVER_RATE) { //Combine includes crossover and mutation				
+			nextPool[p] = parent1->combine(parent2); 
+		}
+		else { //Promote parents
+			nextPool[p] = parent1->clone();
+			p++;
+			if (p < POOL_SIZE) nextPool[p] = parent2->clone();
+		}
+	}			
+}
+
+
+Gene* GA_getBest(Gene* pool[]) {
+	float bestFitness = -GA_INFINTY;
+	int bestGene = -1;
+	for (int p = 0; p < POOL_SIZE; p++) {
+		if (pool[p]->fitness > bestFitness) {
+			bestFitness = pool[p]->fitness;
+			bestGene = p;
+		}
+	}
+	return pool[bestGene];
+}
+
+void GA_cleanup(Gene* pool[]) {
+	for (int p = 0; p < POOL_SIZE; p++) { //Cleanup all pointers from current pool
+		delete pool[p];
+	}
+}
+
+void GA_save(Gene* pool[]) {
+	ofstream fout;
+	fout.open ("nn.txt");
+	//fout << bestGene->nn.toString() << endl;
+	fout.close();
+}
+
+//float fitnesses[NUM_OPPONENTS][POOL_SIZE];		
+//#pragma omp parallel num_threads(NUM_OPPONENTS)
+//{//int id = omp_get_thread_num();
 void GA_train() {	
 
 	printf("Gen\t|\tBest Fitness\t|\tAvg\t|\tWorst\n");	
 
 	//Initialize (Pre-populate) pool	
-	NeuralNet* pools[2][POOL_SIZE];
+	Gene* pools[2][POOL_SIZE]; //2 for current pool, and next pool
 	int curPool = 0;		
-	for (int p = 0; p < POOL_SIZE; p++) {
-		pools[curPool][p] = new NeuralNet(true);			
-    }
+	GA_initPool(pools[curPool]);
+
 			
 	//Evolve	
-	for (int g = 0; g < GENERATIONS; g++) {		
-		
-		//float fitnesses[NUM_OPPONENTS][POOL_SIZE];		
-		//#pragma omp parallel num_threads(NUM_OPPONENTS)
-		//{
-		//int id = omp_get_thread_num();
+	for (int g = 0; g < GENERATIONS; g++) {						
 
-		//Evaluate - Get fitness for all genes in pool				
-		NeuralNet* elite[NUM_ELITE];
-		for (int e = 0; e < NUM_ELITE; e++) {
-			elite[e]->fitness = -GA_INFINTY;
-		}
-		float worstFitness = GA_INFINTY;				
-		float avgFitness = 0;
-		for (int p = 0; p < POOL_SIZE; p++) {	
-			//Play random games as fitness function
-			for (int n = 0; n < NUM_FITNESS_GAMES; n++) {
-				pools[curPool][p]->playMatch();
-			}
-
-			//Identify metrics
-			float fitness = pools[curPool][p]->fitness;
-			if (fitness < worstFitness) worstFitness = fitness; //Worst
-			avgFitness += fitness; //Average
-
-			//Elite
-			if (fitness > elite[0]->fitness) { 
-				for (int e = NUM_ELITE - 1; e >= 0; e--) {
-					NeuralNet* newElite = pools[curPool][p];
-					if (elite[e]->fitness > newElite->fitness) { //Bump lesser values out
-						NeuralNet* tmp = elite[e];
-						elite[e] = newElite;
-						newElite = tmp;
-					}
-				}
-			}				
-		} //end evaulate		
-		avgFitness /= POOL_SIZE;
-
-		//Report
-		if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\t|\t%f\n", g, elite[NUM_ELITE-1]->fitness, avgFitness, worstFitness);
-							
+		//Evaluate - Get fitness for all genes in pool
+		Gene* elite[NUM_ELITE];
+		if (GA_evaluate(g, pools[curPool], elite)) break; //Evaluate return true if goal reached											
 
 		//Save
-		/*if (g % SAVE_FREQ == 0) {
-			ofstream fout;
-			fout.open ("nn.txt");
-			fout << bestGene->nn.toString() << endl;
-			fout.close();
-		}*/
+		//else if (g % SAVE_FREQ == 0) GA_save(pools[curPool]);					
 
-		//Promote Elite
+		//Fill up the next pool by combining parents
 		int nextPool = !curPool;
-		for (int e = 0; e < NUM_ELITE; e++) {
-			pools[nextPool][e] = elite[e];
-		}
-		
-
-		//Fill up the next pool by combining parents		
-		for (int p = NUM_ELITE; p < POOL_SIZE; p++) {
-
-			//Select parents (Tournament style)
-			NeuralNet* parent1 = GA_select(pools[curPool]);
-			NeuralNet* parent2 = GA_select(pools[curPool]);		
-
-			//Combine
-			float crossoverProbablity = randf(0, 1);			
-			
-			if (crossoverProbablity <= CROSSOVER_RATE) { //Combine includes crossover and mutation				
-				pools[nextPool][p] = parent1->combine(parent2); 
-			}
-			else { //Promote parents
-				pools[nextPool][p] = parent1->clone();
-				p++;
-				if (p < POOL_SIZE) pools[nextPool][p] = parent2->clone();
-			}
-
-		}		
-		
+		GA_populate(pools[curPool], pools[nextPool], elite);					
 
 		//Swap current pool with next pool
-		for (int p = 0; p < POOL_SIZE; p++) { //Cleanup all pointers from current pool
-			delete pools[curPool][p];
-		}
-		curPool = !curPool;
+		GA_cleanup(pools[curPool]);
+		curPool = !curPool; 		
 	}	
 
 	//Get best gene in pool
-	//bestFitness = -GA_INFINTY;
-	//NeuralNet* bestGene;
-	//for (int p = 0; p < POOL_SIZE; p++) {		
-	//	if (pools[curPool][p]->fitness > bestFitness) {
-	//		bestFitness = pools[curPool][p]->fitness;
-	//		bestGene = pools[curPool][p];
-	//	}
-	//}	
-	//printf("\nBest gene: %s\n", bestGene->toString().c_str());
-	//for (int p = 0; p < POOL_SIZE; p++) {		
-	//	delete pools[curPool][p];
-	//}
+	Gene* best = GA_getBest(pools[curPool]);
+	printf("\nBest gene: %f\n%s\n", best->nn.toString().c_str());
+
+	//Cleanup
+	GA_cleanup(pools[curPool]);	
 }
