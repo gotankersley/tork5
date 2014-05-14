@@ -13,7 +13,7 @@ const int GENERATIONS = 100;
 const int REPORT_FREQ = 1;
 const int SAVE_FREQ = 25;
 const float CROSSOVER_RATE = 0.7;
-const int NUM_FITNESS_GAMES = 50;
+const int NUM_FITNESS_GAMES = 10;
 const int NUM_ELITE = 5;
 const int UNFIT = -1;
 const int GA_INFINTY = 1000000;
@@ -45,19 +45,22 @@ bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
 	}
 	float worstFitness = GA_INFINTY;				
 	float avgFitness = 0;
-
+	float b = -GA_INFINTY;
 	for (int p = 0; p < POOL_SIZE; p++) {	
 		//Play random games as fitness function
+		pool[p]->fitness = 0;
 		for (int n = 0; n < NUM_FITNESS_GAMES; n++) {			
 			pool[p]->setFitness();
 		}
-		printf("%i eval\n", p);
+		//printf("%i eval\n", p);
 
 		//Identify metrics
 		float fitness = pool[p]->fitness;
 		if (fitness < worstFitness) worstFitness = fitness; //Worst
 		avgFitness += fitness; //Average
-
+		if (fitness > b) {
+			b = fitness;
+		}
 		//Elite
 		if (fitness > elite[0]->fitness) { //elite fitness 0 has the worst of the elite
 			for (int e = NUM_ELITE - 1; e >= 0; e--) { //Go backwards from best of elite
@@ -75,7 +78,7 @@ bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
 	float bestFitness = elite[NUM_ELITE-1]->fitness;
 
 	//Report
-	if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\t|\t%f\n", g, bestFitness, avgFitness, worstFitness);
+	if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\t|\t%f\t|\t%f\n", g, b, avgFitness, worstFitness);
 	if (bestFitness >= NUM_FITNESS_GAMES) return true;
 	return false;
 }
@@ -137,7 +140,7 @@ void GA_save(Gene* pool[]) {
 //{//int id = omp_get_thread_num();
 void GA_train() {	
 
-	printf("Gen\t|\tBest Fitness\t|\tAvg\t|\tWorst\n");	
+	printf("Gen\t|\tBest Fitness\t|\tAvg\t\t|\tWorst\n");	
 
 	//Initialize (Pre-populate) pool	
 	Gene* pools[2][POOL_SIZE]; //2 for current pool, and next pool
