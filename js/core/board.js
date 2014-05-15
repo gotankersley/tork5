@@ -589,6 +589,36 @@ Board.prototype.score = function(inv) {
     }
 }
 
+Board.prototype.score2 = function() {
+    var board;
+    var opp;    
+	var curScore = 0;
+	var oppScore = 0;
+	//Turn inverted because move has already been made before evaluating board state
+    if (this.turn == PLAYER2) {
+        board = this.p1;
+        opp = this.p2;
+    }
+    else {
+        board = this.p2;
+        opp = this.p1;
+    }
+	
+	for (var i = 0; i < 32; i++) { //32 possible win lines
+	if (!and(opp, WINS[i])) { //Make sure opponent not blocking
+		var pinCount = bitCount(and(board, WINS[i]));
+		curScore += Math.pow(pinCount, 5);
+	}
+
+	if (!and(board, WINS[i])) { //Make sure opponent not blocking
+		var pinCount = bitCount(and(opp, WINS[i]));
+		oppScore += Math.pow(pinCount, 3);
+	}
+	return curScore - oppScore;
+}
+return curScore - oppScore;
+}
+
 function scoreWinLines(board, opp, positions, numToWin) {	
 	var winLines = {};
 	var score = 0;

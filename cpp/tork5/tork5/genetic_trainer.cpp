@@ -7,13 +7,13 @@
 
 using namespace std;
 
-const int TOURNAMENT_SIZE = 4;
-const int POOL_SIZE = 100;
+const int TOURNAMENT_SIZE = 5;
+const int POOL_SIZE = 500;
 const int GENERATIONS = 1000;
 const int REPORT_FREQ = 1;
 //const int SAVE_FREQ = 25;
 const float CROSSOVER_RATE = 0.7;
-const int NUM_FITNESS_GAMES = 50;
+const int NUM_FITNESS_GAMES = 5;
 const int NUM_ELITE = 5;
 const int UNFIT = -1;
 const int GA_INFINTY = 1000000;
@@ -52,7 +52,7 @@ bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
 		//Play random games as fitness function
 		pool[p]->fitness = 0;
 		for (int n = 0; n < NUM_FITNESS_GAMES; n++) {			
-			pool[p]->setFitness();
+			pool[p]->setFitness(n);
 		}
 		
 
@@ -83,7 +83,7 @@ bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
 
 	//Report
 	if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\t|\t%f\t|\t%f\n", g, bestFitness, avgFitness, worstFitness);
-	if (bestFitness >= NUM_FITNESS_GAMES) return true;
+	if (bestFitness >= 70) return true;
 	return false;
 }
 

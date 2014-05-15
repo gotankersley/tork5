@@ -9,7 +9,7 @@
 #include "board_wins.h"
 #include "board_masks.h"
 
-
+const int INFIN = 1000000;
 struct Board {
 	uint64 p1;
 	uint64 p2;
@@ -314,7 +314,81 @@ struct Board {
 		}
 	}
 
+
 	int score() {
+		uint64 board;
+		uint64 opp;    
+		int curScore = 0;
+		int oppScore = 0;
+		//Turn inverted because move has already been made before evaluating board state
+		if (turn == PLAYER2) {
+			board = p1;
+			opp = p2;
+		}
+		else {
+			board = p2;
+			opp = p1;
+		}
+		
+		//Board less than half full, so check pins
+		int count = bitCount(Or(board, opp));
+		if (count <= 20) { 	//20 rather than 18 because of additional winchecking overhead required for empty spaces
+			curScore = scoreWinLines(board, opp, board, 5);        
+			oppScore = scoreWinLines(opp, board, opp, 4);
+		}
+		//Board more than half full, so check empty spaces
+		else {
+			//Have to check for wins
+			for (int i = 0; i < 18; i++) {
+				uint64 mid = MID_WINS[i];
+				if (And(board, mid) == mid && And(board, SPAN_WINS[i])) {
+					curScore = INFIN;
+					break;
+				}
+				else if (And(opp, mid) == mid && And(opp, SPAN_WINS[i])) {
+					oppScore = INFIN;
+					break;
+				}
+			}
+			uint64 avail = Not(Or(board, opp));
+			curScore += scoreWinLines(board, opp,avail, 5);
+			oppScore += scoreWinLines(opp, board,avail, 4);
+		}			
+		return curScore - oppScore;		
+	}
+
+	int scoreWinLines(uint64 board, uint64 opp, uint64 poses, int numToWin) {	
+		list positions = bitScan(poses);
+		std::map<uint64, bool> winLines;
+		
+		int score = 0;
+	
+		//Loop through positions
+		for (int i = 0; i < positions.size(); i++) {
+			int pos = positions[i];
+			//Get all win lines from board space			
+			for (int k = 0; k < 24; k++) {
+				if (AVAIL_WINS[pos][k]) {
+					winLines[AVAIL_WINS[pos][k]] = true; //Set to avoid checking multiple times 
+				}
+			}
+		}
+	
+		//Loop through possible win lines		
+		for (std::map<uint64, bool>::iterator iterator = winLines.begin(); iterator != winLines.end(); iterator++) {
+			uint64 winKey = iterator->first;		
+			if (!And(opp, winKey)) {
+				int pinCount = bitCount(And(board, winKey));
+				if (pinCount >= numToWin) score += INFIN;
+				else score += (pinCount >= 4)? pow((float)pinCount, 5) : pow((float)pinCount, 3);			
+			        
+			}                
+		
+		}
+		return score;
+	}
+
+	int score2() {
 		uint64 board;
 		uint64 opp;    
 		int curScore = 0;
