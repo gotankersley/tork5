@@ -1,4 +1,4 @@
-var MC_SIMULATIONS = 500;
+var MC_SIMULATIONS = 200;
 var MC_SIM_DIST = false;
 var MC_FLAT = true;
 

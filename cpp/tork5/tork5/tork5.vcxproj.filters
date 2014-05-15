@@ -51,5 +51,8 @@
     <ClCompile Include="genetic_trainer.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
+    <ClCompile Include="mc.cpp">
+      <Filter>AI</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

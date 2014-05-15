@@ -83,7 +83,7 @@ bool GA_evaluate(int g, Gene* pool[], Gene* elite[]) {
 
 	//Report
 	if (g % REPORT_FREQ == 0) printf("%i\t|\t%f\t|\t%f\t|\t%f\n", g, bestFitness, avgFitness, worstFitness);
-	if (bestFitness >= 70) return true;
+	if (bestFitness >= 65) return true;
 	return false;
 }
 
