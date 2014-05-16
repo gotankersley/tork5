@@ -82,10 +82,33 @@ void GA_train();
 
 void main(int argc, char* argv[])
 {	
-	//srand((unsigned int) time(0));		
+	srand((unsigned int) time(0));		
 	//GA_train();
-	
-	//return;
+	NeuralNet nn(true);
+	float inputs1[] = {0, 0};
+	float inputs2[] = {0, 1};
+	float inputs3[] = {1, 0};
+	float inputs4[] = {1, 1};
+	int val = 0;
+	if (nn.calculate(inputs1) <= 0) val++;
+	if (nn.calculate(inputs2) > 0) val++;
+	if (nn.calculate(inputs3) > 0) val++;
+	if (nn.calculate(inputs4) <= 0) val++;
+
+	for (int i = 0; i < 1000; i++) {
+		nn.backprop(inputs1, 0);
+		nn.backprop(inputs2, 1);
+		nn.backprop(inputs3, 1);
+		nn.backprop(inputs4, 0);
+	}
+	int val2 = 0;
+	if (nn.calculate(inputs1) <= 0) val2++;
+	if (nn.calculate(inputs2) > 0) val2++;
+	if (nn.calculate(inputs3) > 0) val2++;
+	if (nn.calculate(inputs4) <= 0) val2++;
+	printf("Output: %i, %i\n", val, val2);
+	cin.get();
+	return;
 	Board board;	
 	if (argc > 1) {
 		board.p1 = _atoi64(argv[1]);

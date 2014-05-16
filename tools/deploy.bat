@@ -1,5 +1,5 @@
-rem "C:\Program Files (x86)\Java\jre7\bin\java" -jar c:\test\gclosure.jar --compilation_level SIMPLE_OPTIMIZATIONS ^
-"java" -jar c:\src\gclosure.jar --compilation_level SIMPLE_OPTIMIZATIONS ^
+rem "java" -jar c:\src\gclosure.jar --compilation_level SIMPLE_OPTIMIZATIONS ^
+"C:\Program Files (x86)\Java\jre7\bin\java" -jar c:\test\gclosure.jar --compilation_level SIMPLE_OPTIMIZATIONS ^
 --js c:\www\tork5\js\lib\bitlib.js ^
 --js c:\www\tork5\js\data\avail-wins.js ^
 --js c:\www\tork5\js\data\win-meta.js ^

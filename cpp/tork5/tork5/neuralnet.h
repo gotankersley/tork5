@@ -6,13 +6,18 @@
 
 
 //Constants
-const int NN_INPUTS = 36;
-const int NN_HIDDEN = 20;
-const float BIAS = 1.0f;
+const int NN_INPUTS = 2;//36;
+const int NN_HIDDEN = 3;//20;
+const float BIAS = 0.0f;
 const float MUTATION_RATE = 0.05;
+const float LEARNING_RATE = 0.1f;
 
 inline float randf (float min, float max) {
 	return ((float(rand()) / float(RAND_MAX)) * (max - min)) + min;
+}
+
+inline float sigmoidDerivative(float y) {
+	return 1 - (y * y); //Derivative of tanh
 }
 
 //Simple MLP 
@@ -89,6 +94,47 @@ struct NeuralNet {
 
 		//Active output neuron
 		return tanh(outputValue);
+	}
+
+	void backprop(float inputs[], float target) {
+		//NOTE: The steps here are optmized for a NN with a single output only
+		//Feedforward to get error - Done here instead of using calculate() so we can store hidden activations
+		float hiddenActivations[NN_HIDDEN];
+
+		float outputValue = BIAS;
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			float hiddenValue = BIAS;
+			for (int i = 0; i < NN_INPUTS; i++) {
+				hiddenValue += (inputs[i] * hidden[h][i]);
+			}
+
+			//Activate hidden neuron - which acts as input to output neuron
+			hiddenActivations[h] = tanh(hiddenValue);
+			outputValue += (hiddenActivations[h] * output[h]);
+		}
+
+		//Active output neuron
+		float outputActivation = tanh(outputValue);
+
+		//Calculate output error
+		float outputDelta = (target - outputActivation) * sigmoidDerivative(outputActivation);
+
+		for (int h = 0; h < NN_HIDDEN; h++) {
+			//Calculate hidden errors (This has to be done before adjusting output weights)
+			float hiddenDelta = (outputDelta * outputActivation) * sigmoidDerivative(hiddenActivations[h]);
+			
+			//Adjust output weights
+			output[h] += (LEARNING_RATE * outputDelta * hiddenActivations[h]);
+			//Bias?
+
+			//Adjust hidden weights
+			for (int i = 0; i < NN_INPUTS; i++) {
+				hidden[h][i] += (LEARNING_RATE * hiddenDelta * inputs[i]);
+				//Bias ?
+			}
+		}
+
+		//return calculate(inputs);
 	}
 
 	NeuralNet clone() {
