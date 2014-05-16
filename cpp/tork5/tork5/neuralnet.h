@@ -7,7 +7,7 @@
 
 //Constants
 const int NN_INPUTS = 2;//36;
-const int NN_HIDDEN = 3;//20;
+const int NN_HIDDEN = 2;//20;
 const float BIAS = 0.0f;
 const float MUTATION_RATE = 0.05;
 const float LEARNING_RATE = 0.1f;
@@ -121,7 +121,7 @@ struct NeuralNet {
 
 		for (int h = 0; h < NN_HIDDEN; h++) {
 			//Calculate hidden errors (This has to be done before adjusting output weights)
-			float hiddenDelta = (outputDelta * outputActivation) * sigmoidDerivative(hiddenActivations[h]);
+			float hiddenDelta = (outputDelta * output[h]) * sigmoidDerivative(hiddenActivations[h]);
 			
 			//Adjust output weights
 			output[h] += (LEARNING_RATE * outputDelta * hiddenActivations[h]);
