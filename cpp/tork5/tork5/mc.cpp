@@ -1,7 +1,8 @@
 #include <vector>
 #include "board.h"
+#include "neuralnet.h"
 
-const int MC_SIMULATIONS = 1000;
+const int MC_SIMULATIONS = 700;
 const int MC_INFINITY = 1000000;
 const int MC_WIN = 1;
 const int MC_LOSE = -1;
@@ -41,7 +42,26 @@ int MC_simulate(Board board) {
 }
 
 
+void MC_getScore(Board board, NeuralNet& nn) {
+	int moveCount = bitCount(Or(board.p1, board.p2));
+	std::vector<Board> moves = (moveCount >= 2)? board.getAllMoves() : board.getAllNonSymMoves();
+		
+	#pragma omp parallel for
+	for (int m = 0; m < moves.size(); m++) {
+		int score = 0;
+		
+		for (int s = 0; s < MC_SIMULATIONS; s++) {
+			score += MC_simulate(moves[m]);
+		}
 
+		float normScore = (((float)score / (float)MC_SIMULATIONS) * 2) - 1; //Move to range of [-1, 1]
+		float inputs[NN_INPUTS];
+		board.toNNInputs(inputs);
+		nn.backprop(inputs, normScore);
+	}
+	//board.deriveMove(moves[bestMove], pos, quad, rot);	
+}
+/*
 void MC_getMove(Board board, int& pos, int& quad, int& rot) {	
 	int winFound = board.findWin();
 	if (winFound) {
@@ -49,10 +69,11 @@ void MC_getMove(Board board, int& pos, int& quad, int& rot) {
 		return;
 	}
 
-	std::vector<Board> moves = board.getAllMoves();
+	int moveCount = bitCount(Or(board.p1, board.p2));
+	std::vector<Board> moves = (moveCount > 2)? board.getAllMoves() : board.getAllNonSymMoves();
 	int bestScore = -MC_INFINITY;
 	int bestMove;
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int m = 0; m < moves.size(); m++) {
 		int score = 0;
 		
@@ -66,4 +87,4 @@ void MC_getMove(Board board, int& pos, int& quad, int& rot) {
 		}
 	}
 	board.deriveMove(moves[bestMove], pos, quad, rot);	
-}
+}*/

@@ -9,7 +9,7 @@ double round(double number)
     return number < 0.0 ? ceil(number - 0.5) : floor(number + 0.5);
 }
 void MCTS_getMove(Board board, int& pos, int& quad, int& rot);
-void MC_getMove(Board board, int& pos, int& quad, int& rot);
+//void MC_getMove(Board board, int& pos, int& quad, int& rot);
 void NN_getMove(Board board, int &pos, int&quad, int& rot) {	
 	NeuralNet nn;
 	if (bitCount(And(board.p1, board.p2)) % 2 == 0)	nn.load("nn-player1.txt");
@@ -77,19 +77,39 @@ void play(Board board) {
 	int quad;
 	int rot;	        	
 	//MCTS_getMove(board, pos, quad, rot);			
-	MC_getMove(board, pos, quad, rot);			
+	//MC_getMove(board, pos, quad, rot);			
 	//NN_getMove(board, pos, quad, rot);			
 	//Heuristic_getMove(board, pos, quad, rot);			
 	printf("{\"pos\":%i, \"quad\":%i, \"rot\":%i}", pos, quad, rot);	
 }
+void MC_getScore(Board board, NeuralNet& nn);
+void BP_test() {
+	NeuralNet nn(true);	
+	for (int g = 0; g < 10; g++) {
+		Board board;
+		for (int i = 0; i < 18; i++) {
+			//First player
+			MC_getScore(board, nn); //Evaluate all moves
+			board.makeRandomMove();
+			if (board.isWin()) break;
 
+			//Second player
+			board.makeRandomMove();
+			if (board.isWin()) break;
+		}
+		printf("%i\n", g);
+		if (g % 5 == 0) nn.save("bp.nn");
+	}
+	nn.save("bpfin.nn");
+}
 void GA_train();
 
 void main(int argc, char* argv[])
 {	
 	//srand((unsigned int) time(0));		
 	//GA_train();	
-	//return;
+	BP_test();
+	return;
 	Board board;	
 	if (argc > 1) {
 		board.p1 = _atoi64(argv[1]);

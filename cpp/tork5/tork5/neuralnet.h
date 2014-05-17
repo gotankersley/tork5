@@ -6,8 +6,8 @@
 
 
 //Constants
-const int NN_INPUTS = 2;//36;
-const int NN_HIDDEN = 2;//20;
+const int NN_INPUTS = 36;
+const int NN_HIDDEN = 20;
 const float MUTATION_RATE = 0.05;
 const float LEARNING_RATE = 0.1f;
 
