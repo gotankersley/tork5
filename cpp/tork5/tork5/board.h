@@ -354,7 +354,11 @@ struct Board {
 			curScore += scoreWinLines(board, opp,avail, 5);
 			oppScore += scoreWinLines(opp, board,avail, 4);
 		}			
-		return curScore - oppScore;		
+		//return curScore - oppScore;		
+		float score = curScore - oppScore;
+        if (score >= INFIN) return 1;
+        else if (score <= -INFIN) return -1;
+        else return score/INFIN;
 	}
 
 	int scoreWinLines(uint64 board, uint64 opp, uint64 poses, int numToWin) {	
