@@ -98,7 +98,7 @@ void main(int argc, char* argv[])
 	if (nn.calculate(inputs3) > 0) val++;
 	if (nn.calculate(inputs4) <= 0) val++;
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 200; i++) {
 		nn.backprop(inputs1, 0);
 		nn.backprop(inputs2, 1);
 		nn.backprop(inputs3, 1);
