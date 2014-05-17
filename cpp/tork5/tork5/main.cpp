@@ -9,6 +9,7 @@ double round(double number)
     return number < 0.0 ? ceil(number - 0.5) : floor(number + 0.5);
 }
 void MCTS_getMove(Board board, int& pos, int& quad, int& rot);
+void MC_getMove(Board board, int& pos, int& quad, int& rot);
 void NN_getMove(Board board, int &pos, int&quad, int& rot) {	
 	NeuralNet nn;
 	if (bitCount(And(board.p1, board.p2)) % 2 == 0)	nn.load("nn-player1.txt");
@@ -76,7 +77,8 @@ void play(Board board) {
 	int quad;
 	int rot;	        	
 	//MCTS_getMove(board, pos, quad, rot);			
-	NN_getMove(board, pos, quad, rot);			
+	MC_getMove(board, pos, quad, rot);			
+	//NN_getMove(board, pos, quad, rot);			
 	//Heuristic_getMove(board, pos, quad, rot);			
 	printf("{\"pos\":%i, \"quad\":%i, \"rot\":%i}", pos, quad, rot);	
 }
@@ -86,36 +88,8 @@ void GA_train();
 void main(int argc, char* argv[])
 {	
 	//srand((unsigned int) time(0));		
-	//GA_train();
-	NeuralNet nn(true);
-	float inputs1[] = {0, 0};
-	float inputs2[] = {0, 1};
-	float inputs3[] = {1, 0};
-	float inputs4[] = {1, 1};
-	int val = 0;
-	if (nn.calculate(inputs1) <= 0) val++;
-	if (nn.calculate(inputs2) > 0) val++;
-	if (nn.calculate(inputs3) > 0) val++;
-	if (nn.calculate(inputs4) <= 0) val++;
-
-	for (int i = 0; i < 200; i++) {
-		nn.backprop(inputs1, 0);
-		nn.backprop(inputs2, 1);
-		nn.backprop(inputs3, 1);
-		nn.backprop(inputs4, 0);
-	}	
-	printf("[%d,%d] = %f\n", (int)inputs1[0], (int)inputs1[1], nn.calculate(inputs1));
-	printf("[%d,%d] = %f\n", (int)inputs2[0], (int)inputs2[1], nn.calculate(inputs2));
-	printf("[%d,%d] = %f\n", (int)inputs3[0], (int)inputs3[1], nn.calculate(inputs3));
-	printf("[%d,%d] = %f\n", (int)inputs4[0], (int)inputs4[1], nn.calculate(inputs4));	
-	int val2 = 0;
-	if (round(nn.calculate(inputs1)) == 0) val2++;
-	if (round(nn.calculate(inputs2)) == 1) val2++;
-	if (round(nn.calculate(inputs3)) == 1) val2++;
-	if (round(nn.calculate(inputs4)) == 0) val2++;
-	printf("Output: %i, %i\n", val, val2);
-	//cin.get();
-	return;
+	//GA_train();	
+	//return;
 	Board board;	
 	if (argc > 1) {
 		board.p1 = _atoi64(argv[1]);

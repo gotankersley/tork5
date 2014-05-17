@@ -88,7 +88,7 @@ MC.prototype.simulate = function(board) {
                 var move = board.getMoveFromMidWin(winFound);
                 board.turn = !board.turn;
                 board.setPin(move.pos);
-                board.rotate(move.quad, move.rot);
+                if (move.quad != INVALID) board.rotate(move.quad, move.rot);
             }
             else {
                 board.turn = !board.turn;
