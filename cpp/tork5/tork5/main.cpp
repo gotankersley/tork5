@@ -84,10 +84,9 @@ void play(Board board) {
 	printf("{\"pos\":%i, \"quad\":%i, \"rot\":%i}", pos, quad, rot);	
 }
 void MC_getScore(Board board, NeuralNet& nn);
-float MC_testScore(Board board, NeuralNet& nn);
 void BP_train() {
 	NeuralNet nn(true);	
-	for (int g = 0; g < 100000; g++) {
+	for (int g = 0; g < 10000; g++) {
 		Board board;
 		for (int i = 0; i < 18; i++) {
 			//First player
@@ -99,8 +98,8 @@ void BP_train() {
 			board.makeRandomMove();
 			if (board.isWin()) break;
 		}
-		if (g % 5 == 0) printf("%i - %f\n", g, MC_testScore(board, nn));		
-		if (g % 100 == 0) nn.save("bp.nn");
+		if (g % 5 == 0) printf("%i\n", g);		
+		if (g % 10 == 0) nn.save("bp.nn");
 	}
 	nn.save("bpfin.nn");
 }
