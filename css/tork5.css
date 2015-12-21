@@ -1,6 +1,17 @@
 body {
 	-webkit-user-select: none;
 }
+#find-wins{    
+    bottom: 0px;
+    color: gray;    
+    position: fixed;    
+    right: 0;    
+}
+#find-wins-text {
+    border: 1px solid gray;
+    height: 200px;
+    width: 200px;    
+}
 
 #tools {       
     position: fixed;
@@ -71,5 +82,3 @@ body {
     margin: auto 10px;
 }
 
- /* TREE-VIEWER */
- #treeViewerCanvas { border: 1px solid red; }

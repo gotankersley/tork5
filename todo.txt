@@ -1,5 +1,0 @@
-Features to add:
-- Show last board state
-- Show threats / wins
-
-

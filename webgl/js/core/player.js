@@ -6,7 +6,6 @@ function Player(currentGame, board, player1Type, player2Type) {
     this.player1 = player1Type;
     this.player2 = player2Type;  
 	this.startTime = 0;
-	this.move = null;
 }
 
 Player.prototype.set = function(playerNum, playerType) {
@@ -25,8 +24,6 @@ Player.prototype.create = function(playerType) {
         case PLAYER_HUMAN: return null;
         case PLAYER_RANDOM: return new Random(this.board);
 		case PLAYER_SIM: return new Sim(this.board);
-		case PLAYER_MC: return new MC(this.board);
-		case PLAYER_MC2: return new MC2(this.board);
         case PLAYER_MCTS: return new MCTS(this.board);
 		case PLAYER_CPP: return new CPP(this.board);
 		case PLAYER_ALPHA_BETA: return new AlphaBeta(this.board);
@@ -40,7 +37,7 @@ Player.prototype.play = function() {
 	if (playerType != PLAYER_HUMAN && this.game.mode != MODE_WIN) {
 		this.startTime = performance.now();		
 		var board = this.board;
-		if (SETTING_PLAYER_WORKER) { //Web-worker
+		if (SETTING_PLAYER_WORKER) {
 			var worker = new Worker('js/core/player-worker.js');
 			worker.onmessage = function(e) {
 				game.player.onPlayed(e.data);
@@ -48,19 +45,16 @@ Player.prototype.play = function() {
 			var data = {p1:board.p1, p2:board.p2, turn:board.turn, type:playerType};			
 			worker.postMessage(data); 
 		}
-		else { //Regular synchronous		
+		else {			
 			var player = this.create(playerType);
-			this.move = player.getMove(board);
-			if (!SETTING_SHOW_SCORE_MAP) this.onPlayed();
-			else if (!scoreEnabled) this.onPlayed();
+			var move = player.getMove(board);
+			this.onPlayed(move);
 		}
 	}
-	
 }
 
 
-Player.prototype.onPlayed = function() {	
-	var move = this.move;
+Player.prototype.onPlayed = function(move) {	
 	var elapsedTime = performance.now() - this.startTime;
 	var placeDelay = Math.max(0, SETTING_AI_PLACE_DELAY - elapsedTime);
 	console.log('Time: ' + (elapsedTime/1000) + ' seconds')
@@ -83,28 +77,3 @@ Player.prototype.onPlayed = function() {
 	else this.game.onInvalidMove(move);	
 }
 //End class Player
-
-//Score map
-var scoreEnabled = false;
-var scoreMap;
-var scoreBestR;
-var scoreBestC;
-var scoreBestArrow;
-function initScoreMap() {
-    //Init score map
-    scoreMap = [];
-	for (var r = 0; r < ROW_SPACES; r++) {
-		scoreMap.push([]);
-		for (var c = 0; c < COL_SPACES; c++) {
-			scoreMap[r].push([]);
-		}
-	}	
-}
-
-function enableScoreMap(move, total) {
-	scoreBestR = ROW[move.pos];
-	scoreBestC = COL[move.pos];
-	scoreBestArrow = rotToArrow(move.quad, move.rot);
-	game.message = 'Total: ' + total;
-	scoreEnabled = true;
-}

@@ -163,12 +163,6 @@ Board.prototype.isWin = function() {
     else return IN_PLAY;    
 }
 
-Board.prototype.canSkipRotation = function() {
-	var board = or(this.p1, this.p2);
-	if (!and(board, QUADS[0]) || !and(board, QUADS[1]) || !and(board, QUADS[2]) || !and(board, QUADS[3])) return true;
-	else return false;
-}
-
 Board.prototype.getWinLines = function(win) {
     var lines = [[],[]];
     for (var i = 0; i < MID_WINS.length; i++) {
@@ -221,18 +215,6 @@ Board.prototype.makeRandomMove = function() {
     this.rotate(randQuad, randRot);	
 }
 
-Board.prototype.makeDebugRandomMove = function() { 
-    var avail = and(QUADS[2], not(or(this.p1, this.p2)));
-    var availBits = bitScan(avail);
-    var randPos = availBits[Math.floor(Math.random() * availBits.length)];
-    if (this.turn == PLAYER1) this.p1 = xor(this.p1, POS_TO_MPOS[randPos]);
-    else this.p2 = xor(this.p2, POS_TO_MPOS[randPos]);
-    
-    var randQuad = Math.floor(Math.random() * BOARD_QUADS);
-    var randRot = Math.floor(Math.random() * 2);
-    this.rotate(randQuad, randRot);	
-}
-
 Board.prototype.getAllMoves = function() {
     var avail = not(or(this.p1, this.p2));
     var availBits = bitScan(avail);
@@ -256,27 +238,10 @@ Board.prototype.getAllMoves = function() {
 	return moves;
 }
 
-Board.prototype.getAllDebugMoves = function(mask) {
-	if (typeof(mask) == 'undefined') mask = 0x181248040;
-	if (this.turn == PLAYER1) mask = 0x101000000;
-    var avail = and(mask, not(or(this.p1, this.p2)));
-    var availBits = bitScan(avail);	
-	var moves = [];	
-	for (var a = 0; a < availBits.length; a++) {		
-		var newBoard = this.clone();
-		if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); //Place pin
-		else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); //Place pin
-		newBoard.turn = !newBoard.turn;
-		moves.push(newBoard);			
-	}
-	return moves;
-}
-
 Board.prototype.getAllNonLossMoves = function() { 
     var board;
     var opp;
-    var moves = [];
-    var moveSet = {};
+    var moves = {};
     if (this.turn == PLAYER1) {
         board = this.p1;
         opp = this.p2;
@@ -298,120 +263,10 @@ Board.prototype.getAllNonLossMoves = function() {
             if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); 
 			else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); 
             newBoard.rotate(q, r);
-            var boardIdStr = String(newBoard.p1) + '_' + String(newBoard.p2);
-            if (typeof(moveSet[boardIdStr]) == 'undefined') {
-				moveSet[boardIdStr] = true;
-				moves.push(newBoard);
-			}
+            moves[String(newBoard.p1) + '_' + String(newBoard.p2)] = newBoard;
         }
     }
     return moves;
-}
-
-Board.prototype.getMoveFromMidWin = function(i) {
-    var board = (this.turn == PLAYER1)? this.p1 : this.p2;
-    var avail = not(or(this.p1, this.p2));
-    var pos = INVALID;
-    var quad = INVALID;
-    var rot = INVALID;
-    //Short diag win without rotation        
-    if (i > 95) {
-        var combined = and(SHORT_WINS[i - 71], board);
-        pos = MPOS_TO_POS[xor(SHORT_WINS[i - 71], combined)];
-    }
-    
-    //Short diagonal win with rotation
-    else if (i > 70) { 
-        i -= 71;
-        quad = Math.floor(i/6);
-        rot = Math.floor(i/3)%2;
-        var win = SHORT_WINS[i];
-        var combined = and(board,win);
-        if (combined == win) {
-            var availBits = bitScan(avail); 
-            pos = availBits[0]; //Any available
-        }
-        else pos = MPOS_TO_POS[xor(win, combined)];               
-    }
-    //Long wins
-    else {
-        i--;    
-        if (i < 56) { //With rotation
-            quad = Math.floor(i/14);            
-            rot = Math.floor(i/7)%2;
-        }    
-        var mid = LONG_MID_WINS[i];  
-        var span = LONG_SPAN_WINS[i];
-        if (and(board, mid) == mid) {
-            var spanAvail = and(span, avail);
-            var availBits = (spanAvail)? bitScan(spanAvail) : bitScan(avail);            
-            pos = availBits[0];
-        }
-        else {
-            var availBits = bitScan(and(avail, mid));            
-            pos = availBits[0];
-        }
-                        
-    }
-    return {pos:pos, quad:quad, rot:rot};
-}
-
-Board.prototype.getAllNonSymMoves = function() {
-	var avail = not(or(this.p1, this.p2));
-    var availBits = bitScan(avail);
-	var moves = [];
-	var moveSet = {};
-	for (var a = 0; a < availBits.length; a++) {
-		for (var i = 0; i < ALL_ROTATIONS; i++) {
-			var q = Math.floor(i/2);
-            var r = i%2;
-            var newBoard = this.clone();
-            if (newBoard.turn == PLAYER1) newBoard.p1 = xor(newBoard.p1, POS_TO_MPOS[availBits[a]]); //Place pin
-			else newBoard.p2 = xor(newBoard.p2, POS_TO_MPOS[availBits[a]]); //Place pin
-            newBoard.rotate(q, r); //Rotate
-			var boardIdStr = String(newBoard.p1) + '_' + String(newBoard.p2);
-            if (typeof(moveSet[boardIdStr]) == 'undefined') {
-				moveSet[boardIdStr] = true;				
-				moves.push(newBoard);
-				var symMoves = getSymMoveIds(newBoard);
-				moveSet[symMoves[0]] = true;
-				moveSet[symMoves[1]] = true;
-				moveSet[symMoves[2]] = true;
-				moveSet[symMoves[3]] = true;
-				moveSet[symMoves[4]] = true;
-				moveSet[symMoves[5]] = true;
-				moveSet[symMoves[6]] = true;				
-			}
-		}
-	}
-	return moves;
-}
-
-function getSymMoveIds(board) {
-	var curP1 = board.p1;
-	var curP2 = board.p2;
-	var p1s = [0,0,0,0,0,0,0];
-	var p2s = [0,0,0,0,0,0,0];
-	//Generate all symmetrical moves
-	for (var i = 0; i < BOARD_SPACES; i++) {
-		for (var k = 0; k < 7; k++) {
-			var mpos = POS_TO_MPOS[i];
-			var transPos = POS_TO_MPOS[SYM_MAP[k][i]];
-			var p1 = p1s[k];
-			var p2 = p2s[k];
-			if (and(curP1, mpos)) p1s[k] = xor(p1, transPos);
-			if (and(curP2, mpos)) p2s[k] = xor(p2, transPos);
-		}
-	}
-	var symMoves = [];
-	symMoves.push(String(p1s[0]) + '_' + String(p2s[0]));
-	symMoves.push(String(p1s[1]) + '_' + String(p2s[1]));
-	symMoves.push(String(p1s[2]) + '_' + String(p2s[2]));
-	symMoves.push(String(p1s[3]) + '_' + String(p2s[3]));
-	symMoves.push(String(p1s[4]) + '_' + String(p2s[4]));
-	symMoves.push(String(p1s[5]) + '_' + String(p2s[5]));
-	symMoves.push(String(p1s[6]) + '_' + String(p2s[6]));
-	return symMoves;
 }
 
 Board.prototype.findOppRotateWins = function(opp) {
@@ -455,6 +310,50 @@ Board.prototype.findWin = function() {
     }
 		
 	return false;
+}
+
+Board.prototype.getMoveFromMidWin = function(i) {
+    var board = (this.turn == PLAYER1)? this.p1 : this.p2;
+    var avail = not(or(this.p1, this.p2));
+    var pos = INVALID;
+    var quad = INVALID;
+    var rot = INVALID;
+    //Short diag win without rotation        
+    if (i > 95) pos = MPOS_TO_POS[xor(SHORT_WINS[i - 71], board)];
+    
+    //Short diagonal win with rotation
+    else if (i > 70) { 
+        i -= 71;
+        quad = Math.floor(i/6);
+        rot = Math.floor(i/3)%2;
+        var win = SHORT_WINS[i];        
+        if (and(board, win) == win) {
+            var availBits = bitScan(avail); 
+            pos = availBits[0]; //Any available
+        }
+        else pos = MPOS_TO_POS[xor(win, board)];               
+    }
+    //Long wins
+    else {
+        i--;    
+        if (i < 56) { //With rotation
+            quad = Math.floor(i/14);            
+            rot = Math.floor(i/7)%2;
+        }    
+        var mid = LONG_MID_WINS[i];  
+        var span = LONG_SPAN_WINS[i];
+        if (and(board, mid) == mid) {
+            var spanAvail = and(span, avail);
+            var availBits = (spanAvail)? bitScan(spanAvail) : bitScan(avail);            
+            pos = availBits[0];
+        }
+        else {
+            var availBits = bitScan(and(avail, mid));            
+            pos = availBits[0];
+        }
+                        
+    }
+    return {pos:pos, quad:quad, rot:rot};
 }
 
 
@@ -578,45 +477,10 @@ Board.prototype.score = function(inv) {
 		var avail = not(or(board, opp));
 		curScore += scoreWinLines(board, opp, bitScan(avail), 5);
 		oppScore += scoreWinLines(opp, board, bitScan(avail), 4);
-	}		
-	if (typeof(inv) != 'undefined') return {cur:oppScore, opp:curScore, total:(oppScore - curScore)};
-    //else return curScore - oppScore;
-    else { //Normalize
-        var score = curScore - oppScore;
-        if (score >= INFINITY) return 1;
-        else if (score <= -INFINITY) return -1;
-        else return score/INFINITY;
-    }
-}
-
-Board.prototype.score2 = function() {
-    var board;
-    var opp;    
-	var curScore = 0;
-	var oppScore = 0;
-	//Turn inverted because move has already been made before evaluating board state
-    if (this.turn == PLAYER2) {
-        board = this.p1;
-        opp = this.p2;
-    }
-    else {
-        board = this.p2;
-        opp = this.p1;
-    }
-	
-	for (var i = 0; i < 32; i++) { //32 possible win lines
-	if (!and(opp, WINS[i])) { //Make sure opponent not blocking
-		var pinCount = bitCount(and(board, WINS[i]));
-		curScore += Math.pow(pinCount, 5);
-	}
-
-	if (!and(board, WINS[i])) { //Make sure opponent not blocking
-		var pinCount = bitCount(and(opp, WINS[i]));
-		oppScore += Math.pow(pinCount, 3);
-	}
-	return curScore - oppScore;
-}
-return curScore - oppScore;
+	}	
+	//console.log("Score: " + curScore + '/' + oppScore + ' = ' + (curScore - oppScore));
+	if (typeof(inv) != 'undefined') console.log("Score: " + oppScore + '/' + curScore + ' = ' + (oppScore - curScore));
+    return curScore - oppScore;
 }
 
 function scoreWinLines(board, opp, positions, numToWin) {	
@@ -639,7 +503,8 @@ function scoreWinLines(board, opp, positions, numToWin) {
 		if (!and(opp, winKeys[i])) {
 			var pinCount = bitCount(and(board, winKeys[i]));
 			if (pinCount >= numToWin) score += INFINITY;
-			else score += (pinCount >= 4)? Math.pow(pinCount, 5) : Math.pow(pinCount, 3);			
+			else score += (pinCount >= 4)? Math.pow(pinCount, 5) : Math.pow(pinCount, 3);
+			//var weightedCount = (pinCount >= 4)? Math.pow(pinCount, 5) : Math.pow(pinCount, 3);			
 			        
 		}        
         
@@ -694,20 +559,11 @@ Board.prototype.deriveMove = function(after) {
 	return {pos:INVALID, quad:INVALID, rot:INVALID};
 }
 
-Board.prototype.toNNInputs = function() {
-	//Convert bitboard to array(36) of pin positions.  E.g. 1_2 = [1, -1, 0, 0, 0, ... ];
-    var inputs = [];
-	for (var r = 0; r < ROW_SPACES; r++) {
-		for (var c = 0; c < COL_SPACES; c++) {			
-			var mpos = POS_TO_MPOS[POS[r][c]];
-			if (and(this.p1, mpos)) inputs.push(1);
-			else if(and(this.p2, mpos)) inputs.push(-1);
-			else inputs.push(0);
-		}
-    }
-    return inputs;
+Board.prototype.canSkipRotation = function() {
+	var board = or(this.p1, this.p2);
+	if (!and(board, QUADS[0]) || !and(board, QUADS[1]) || !and(board, QUADS[2]) || !and(board, QUADS[3])) return true;
+	else return false;
 }
-
 Board.prototype.clone = function() {
     var newBoard = new Board();
     newBoard.p1 = this.p1;
@@ -746,6 +602,6 @@ Board.prototype.printMove = function(move) {
 }
 
 Board.prototype.toString = function() {
-	return this.p1 + '_' + this.p2;
+	return '0x' + this.p1.toString(16) + ',0x' + this.p2.toString(16);
 }
 //End class Board
